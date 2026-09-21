@@ -13,7 +13,7 @@ const p={x:70,y:190,w:22,h:40,vx:0,vy:0,on:0,face:1,hp:6,inv:0,atk:0,dash:0,dc:0
 const shards=[850,1780,2880],got=new Set(),Q=[],F=[];let cam=0,t=0,scene='title',shake=0,msg='',mt=0,boss={x:4050,hp:18,dead:0,phase:0};
 function sol(X,Y,w,h){for(let s of S)if(X<s[0]+s[2]&&X+w>s[0]&&Y<s[1]+s[3]&&Y+h>s[1])return s}
 function burst(X,Y,N=10,col='#78f5df'){for(let i=0;i<N;i++){let a=Math.random()*6.28,z=.5+Math.random()*2.5;F.push({x:X,y:Y,vx:Math.cos(a)*z,vy:Math.sin(a)*z-1,l:30+Math.random()*20,c:col})}}
-function draw(im,X,Y,w,h,fr=0,flip=0){if(!im?.complete||!im.naturalWidth)return;let nf=Math.max(1,Math.round(im.width/128)),f=fr%nf;x.save();x.translate(X+(flip?w:0),Y);x.scale(flip?-1:1,1);x.drawImage(im,f*128,0,128,128,0,0,w,h);x.restore()}
+function draw(im,X,Y,w,h,fr=0,flip=0){if(!im?.complete||!im.naturalWidth)return false;const fh=im.naturalHeight||128;const nf=Math.max(1,Math.round(im.naturalWidth/fh));const fw=im.naturalWidth/nf;const f=((fr%nf)+nf)%nf;x.save();x.translate(X+(flip?w:0),Y);x.scale(flip?-1:1,1);x.drawImage(im,f*fw,0,fw,fh,0,0,w,h);x.restore();return true}
 
 function drawIcon(im,X,Y,w,h){if(!im?.complete||!im.naturalWidth)return false;x.drawImage(im,X,Y,w,h);return true}
 function hurt(z=1){if(p.inv)return;p.hp-=z;p.inv=55;shake=5;burst(p.x+11,p.y+20,12,'#ff6f87');if(p.hp<=0){p.hp=6;p.x=70;p.y=190;p.vx=p.vy=0;msg='THE SHRINE RESTORES YOU';mt=90}}
