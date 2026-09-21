@@ -1679,6 +1679,14 @@ var ASSETS = {
   tileCanvas: {},
   prop: {}
 };
+var PQ_PREMIUM_ART_V1 = {
+  ready: false,
+  chars: null,
+  tiles: null,
+  backgrounds: null,
+  enemies: null,
+  images: {}
+};
 function loadImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -1749,6 +1757,51 @@ async function loadAssets() {
   return ASSETS;
 }
 
+async function loadPremiumArt() {
+  try {
+    const [chars, tiles, backgrounds, enemies] = await Promise.all([
+      loadImage(assetUrl("premium/kenney/spritesheet-characters-default.png")),
+      loadImage(assetUrl("premium/kenney/spritesheet-tiles-default.png")),
+      loadImage(assetUrl("premium/kenney/spritesheet-backgrounds-default.png")),
+      loadImage(assetUrl("premium/kenney/spritesheet-enemies-default.png"))
+    ]);
+    PQ_PREMIUM_ART_V1.ready = true;
+    PQ_PREMIUM_ART_V1.chars = chars;
+    PQ_PREMIUM_ART_V1.tiles = tiles;
+    PQ_PREMIUM_ART_V1.backgrounds = backgrounds;
+    PQ_PREMIUM_ART_V1.enemies = enemies;
+    PQ_PREMIUM_ART_V1.images = { chars, tiles, backgrounds, enemies };
+    return true;
+  } catch (e) {
+    console.warn("[premium-art] CC0 pack could not be loaded:", e && e.message);
+    PQ_PREMIUM_ART_V1.ready = false;
+    return false;
+  }
+}
+function premiumCrop(img, sx, sy, sw, sh) {
+  if (!img) return null;
+  const c = document.createElement("canvas");
+  c.width = sw; c.height = sh;
+  const g = c.getContext("2d");
+  g.imageSmoothingEnabled = false;
+  g.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+  return c;
+}
+function drawPremiumCrop(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh, flip = false, alpha = 1) {
+  if (!img) return false;
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  ctx.globalAlpha = alpha;
+  if (flip) {
+    ctx.translate(dx + dw, dy);
+    ctx.scale(-1, 1);
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, dw, dh);
+  } else {
+    ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+  }
+  ctx.restore();
+  return true;
+}
 // mem:src/art/tiles.js
 function tile(name) {
   return ASSETS && ASSETS.ok && ASSETS.tileCanvas && ASSETS.tileCanvas[name] || null;
@@ -11944,6 +11997,7 @@ try {
 } catch (e) {
   assetsReady = false;
 }
+await loadPremiumArt();
 var game = new Game(renderer, input, save, audio);
 audio.setMusicVolume(save.data.settings.music);
 audio.setSfxVolume(save.data.settings.sfx);
@@ -12057,6 +12111,159 @@ function drawTileLab(themeName) {
   renderer.textOut(`TILE LAB - ${theme.toUpperCase()}`, 4, 4, "#ffffff", "#171226");
   renderer.ctx.imageSmoothingEnabled = false;
 }
+/* PQ_PREMIUM_ART_V1_RUNTIME */
+(function installPremiumArtRuntime(){
+  if (!PQ_PREMIUM_ART_V1.ready) return;
+  const P = PQ_PREMIUM_ART_V1;
+
+  // Hero: use Kenney's CC0 character as the visible player while retaining
+  // the existing physics, collision box and animation state machine.
+  const heroFrames = {
+    idle: [512,896],
+    runA: [384,512],
+    runB: [384,384],
+    jump: [384,640],
+    duck: [512,128],
+    climb: [512,384],
+    hit: [384,896]
+  };
+  function heroStateFrame(player){
+    if (player.dead) return heroFrames.hit;
+    if (player.hurtTimer > 0) return heroFrames.hit;
+    if (player.crouching) return heroFrames.duck;
+    if (player.onLadder) return heroFrames.climb;
+    if (!player.onGround && player.vy < 0) return heroFrames.jump;
+    if (!player.onGround && player.vy >= 0) return heroFrames.jump;
+    if (Math.abs(player.vx) > 0.35) {
+      return Math.floor(player.animTime * 10) % 2 ? heroFrames.runA : heroFrames.runB;
+    }
+    return heroFrames.idle;
+  }
+  const oldPlayerDraw = Player.prototype.draw;
+  Player.prototype.draw = function(renderer2, camX, camY, game2){
+    const ctx = renderer2.ctx;
+    const f = heroStateFrame(this);
+    const scale = this.crouching ? 0.39 : 0.44;
+    const dw = 128 * scale, dh = 128 * scale;
+    const dx = Math.round(this.cx - camX - dw/2);
+    const dy = Math.round(this.y - camY + this.h - dh + 7);
+    const blink = this.invuln > 0 && Math.floor(this.invuln / 4) % 2 === 0 && !this.dead;
+    if (!blink) {
+      drawPremiumCrop(ctx, P.chars, f[0], f[1], 128, 128, dx, dy, dw, dh, this.facing < 0, 1);
+      if (this.dashTime > 0) {
+        ctx.globalAlpha = 0.24;
+        drawPremiumCrop(ctx, P.chars, f[0], f[1], 128, 128, dx - this.facing * 6, dy, dw, dh, this.facing < 0, 0.32);
+        ctx.globalAlpha = 1;
+      }
+    }
+    if (this.powerup === "shield") {
+      ctx.save();
+      const pulse = 1 + Math.sin(this.animTime * 6) * 0.06;
+      ctx.globalAlpha = 0.22;
+      ctx.fillStyle = "#a44ef0";
+      ctx.beginPath();
+      ctx.arc(Math.round(this.cx - camX), Math.round(this.cy - camY - 8), 17 * pulse, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 0.72;
+      ctx.strokeStyle = "#d9b6ff";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(Math.round(this.cx - camX), Math.round(this.cy - camY - 8), 17 * pulse, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+  };
+
+  // Premium CC0 terrain overlay: preserve collision and special tiles,
+  // but visually replace repetitive dirt/grass blocks with detailed 64px art.
+  const oldDrawTilemap = drawTilemap;
+  drawTilemap = function(ctx, map, ts, camX, camY, time, viewW, viewH){
+    oldDrawTilemap(ctx, map, ts, camX, camY, time, viewW, viewH);
+    const theme = ts && ts.theme ? ts.theme.name : "meadow";
+    const x0 = Math.max(0, Math.floor(camX/16)-1);
+    const x1 = Math.min(map.w-1, Math.ceil((camX+viewW)/16)+1);
+    const y0 = Math.max(0, Math.floor(camY/16)-1);
+    const y1 = Math.min(map.h-1, Math.ceil((camY+viewH)/16)+1);
+    let topXY, centerXY;
+    if (theme === "meadow" || theme === "forest") {
+      topXY = [448, 960];
+      centerXY = [512, 0];
+    } else if (theme === "sky") {
+      topXY = [64, 704];
+      centerXY = [64, 896];
+    } else {
+      topXY = [64, 704];
+      centerXY = [64, 896];
+    }
+    for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++){
+      const id = map.get(x,y);
+      if (id !== T.SOLID) continue;
+      const above = isSolidLike(map.get(x,y-1)) || map.get(x,y-1)===T.BREAKABLE;
+      const src = above ? centerXY : topXY;
+      drawPremiumCrop(ctx, P.tiles, src[0], src[1], 64, 64, Math.round(x*16-camX), Math.round(y*16-camY), 16, 16);
+    }
+  };
+
+  // Premium backgrounds: CC0 Kenney scenes + a subtle animated grade.
+  const oldLevelBg = Game.prototype.drawLevelBackground;
+  if (typeof oldLevelBg === "function") {
+    Game.prototype.drawLevelBackground = function(ctx){
+      const theme = this.level && this.level.theme;
+      let spec = null;
+      if (theme === "meadow") spec = [512,768];
+      else if (theme === "forest") spec = [512,256];
+      else if (theme === "sky") spec = [256,512];
+      if (!spec) return oldLevelBg.call(this, ctx);
+      const camX = this.camera ? this.camera.drawX : 0;
+      ctx.save();
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(P.backgrounds, spec[0], spec[1], 256, 256, 0, 0, VIEW_W, VIEW_H);
+      const drift = Math.sin(this.time*0.22) * 8;
+      ctx.globalAlpha = 0.20;
+      if (theme === "meadow") {
+        drawPremiumCrop(ctx, P.backgrounds, 256, 512, 256, 256, -18 + drift, 4, VIEW_W + 36, VIEW_H - 44);
+      } else if (theme === "forest") {
+        drawPremiumCrop(ctx, P.backgrounds, 768, 256, 256, 256, 10 - drift, 10, VIEW_W - 20, VIEW_H - 36, false, 0.55);
+      } else if (theme === "sky") {
+        drawPremiumCrop(ctx, P.backgrounds, 256, 0, 256, 256, -10 - drift, 5, VIEW_W + 20, VIEW_H - 38, false, 0.55);
+      }
+      ctx.globalAlpha = 1;
+      const g = ctx.createLinearGradient(0, VIEW_H*0.48, 0, VIEW_H);
+      g.addColorStop(0, "rgba(5,8,18,0)");
+      g.addColorStop(1, theme==="forest" ? "rgba(10,24,18,0.36)" : "rgba(5,8,18,0.26)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,VIEW_W,VIEW_H);
+      ctx.restore();
+    };
+  }
+
+  // Premium enemy visuals.
+  const oldGloopDraw = Gloop.prototype.draw;
+  Gloop.prototype.draw = function(r, camX, camY){
+    const ctx=r.ctx;
+    const bob=Math.sin(this.animTime*7)*1.5;
+    const f=this.dead?[128,256]:(Math.abs(this.vx)>0.2?(Math.floor(this.animTime*8)%2?[192,128]:[192,64]):[192,192]);
+    drawPremiumCrop(ctx,P.enemies,f[0],f[1],64,64,this.x-camX-2,this.y-camY-7,24,24,this.facing<0,this.dead?0.55:1);
+    if(this.hurtFlash>0){ctx.save();ctx.globalAlpha=0.45;ctx.fillStyle="#fff";ctx.fillRect(Math.round(this.x-camX-2),Math.round(this.y-camY-7),24,24);ctx.restore();}
+  };
+  const oldBuzzDraw = Buzzwing.prototype.draw;
+  Buzzwing.prototype.draw = function(r, camX, camY){
+    const ctx=r.ctx;
+    const f=this.dead?[448,64]:(this.diveT>0?[192,320]:(Math.floor(this.animTime*8)%2?[448,128]:[448,64]));
+    drawPremiumCrop(ctx,P.enemies,f[0],f[1],64,64,this.cx-camX-12,this.cy-camY-12,24,24,this.facing<0,this.dead?0.55:1);
+  };
+
+  // Premium title hero preview.
+  const oldDrawTitle2 = drawTitle;
+  drawTitle = function(r,game2,menu){
+    oldDrawTitle2(r,game2,menu);
+    const ctx=r.ctx;
+    const f=heroFrames.idle;
+    drawPremiumCrop(ctx,P.chars,f[0],f[1],128,128,r.w/2-38,102,76,76,false,1);
+    r.textOutCenter("CC0 ART • PREMIUM VISUAL PASS",r.w/2,r.h-24,"#b9e8ff","#171226",{scale:0.62,alpha:0.75});
+  };
+})();
+
 /* PQ_REMAKE_SYSTEM_V1 */
 (function installPixelQuestRemake(){
   const _playerUpdate=Player.prototype.update;
