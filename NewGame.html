@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#070912">
+<title>Shadowbound: Echoes of Aether</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#060812;touch-action:none;font-family:ui-monospace,Consolas,monospace;color:#eaf7ff}
+body{display:flex;align-items:center;justify-content:center}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,#17233b 0,#060812 72%)}
+canvas{width:min(100vw,177.7778vh);height:min(56.25vw,100vh);image-rendering:pixelated;image-rendering:crisp-edges;display:block;background:#07101a;box-shadow:0 0 50px #10284d;touch-action:none}
+#boot{position:fixed;inset:0;display:grid;place-items:center;background:#060812;z-index:5;transition:opacity .3s}
+#boot.hide{opacity:0;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="game" width="480" height="270"></canvas></div>
+<div id="boot">AWAKENING AETHER…</div>
+<script>
+'use strict';
+const C=document.getElementById('game'),ctx=C.getContext('2d');
+ctx.imageSmoothingEnabled=false;
+const W=480,H=270,TAU=Math.PI*2;
+const keys=Object.create(null),touch=Object.create(null);
+let scene='title',time=0,camX=0,shake=0,flash=0;
+let particles=[],msg='',msgT=0;
+const level={w:4200,h:270,shards:new Set(),gateOpen:false,checkpoint:0,bossDead:false};
+const platforms=[
+[0,242,520,28],[600,232,330,38],[1010,242,420,28],[1500,226,360,44],[1960,242,360,28],
+[2380,224,290,46],[2600,188,170,18],[2830,154,170,18],[3100,224,420,46],[3570,210,240,60],[3860,242,340,28],
+[530,205,54,12],[710,180,76,12],[880,155,60,12],[1450,190,50,12],[1760,165,80,12],[1870,195,54,12],
+[2280,182,70,12],[2470,174,70,12],[2740,136,64,12],[2960,104,70,12],[3340,178,74,12],[3460,148,64,12]
+];
+const spikes=[[545,248,40,10],[930,248,70,10],[1430,248,70,10],[1875,248,60,10],[2320,248,60,10],[2810,248,65,10],[3530,248,40,10]];
+const shards=[
+{x:820,y:148,id:0},{x:1785,y:128,id:1},{x:2880,y:118,id:2}
+];
+const enemies=[
+{x:720,y:204,type:'slime',vx:-.35,min:650,max:870,hp:2},
+{x:1260,y:214,type:'stalker',vx:-.5,min:1100,max:1360,hp:3},
+{x:1710,y:198,type:'bat',vx:.7,min:1580,max:1880,hp:2,phase:0},
+{x:2150,y:214,type:'archer',vx:0,min:1990,max:2280,hp:3,shot:80},
+{x:2510,y:176,type:'slime',vx:.45,min:2400,max:2570,hp:2},
+{x:3260,y:202,type:'stalker',vx:-.5,min:3150,max:3470,hp:3}
+];
+const boss={x:4000,y:184,w:42,h:58,hp:14,max:14,phase:0,active:false};
+const p={x:80,y:190,w:12,h:22,vx:0,vy:0,on:false,coyote:0,face:1,hp:5,maxHp:5,atk:0,dash:0,dashCd:0,inv:0,spawn:80,shards:0};
+let projectiles=[];
+function down(k){return !!(keys[k]||touch[k])}
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1; if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(e.key.toLowerCase()))e.preventDefault()});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=0);
+function button(name,x,y,w,h,label){return{x,y,w,h,name,label,active:false}}
+const buttons=[
+button('left',12,218,34,34,'◀'),button('right',54,218,34,34,'▶'),button('jump',402,206,36,36,'A'),
+button('attack',361,220,32,32,'B'),button('dash',359,183,32,32,'C'),button('pause',8,40,24,16,'II')
+];
+let ptrs={};
+C.addEventListener('pointerdown',e=>{C.setPointerCapture(e.pointerId);ptrs[e.pointerId]=[e.clientX,e.clientY];applyTouches()});
+C.addEventListener('pointermove',e=>{if(ptrs[e.pointerId]){ptrs[e.pointerId]=[e.clientX,e.clientY];applyTouches()}});
+C.addEventListener('pointerup',e=>{delete ptrs[e.pointerId];applyTouches()});
+C.addEventListener('pointercancel',e=>{delete ptrs[e.pointerId];applyTouches()});
+function canvasPoint(x,y){const r=C.getBoundingClientRect();return[(x-r.left)*W/r.width,(y-r.top)*H/r.height]}
+function applyTouches(){for(const k in touch)delete touch[k];for(const id in ptrs){const [sx,sy]=canvasPoint(...ptrs[id]);for(const b of buttons){if(sx>=b.x&&sx<=b.x+b.w&&sy>=b.y&&sy<=b.y+b.h)touch[b.name]=1}}}
+function rects(a){return platforms.concat([[0,0,0,0]])}
+function solidAt(x,y,w,h){
+  for(const q of platforms){if(x<q[0]+q[2]&&x+w>q[0]&&y<q[1]+q[3]&&y+h>q[1])return q}
+  return null
+}
+function hitSpike(x,y,w,h){return spikes.some(s=>x<s[0]+s[2]&&x+w>s[0]&&y<s[1]+s[3]&&y+h>s[1])}
+function spawn(x,y,color='cyan',n=8){for(let i=0;i<n;i++){const a=Math.random()*TAU,s=.6+Math.random()*2.3;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1,life:24+Math.random()*22,color,size:1+Math.random()*2})}}
+function text(t,x,y,size=8,col='#eaf7ff',align='left'){ctx.font=size+'px monospace';ctx.textAlign=align;ctx.fillStyle=col;ctx.fillText(t,x,y)}
+function shadowText(t,x,y,size,col,align='left'){ctx.fillStyle='#041019';ctx.fillText(t,x+1,y+1);text(t,x,y,size,col,align)}
+function resetLevel(){p.x=p.spawn;p.y=190;p.vx=p.vy=0;p.hp=p.maxHp;p.inv=50;camX=Math.max(0,p.x-120);projectiles.length=0;for(const e of enemies)e.dead=false;e.hp=[2,3,2,3,2,3][0];boss.hp=boss.max;boss.dead=false;level.bossDead=false}
+function hurt(dmg=1){if(p.inv>0)return;p.hp-=dmg;p.inv=65;flash=7;shake=6;spawn(p.x+p.w/2,p.y+p.h/2,'#ff5b7d',12);if(p.hp<=0){p.hp=p.maxHp;p.x=p.spawn;p.y=190;p.vx=p.vy=0;msg='THE AETHER RESTORES YOU';msgT=110}}
+function attackBox(){return p.face>0?[p.x+9,p.y+5,18,15]:[p.x-15,p.y+5,18,15]}
+function movePlayer(){
+  const L=down('left')||down('a')||down('arrowleft'),R=down('right')||down('d')||down('arrowright');
+  if(L){p.vx-=.42;p.face=-1} if(R){p.vx+=.42;p.face=1}
+  if(!L&&!R)p.vx*=.78;p.vx=Math.max(-2.4,Math.min(2.4,p.vx));
+  const jump=down('jump')||down(' ')||down('w')||down('arrowup');
+  if(jump&&!movePlayer.jLast&&(p.on||p.coyote>0)){p.vy=-6.6;p.on=false;p.coyote=0;spawn(p.x+6,p.y+21,'#d9fbff',5)}
+  movePlayer.jLast=jump;
+  const atk=down('attack')||down('j');
+  if(atk&&!movePlayer.aLast&&p.atk<=0){p.atk=12;spawn(p.x+p.w/2+p.face*10,p.y+12,'#ffd75a',3)}
+  movePlayer.aLast=atk;
+  const dash=down('dash')||down('k')||down('shift');
+  if(dash&&!movePlayer.dLast&&p.dashCd<=0){p.dash=12;p.dashCd=50;p.vx=p.face*6.3;p.vy=0;spawn(p.x+p.w/2,p.y+12,'#64f8ff',12)}
+  movePlayer.dLast=dash;
+  if(p.dash>0)p.dash--; else {p.vy+=.34;p.vy=Math.min(7,p.vy)}
+  let nx=p.x+p.vx,ny=p.y+p.vy;
+  const hitX=solidAt(nx,p.y,p.w,p.h);if(hitX){if(p.vx>0)nx=hitX[0]-p.w;else if(p.vx<0)nx=hitX[0]+hitX[2];p.vx=0}
+  p.on=false;const hitY=solidAt(nx,ny,p.w,p.h);
+  if(hitY){if(p.vy>0){ny=hitY[1]-p.h;p.on=true;p.coyote=7}else if(p.vy<0)ny=hitY[1]+hitY[3];p.vy=0}else if(p.on)p.coyote=7;else p.coyote=Math.max(0,p.coyote-1);
+  p.x=Math.max(0,Math.min(level.w-p.w,nx));p.y=ny;
+  if(p.y>300||hitSpike(p.x,p.y,p.w,p.h))hurt(5);
+  if(p.atk>0)p.atk--;if(p.dashCd>0)p.dashCd--;if(p.inv>0)p.inv--;
+}
+function updateEnemies(){
+  for(const e of enemies){if(e.dead)continue;
+    if(e.type==='bat'){e.phase++;e.x+=Math.sin(e.phase*.05)*.7+e.vx;e.y=180+Math.sin(e.phase*.07)*18;if(e.x<e.min||e.x>e.max)e.vx*=-1}
+    else {e.x+=e.vx;if(e.x<e.min||e.x>e.max)e.vx*=-1}
+    if(e.type==='archer'){e.shot--;if(e.shot<=0){e.shot=95;if(Math.abs(p.x-e.x)<240){projectiles.push({x:e.x,y:e.y+7,vx:(p.x<e.x?-2.6:2.6),vy:-.15,life:130})}}}
+    if(Math.abs((p.x+p.w/2)-(e.x+7))<14&&Math.abs(p.y+10-e.y)<18)hurt(1);
+  }
+  projectiles.forEach(q=>{q.x+=q.vx;q.y+=q.vy;q.life--;if(Math.abs(q.x-p.x)<8&&Math.abs(q.y-p.y)<12){q.life=0;hurt(1)}});
+  projectiles=projectiles.filter(q=>q.life>0);
+  if(p.atk>0){const b=attackBox();for(const e of enemies){if(e.dead)continue;if(b[0]<e.x+14&&b[0]+b[2]>e.x&&b[1]<e.y+18&&b[1]+b[3]>e.y){e.hp--;e.vx+=p.face*.8;spawn(e.x+7,e.y+8,'#ffd75a',6);shake=3;if(e.hp<=0){e.dead=true;spawn(e.x+7,e.y+9,'#c8fff2',12)}}}}
+}
+function updateShards(){for(const s of shards){if(level.shards.has(s.id))continue;if(Math.abs(p.x-s.x)<14&&Math.abs(p.y-s.y)<18){level.shards.add(s.id);p.shards++;spawn(s.x,s.y,'#7dfff0',20);msg=p.shards<3?'AETHER SHARD '+p.shards+'/3':'THE CRYSTAL GATE OPENS';msgT=90;if(p.shards>=3)level.gateOpen=true}}}
+function updateBoss(){
+  if(p.x>3790)boss.active=true;
+  if(!boss.active||boss.dead)return;
+  boss.phase++;boss.y=180+Math.sin(boss.phase*.04)*7;
+  boss.x=3995+Math.sin(boss.phase*.015)*35;
+  if(boss.phase%75===0)projectiles.push({x:boss.x,y:boss.y+16,vx:(p.x<boss.x?-3:3),vy:-.7,life:150});
+  if(Math.abs(p.x-boss.x)<29&&Math.abs(p.y-boss.y)<42)hurt(1);
+  if(p.atk>0){const b=attackBox();if(b[0]<boss.x+boss.w&&b[0]+b[2]>boss.x&&b[1]<boss.y+boss.h&&b[1]+b[3]>boss.y){if(boss.phase%5===0){boss.hp--;spawn(boss.x+20,boss.y+22,'#ffd75a',8);shake=4;if(boss.hp<=0){boss.dead=true;level.bossDead=true;spawn(boss.x+20,boss.y+25,'#7dfff0',45);msg='THE AETHER IS YOURS';msgT=180}}}}}
+function update(){
+  time++;if(scene==='play'){movePlayer();updateEnemies();updateShards();updateBoss();camX+=(p.x-120-camX)*.12;camX=Math.max(0,Math.min(level.w-W,camX));}
+  particles.forEach(q=>{q.x+=q.vx;q.y+=q.vy;q.vy+=.05;q.life--});particles=particles.filter(q=>q.life>0);
+  if(msgT>0)msgT--;if(flash>0)flash--;if(shake>0)shake*=.86;if(shake<.2)shake=0;
+}
+function bg(){
+  const cx=camX;
+  const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#08152a');sky.addColorStop(.55,'#12334a');sky.addColorStop(1,'#10231f');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+  function ridge(par,base,color,amp){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(0,H);for(let x=-40;x<W+40;x+=28){const wx=x+cx*par;const y=base+Math.sin(wx*.008)*amp+Math.sin(wx*.023)*amp*.35;ctx.lineTo(x,y)}ctx.lineTo(W,H);ctx.fill()}
+  ridge(.12,92,'#0c2333',20);ridge(.24,118,'#0d2b33',18);ridge(.42,145,'#10362f',14);
+  for(let layer=0;layer<3;layer++){const sp=.33+layer*.11,ground=178+layer*16;for(let x=-20;x<W+40;x+=34){const wx=x+cx*sp,h=25+((Math.sin(wx*.13)+1)*.5)*26;ctx.fillStyle=layer===2?'#0a2a23':layer===1?'#0a322b':'#0b2a31';ctx.fillRect(x,ground-h,7,h);ctx.fillRect(x+5,ground-h+7,5,h-7)}}
+  ctx.globalAlpha=.12;ctx.fillStyle='#8dfff1';for(let i=0;i<18;i++){const x=(i*97+time*.35)%W;const y=58+(i*31)%130;ctx.fillRect(x,y,1,1)}ctx.globalAlpha=1;
+}
+function tileWorld(){
+  ctx.save();ctx.translate(-camX,0);
+  for(const q of platforms){ctx.fillStyle='#173d35';ctx.fillRect(q[0],q[1],q[2],q[3]);ctx.fillStyle='#2c6b4f';ctx.fillRect(q[0],q[1],q[2],3);ctx.fillStyle='#204d3e';ctx.fillRect(q[0],q[1]+3,q[2],2);for(let x=q[0]+8;x<q[0]+q[2]-2;x+=18){ctx.fillStyle=x%36?'#225443':'#2b5e48';ctx.fillRect(x,q[1]+6,4,3)}}
+  for(const s of spikes){ctx.fillStyle='#b7e6d6';for(let x=s[0];x<s[0]+s[2];x+=8){ctx.beginPath();ctx.moveTo(x,s[1]+9);ctx.lineTo(x+4,s[1]);ctx.lineTo(x+8,s[1]+9);ctx.fill()}}
+  if(!level.gateOpen){ctx.fillStyle='#7cf7ed';ctx.fillRect(3720,104,12,138);ctx.fillStyle='#d8fff8';for(let y=110;y<240;y+=20)ctx.fillRect(3718,y,16,3)}
+  else{ctx.fillStyle='#48b7a7';ctx.globalAlpha=.3;ctx.fillRect(3715,90,22,152);ctx.globalAlpha=1}
+  ctx.restore();
+}
+function drawPlayer(){
+  if(p.inv>0&&Math.floor(p.inv/4)%2===0)return;
+  const x=p.x-camX,y=p.y;
+  ctx.save();ctx.translate(x,y);
+  if(p.dash>0){ctx.globalAlpha=.22;ctx.fillStyle='#64f8ff';ctx.fillRect(-p.face*12+1,8,14,12);ctx.globalAlpha=.6;ctx.fillRect(-p.face*22+2,10,10,8)}
+  ctx.fillStyle='#101a28';ctx.fillRect(2,3,9,16);ctx.fillStyle='#27d7c8';ctx.fillRect(1,7,11,11);ctx.fillStyle='#17384a';ctx.fillRect(3,5,7,6);ctx.fillStyle='#f4d7a4';ctx.fillRect(5,2,6,7);ctx.fillStyle='#ffd75a';ctx.fillRect(4,0,7,3);ctx.fillStyle='#0b101c';ctx.fillRect(4,16,3,7);ctx.fillRect(9,16,3,7);
+  if(p.atk>0){ctx.fillStyle='#fff4b0';ctx.fillRect(p.face>0?12:-16,7,5,2);ctx.fillStyle='#ffd75a';ctx.fillRect(p.face>0?16:-19,5,3,7)}
+  ctx.restore();
+}
+function drawEnemy(e){
+  const x=e.x-camX,y=e.y;
+  ctx.save();ctx.translate(x,y);
+  if(e.type==='slime'){ctx.fillStyle='#61e4b6';ctx.beginPath();ctx.arc(7,9,8,Math.PI,0);ctx.lineTo(15,15);ctx.lineTo(0,15);ctx.closePath();ctx.fill();ctx.fillStyle='#08211c';ctx.fillRect(4,8,2,2);ctx.fillRect(10,8,2,2)}
+  else if(e.type==='bat'){ctx.fillStyle='#a77cff';ctx.fillRect(4,6,7,8);ctx.fillRect(-2,4,7,5);ctx.fillRect(11,4,7,5);ctx.fillStyle='#ffe7f7';ctx.fillRect(6,8,2,2)}
+  else if(e.type==='archer'){ctx.fillStyle='#3b6f7f';ctx.fillRect(3,3,9,16);ctx.fillStyle='#cfd8d2';ctx.fillRect(5,0,7,7);ctx.strokeStyle='#d7bc70';ctx.strokeRect(11,5,6,9)}
+  else{ctx.fillStyle='#d25f71';ctx.fillRect(2,2,11,17);ctx.fillStyle='#e8d7bd';ctx.fillRect(4,0,8,6);ctx.fillStyle='#171626';ctx.fillRect(5,2,2,2);ctx.fillRect(9,2,2,2);ctx.fillStyle='#7de0c5';ctx.fillRect(0,8,3,3)}
+  ctx.restore();
+}
+function drawBoss(){if(!boss.active||boss.dead)return;const x=boss.x-camX,y=boss.y;ctx.save();ctx.translate(x,y);ctx.fillStyle='#17243e';ctx.fillRect(4,10,34,43);ctx.fillStyle='#6f7f90';ctx.fillRect(7,5,28,15);ctx.fillStyle='#8fead9';ctx.fillRect(12,10,5,4);ctx.fillRect(25,10,5,4);ctx.fillStyle='#4b5b6e';ctx.fillRect(0,22,42,10);ctx.fillStyle='#2b3c52';ctx.fillRect(9,52,8,6);ctx.fillRect(26,52,8,6);ctx.restore();ctx.fillStyle='#152034';ctx.fillRect(350,17,110,6);ctx.fillStyle='#ff6a7a';ctx.fillRect(350,17,110*(boss.hp/boss.max),6);text('STONE WARDEN',355,13,7,'#d8edf4')}
+function drawShards(){ctx.save();ctx.translate(-camX,0);for(const s of shards){if(level.shards.has(s.id))continue;const bob=Math.sin(time*.08+s.id)*3;ctx.fillStyle='#7dfff0';ctx.beginPath();ctx.moveTo(s.x,s.y-10+bob);ctx.lineTo(s.x+6,s.y+bob);ctx.lineTo(s.x,s.y+10+bob);ctx.lineTo(s.x-6,s.y+bob);ctx.closePath();ctx.fill();ctx.fillStyle='#dffffa';ctx.fillRect(s.x-1,s.y-6+bob,2,5)}ctx.restore()}
+function ui(){
+  ctx.fillStyle='rgba(4,10,18,.62)';ctx.fillRect(8,8,150,27);
+  text('HP',14,20,7,'#bfeaf0');for(let i=0;i<p.maxHp;i++){ctx.fillStyle=i<p.hp?'#ff647b':'#303b4c';ctx.fillRect(30+i*11,14,8,7)}
+  text('SHARDS',92,30,6,'#7dfff0');text(p.shards+'/3',132,30,6,'#fff6bc');
+  const prog=Math.min(1,p.x/level.w);ctx.fillStyle='#102536';ctx.fillRect(186,10,120,4);ctx.fillStyle='#66e7d1';ctx.fillRect(186,10,120*prog,4);
+  if(msgT>0){ctx.fillStyle='rgba(3,10,17,.8)';ctx.fillRect(120,218,240,26);shadowText(msg,240,235,9,'#e8fffb','center')}
+  for(const b of buttons){const active=!!touch[b.name];ctx.fillStyle=active?'rgba(110,244,226,.42)':'rgba(6,17,28,.38)';ctx.fillRect(b.x,b.y,b.w,b.h);ctx.strokeStyle='rgba(180,255,242,.26)';ctx.strokeRect(b.x+.5,b.y+.5,b.w-1,b.h-1);text(b.label,b.x+b.w/2,b.y+b.h*.65,9,'#d9fff7','center')}
+}
+function title(){
+  bg();ctx.fillStyle='rgba(2,7,13,.45)';ctx.fillRect(0,0,W,H);
+  shadowText('SHADOWBOUND',240,78,24,'#7dfff0','center');shadowText('ECHOES OF AETHER',240,100,10,'#e8f4ff','center');
+  ctx.fillStyle='rgba(10,26,38,.9)';ctx.fillRect(142,124,196,45);ctx.strokeStyle='#4bbbac';ctx.strokeRect(142.5,124.5,195,44);
+  shadowText('START JOURNEY',240,143,10,'#ffd75a','center');text('◀ ▶  MOVE   A  JUMP   B  STRIKE   C  DASH',240,158,5,'#b7d2d9','center');
+  text('Collect 3 shards • awaken the gate • face the Stone Warden',240,190,6,'#8faeb7','center');
+  text('TOUCH START: TAP CENTER   •   KEYBOARD: ENTER / SPACE',240,214,5,'#5e7b87','center');
+}
+function play(){bg();tileWorld();drawShards();for(const e of enemies)if(!e.dead)drawEnemy(e);drawBoss();drawPlayer();for(const q of projectiles){ctx.fillStyle='#ffd75a';ctx.fillRect(q.x-camX,q.y,5,2)}for(const q of particles){ctx.globalAlpha=Math.max(0,q.life/35);ctx.fillStyle=q.color;ctx.fillRect(q.x-camX,q.y,q.size,q.size);ctx.globalAlpha=1}ui();if(level.bossDead){ctx.fillStyle='rgba(2,9,15,.72)';ctx.fillRect(0,0,W,H);shadowText('AETHER AWAKENED',240,106,18,'#7dfff0','center');text('THE WILD REMEMBERS YOUR NAME',240,128,7,'#e8f4ff','center');text('TAP / ENTER TO RETURN',240,151,7,'#ffd75a','center')}}
+function loop(){update();ctx.save();if(shake)ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);if(scene==='title')title();else play();ctx.restore();if(flash){ctx.fillStyle='rgba(255,80,110,.22)';ctx.fillRect(0,0,W,H)}requestAnimationFrame(loop)}
+function start(){scene='play';level.shards.clear();level.gateOpen=false;p.shards=0;p.spawn=80;p.x=80;p.y=190;p.hp=p.maxHp;boss.dead=false;boss.active=false;level.bossDead=false;for(const e of enemies)e.dead=false;msg='ENTER THE WILD FRONTIER';msgT=100}
+addEventListener('keydown',e=>{if(scene==='title'&&(e.key==='Enter'||e.key===' '))start();else if(scene==='play'&&level.bossDead&&(e.key==='Enter'||e.key===' '))scene='title'});
+C.addEventListener('pointerdown',e=>{if(scene==='title')start();else if(scene==='play'&&level.bossDead)scene='title'});
+setTimeout(()=>document.getElementById('boot').classList.add('hide'),450);
+loop();
+</script>
+</body>
+</html>
