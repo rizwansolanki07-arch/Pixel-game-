@@ -1,0 +1,86 @@
+# Cloud APK build for Pixel Quest — works entirely from a phone browser.
+#
+# HOW TO USE (no PC, no Android Studio, no Android SDK):
+#   1. Create a new GitHub repository.
+#   2. Upload "PixelQuest-Mobile.zip" into the repository (Add file → Upload files).
+#   3. Add this file as  .github/workflows/build-apk.yml  (Add file → Create new
+#      file, type the full path with slashes, paste this text, commit).
+#   4. Open the "Actions" tab → "Build Pixel Quest APK" → "Run workflow".
+#   5. In ~3 minutes the finished installable APK appears BOTH:
+#        - under "Releases" on the repo's main page (tap it, download the .apk), and
+#        - under the workflow run's "Artifacts" (a zip containing the .apk).
+#   6. On the phone: open the downloaded .apk and allow "install unknown apps".
+#
+# The APK bundles the whole game (offline, no permissions, no internet needed).
+name: Build Pixel Quest APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unpack the project
+        run: |
+          if [ -f PixelQuest-Mobile.zip ]; then
+            unzip -q -o PixelQuest-Mobile.zip
+          else
+            echo "No PixelQuest-Mobile.zip in the repo root (assuming the project is already here)."
+          fi
+          ls -la
+
+      - name: Find the Android project
+        id: locate
+        run: |
+          for d in android PixelQuest-Mobile/android .; do
+            if [ -f "$d/gradlew" ] && [ -f "$d/settings.gradle" ]; then
+              echo "dir=$d" >> "$GITHUB_OUTPUT"
+              echo "Using android project in: $d"
+              exit 0
+            fi
+          done
+          echo "::error::No Gradle project found. Upload PixelQuest-Mobile.zip to the repo root (or the contents of the android/ folder)."
+          exit 1
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.7'
+
+      - name: Build installable APK
+        working-directory: ${{ steps.locate.outputs.dir }}
+        run: |
+          chmod +x gradlew || true
+          gradle assembleRelease --no-daemon
+
+      - name: Upload the APK as a run artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PixelQuest-apk
+          path: ${{ steps.locate.outputs.dir }}/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+      - name: Publish the APK on the Releases page
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-${{ github.run_number }}
+          name: Pixel Quest APK (build ${{ github.run_number }})
+          body: "Installable, fully offline Pixel Quest APK. Download the .apk below and install it on Android (allow install from unknown sources)."
+          files: ${{ steps.locate.outputs.dir }}/app/build/outputs/apk/release/*.apk
