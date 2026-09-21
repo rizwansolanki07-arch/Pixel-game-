@@ -33,10 +33,13 @@ jobs:
           for html in "${targets[@]}"; do
             cp -f NewGame.html "$html"
             asset_root="$(dirname "$html")"
-            asset_dir="$asset_root/src/art/assets/premium/kenney"
-            mkdir -p "$asset_dir"
-            cp -f src/art/assets/premium/kenney/* "$asset_dir/"
-            echo "Synced $html and premium art -> $asset_dir"
+            premium_dir="$asset_root/src/art/assets/premium/kenney"
+            modern_dir="$asset_root/src/art/assets/modern"
+            mkdir -p "$premium_dir" "$modern_dir"
+            cp -f src/art/assets/premium/kenney/* "$premium_dir/"
+            cp -f src/art/assets/modern/* "$modern_dir/"
+            echo "Synced $html + premium art + modern game art"
+            find "$modern_dir" -maxdepth 1 -type f -printf "  %f %s bytes\\n" | sort
           done
 
       - name: Upgrade game graphics
