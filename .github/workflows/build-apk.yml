@@ -32,7 +32,7 @@ jobs:
               print('No packaged PixelQuest.html found; skipping graphics patch.')
               raise SystemExit(0)
           css_old = '''  #pqCanvas {\n    display: block; image-rendering: pixelated; image-rendering: crisp-edges;\n    touch-action: none; outline: none; background: #05060e;\n    box-shadow: 0 0 42px rgba(80, 130, 255, 0.18);\n  }'''
-          css_new = '''  #pqCanvas {\n    display: block; image-rendering: pixelated; image-rendering: crisp-edges;\n    touch-action: none; outline: none; background: #05060e;\n    box-shadow: 0 0 42px rgba(80, 130, 255, 0.18);\n    filter: saturate(1.18) contrast(1.08) brightness(1.04);\n  }\n  /* Graphics polish: cinematic vignette + soft atmospheric bloom without changing gameplay. */\n  #pqWrap::after {\n    content: ''; position: absolute; inset: 0; pointer-events: none;\n    background:\n      radial-gradient(circle at 50% 45%, rgba(120, 190, 255, 0.055) 0%, rgba(40, 70, 150, 0.025) 38%, rgba(0, 0, 0, 0.28) 100%),\n      linear-gradient(180deg, rgba(80, 150, 255, 0.035), transparent 35%, rgba(0, 0, 0, 0.12));\n    mix-blend-mode: screen;\n    animation: pqAtmosphere 8s ease-in-out infinite alternate;\n  }\n  @keyframes pqAtmosphere {\n    0% { transform: scale(1); opacity: 0.86; }\n    100% { transform: scale(1.045); opacity: 1; }\n  }\n  #pqWrap::before {\n    content: ''; position: absolute; inset: 0; pointer-events: none;\n    background: radial-gradient(ellipse at center, transparent 52%, rgba(0, 0, 0, 0.32) 100%);\n  }'''
+          css_new = '''  #pqCanvas {\n    display: block; image-rendering: pixelated; image-rendering: crisp-edges;\n    touch-action: none; outline: none; background: #05060e;\n    box-shadow: 0 0 42px rgba(80, 130, 255, 0.18);\n    filter: saturate(1.18) contrast(1.08) brightness(1.04);\n  }\n  /* Graphics polish: cinematic vignette + soft atmospheric bloom without changing gameplay. */\n  #pqWrap::after {\n    content: ''; position: absolute; inset: 0; pointer-events: none;\n    background:\n      radial-gradient(circle at 50% 45%, rgba(120, 190, 255, 0.055) 0%, rgba(40, 70, 150, 0.025) 38%, rgba(0, 0, 0, 0.28) 100%),\n      linear-gradient(180deg, rgba(80, 150, 255, 0.035), transparent 35%, rgba(0, 0, 0, 0.12));\n    mix-blend-mode: screen;\n  }\n  #pqWrap::before {\n    content: ''; position: absolute; inset: 0; pointer-events: none;\n    background: radial-gradient(ellipse at center, transparent 52%, rgba(0, 0, 0, 0.32) 100%);\n  }'''
           for p in targets:
               s = p.read_text(encoding='utf-8')
               if css_new not in s:
@@ -44,21 +44,7 @@ jobs:
                   print(f'Graphics polish applied to {p}')
           PY
 
-
-      - name: Add dynamic atmosphere effects
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          targets = list(Path('.').glob('**/app/src/main/assets/PixelQuest.html'))
-          fx_css = r'''\n  /* Dynamic atmosphere layer: lightweight particles, glow motes and drifting dust. */\n  #pqWrap { position: relative; overflow: hidden; }\n  #pqFx {\n    position: absolute; inset: 0; width: 100%; height: 100%;\n    pointer-events: none; z-index: 20;\n    image-rendering: auto;\n  }\n'''
-          fx_js = r'''\n<script id="pqDynamicAtmosphere">\n(() => {\n  const wrap = document.getElementById('pqWrap');\n  const game = document.getElementById('pqCanvas');\n  if (!wrap || !game || document.getElementById('pqFx')) return;\n  const fx = document.createElement('canvas');\n  fx.id = 'pqFx';\n  wrap.appendChild(fx);\n  const ctx = fx.getContext('2d');\n  const particles = [];\n  const COUNT = 34;\n  const rand = (a,b) => a + Math.random() * (b-a);\n  for (let i=0;i<COUNT;i++) particles.push({\n    x: Math.random(), y: Math.random(),\n    r: rand(0.7, 2.1), speed: rand(0.0008, 0.0022),\n    drift: rand(-0.0007,0.0007), phase: rand(0,Math.PI*2),\n    alpha: rand(0.10,0.34)\n  });\n  let last = performance.now();\n  function resize(){\n    const dpr = Math.min(window.devicePixelRatio || 1, 2);\n    const rect = wrap.getBoundingClientRect();\n    fx.width = Math.max(1, Math.round(rect.width*dpr));\n    fx.height = Math.max(1, Math.round(rect.height*dpr));\n    fx.style.width = rect.width+'px'; fx.style.height = rect.height+'px';\n    ctx.setTransform(dpr,0,0,dpr,0,0);\n  }\n  function frame(now){\n    const dt = Math.min(40, now-last); last=now;\n    const w=fx.clientWidth, h=fx.clientHeight;\n    ctx.clearRect(0,0,w,h);\n    for (const p of particles){\n      p.y -= p.speed * dt; p.x += p.drift * dt;\n      if (p.y < -0.03) { p.y=1.03; p.x=Math.random(); }\n      if (p.x < -0.03) p.x=1.03; if (p.x > 1.03) p.x=-0.03;\n      const pulse = 0.72 + 0.28*Math.sin(now*0.0015+p.phase);\n      const x=p.x*w, y=p.y*h, r=p.r*(0.85+0.15*pulse);\n      const g=ctx.createRadialGradient(x,y,0,x,y,r*4);\n      g.addColorStop(0, 'rgba(190,225,255,'+(p.alpha*pulse)+')');\n      g.addColorStop(0.35, 'rgba(100,180,255,'+(p.alpha*0.32)+')');\n      g.addColorStop(1, 'rgba(50,100,255,0)');\n      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r*4,0,Math.PI*2); ctx.fill();\n    }\n    requestAnimationFrame(frame);\n  }\n  window.addEventListener('resize', resize, {passive:true});\n  resize(); requestAnimationFrame(frame);\n})();\n</script>\n'''
-          for p in targets:
-              s = p.read_text(encoding='utf-8')
-              if 'id="pqDynamicAtmosphere"' in s:
-                  print(f'Atmosphere already present in {p}')\n                  continue
-              if '</style>' not in s or '</body>' not in s:
-                  print(f'Expected HTML structure not found in {p}; leaving unchanged.')\n                  continue
-              s = s.replace('</style>', fx_css + '</style>', 1)\n              s = s.replace('</body>', fx_js + '</body>', 1)\n              p.write_text(s, encoding='utf-8')\n              print(f'Dynamic atmosphere added to {p}')\n          PY\n\n      - name: Find the Android project
+      - name: Find the Android project
         id: locate
         run: |
           for d in android PixelQuest-Mobile/android .; do
