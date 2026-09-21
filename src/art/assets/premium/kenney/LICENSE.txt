@@ -1,0 +1,6 @@
+Kenney New Platformer Pack
+Creator: Kenney (Assets)
+License: Creative Commons CC0 1.0 Universal.
+Source: https://kenney.nl/assets/new-platformer-pack
+Attribution is not required, but appreciated.
+The files in this folder were copied from a public CC0 mirror for integration into Pixel Quest.
