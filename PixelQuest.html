@@ -12390,6 +12390,197 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
+
+/* PQ_PREMIUM_FOREST_V3 */
+(function installPremiumForestV3(){
+  if(window.__PQ_PREMIUM_FOREST_V3)return;
+  window.__PQ_PREMIUM_FOREST_V3=true;
+
+  // Replace the flat/bright backdrop with a layered adventure scene.
+  // It is generated at runtime so the APK stays lightweight and the
+  // layers can move at different speeds with the camera.
+  Game.prototype.drawLevelBackground=function(ctx){
+    const theme=(this.level&&this.level.theme)||"forest";
+    const camX=this.camera?this.camera.drawX:0;
+    const t=this.time||0;
+    const w=VIEW_W,h=VIEW_H;
+
+    const palettes={
+      forest:["#07151b","#0b2630","#123d3a","#1d5748","#07121a"],
+      meadow:["#102238","#28536a","#4d7f75","#7aa86f","#14231d"],
+      sky:["#101b3b","#253e6b","#506b93","#86a7b8","#152035"],
+      fortress:["#080b14","#151b2a","#22283a","#343548","#080a10"]
+    };
+    const pal=palettes[theme]||palettes.forest;
+
+    ctx.save();
+    ctx.imageSmoothingEnabled=false;
+
+    const sky=ctx.createLinearGradient(0,0,0,h);
+    sky.addColorStop(0,pal[0]); sky.addColorStop(.42,pal[1]);
+    sky.addColorStop(.72,pal[2]); sky.addColorStop(1,pal[4]);
+    ctx.fillStyle=sky; ctx.fillRect(0,0,w,h);
+
+    // Far atmospheric mountain/tree silhouettes.
+    function ridge(offset,amp,color,alpha){
+      ctx.save(); ctx.globalAlpha=alpha; ctx.fillStyle=color;
+      ctx.beginPath(); ctx.moveTo(-20,h*0.56);
+      for(let x=-20;x<=w+20;x+=24){
+        const y=h*0.48 + Math.sin((x+offset)*0.018)*amp + Math.sin((x+offset)*0.041)*amp*.45;
+        ctx.lineTo(x,y);
+      }
+      ctx.lineTo(w+20,h);ctx.lineTo(-20,h);ctx.closePath();ctx.fill();ctx.restore();
+    }
+    ridge(camX*.10,15,pal[2],.55);
+    ridge(camX*.18,22,pal[3],.45);
+
+    // Large tree layer with parallax.
+    function tree(x,base,scale,color,alpha){
+      ctx.save();ctx.globalAlpha=alpha;
+      ctx.fillStyle=color;
+      const sway=Math.sin(t*.8+x*.03)*2;
+      ctx.fillRect(Math.round(x+sway-3*scale),Math.round(base-64*scale),Math.max(3,7*scale),64*scale);
+      ctx.fillRect(Math.round(x-10*scale+sway),Math.round(base-48*scale),8*scale,10*scale);
+      ctx.fillRect(Math.round(x+5*scale+sway),Math.round(base-58*scale),9*scale,11*scale);
+      ctx.fillRect(Math.round(x-18*scale+sway),Math.round(base-34*scale),12*scale,10*scale);
+      ctx.fillRect(Math.round(x+10*scale+sway),Math.round(base-30*scale),15*scale,11*scale);
+      ctx.restore();
+    }
+    const far=(camX*.30)%120;
+    for(let i=-2;i<8;i++) tree(i*74-far, h*.72, .7, "#0c302e", .58);
+    const mid=(camX*.58)%150;
+    for(let i=-2;i<7;i++) tree(i*92-mid, h*.88, 1.0, "#0b2727", .78);
+
+    // Forest canopy framing.
+    if(theme==="forest"){
+      ctx.fillStyle="rgba(2,9,12,.72)";
+      ctx.fillRect(0,0,w,16);ctx.fillRect(0,16,18,78);ctx.fillRect(w-18,16,18,78);
+      for(let i=0;i<13;i++){
+        const x=((i*47-camX*.72)%(w+70))-35;
+        const y=14+(i%3)*7;
+        ctx.fillStyle=i%2?"#0d3832":"#145047";
+        ctx.fillRect(x,y,34,10);
+        ctx.fillRect(x+7,y-7,22,9);
+      }
+    }
+
+    // Moving mist layer: follows the foreground speed from the supplied
+    // background specification.
+    for(let i=0;i<4;i++){
+      const x=((i*170+t*9)%(w+220))-110;
+      const y=122+i*24+Math.sin(t*.55+i)*5;
+      const g=ctx.createRadialGradient(x,y,4,x,y,70);
+      g.addColorStop(0,"rgba(103,239,201,.11)");
+      g.addColorStop(1,"rgba(103,239,201,0)");
+      ctx.fillStyle=g;ctx.fillRect(x-72,y-36,144,72);
+    }
+
+    // Firefly / crystal motes.
+    for(let i=0;i<28;i++){
+      const x=((i*91+t*(2+(i%3)))% (w+24))-12;
+      const y=34+((i*37)%145)+Math.sin(t*1.2+i)*4;
+      const a=.18+.16*Math.sin(t*2+i);
+      ctx.globalAlpha=Math.max(.05,a);
+      ctx.fillStyle=i%4===0?"#f8d66d":"#73f6d0";
+      ctx.fillRect(Math.round(x),Math.round(y),i%5===0?2:1,1);
+    }
+    ctx.globalAlpha=1;
+
+    // Ground-facing atmospheric grade.
+    const grade=ctx.createLinearGradient(0,h*.48,0,h);
+    grade.addColorStop(0,"rgba(3,9,12,0)");
+    grade.addColorStop(1,"rgba(2,7,10,.34)");
+    ctx.fillStyle=grade;ctx.fillRect(0,0,w,h);
+
+    ctx.restore();
+  };
+
+  // Make the existing terrain texture belong to the new forest world.
+  const _terrainV3=drawTilemap;
+  drawTilemap=function(ctx,map,ts,camX,camY,time,viewW,viewH){
+    _terrainV3(ctx,map,ts,camX,camY,time,viewW,viewH);
+    const theme=(ts&&ts.theme&&ts.theme.name)||"forest";
+    const x0=Math.max(0,Math.floor(camX/16)-1);
+    const x1=Math.min(map.w-1,Math.ceil((camX+viewW)/16)+1);
+    const y0=Math.max(0,Math.floor(camY/16)-1);
+    const y1=Math.min(map.h-1,Math.ceil((camY+viewH)/16)+1);
+    const tint=theme==="forest"?"#153b31":theme==="meadow"?"#315a36":theme==="sky"?"#263a52":"#25283a";
+    ctx.save();
+    ctx.globalCompositeOperation="multiply";
+    ctx.globalAlpha=.62;
+    for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+      const id=map.get(x,y);
+      if(!isSolidLike(id)&&id!==T.BREAKABLE)continue;
+      ctx.fillStyle=tint;
+      ctx.fillRect(Math.round(x*16-camX),Math.round(y*16-camY),16,16);
+    }
+    ctx.restore();
+
+    // Bright moss edge on exposed top surfaces.
+    ctx.save();
+    for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+      if(!isSolidLike(map.get(x,y)))continue;
+      if(isSolidLike(map.get(x,y-1))||map.get(x,y-1)===T.BREAKABLE)continue;
+      const dx=Math.round(x*16-camX),dy=Math.round(y*16-camY);
+      ctx.fillStyle=theme==="forest"?"#43b66a":"#68c96d";
+      ctx.fillRect(dx,dy,16,2);
+      ctx.fillStyle="#9ae878";
+      ctx.globalAlpha=.5;
+      ctx.fillRect(dx+2,dy,3,1);
+      ctx.globalAlpha=1;
+    }
+    ctx.restore();
+  };
+
+  // Use the clean CC0 hero sprite again, but make it read at mobile scale.
+  if(typeof PQ_PREMIUM_ART_V1!=="undefined"&&PQ_PREMIUM_ART_V1.ready){
+    const P=PQ_PREMIUM_ART_V1;
+    const hf={idle:[128,512],runA:[128,256],runB:[128,128],jump:[128,384],hit:[128,640]};
+    Player.prototype.draw=function(renderer2,camX,camY,game2){
+      const ctx=renderer2.ctx;
+      const f=this.hurtTimer>0?hf.hit:(!this.onGround?hf.jump:(Math.abs(this.vx)>.35?(Math.floor(this.animTime*9)%2?hf.runA:hf.runB):hf.idle));
+      const scale=.56;
+      const dw=128*scale,dh=128*scale;
+      const dx=Math.round(this.cx-camX-dw/2);
+      const dy=Math.round(this.y-camY+this.h-dh+8);
+      const blink=this.invuln>0&&Math.floor(this.invuln/4)%2===0&&!this.dead;
+      if(!blink)drawPremiumCrop(ctx,P.chars,f[0],f[1],128,128,dx,dy,dw,dh,this.facing<0,1);
+      if(this.dashTime>0){
+        for(let i=1;i<=2;i++)drawPremiumCrop(ctx,P.chars,f[0],f[1],128,128,dx-this.facing*i*7,dy,dw,dh,this.facing<0,.12);
+      }
+      if(this.powerup==="shield"){
+        ctx.save();ctx.globalAlpha=.18;ctx.strokeStyle="#8eeaff";ctx.lineWidth=1;
+        ctx.beginPath();ctx.arc(Math.round(this.cx-camX),Math.round(this.cy-camY-7),24+Math.sin(this.animTime*6)*2,0,Math.PI*2);ctx.stroke();ctx.restore();
+      }
+    };
+  }
+
+  // Less screen coverage: controls become guidance, not the main visual.
+  touchLayout=function(){
+    return [
+      {x:8,y:216,w:28,h:28,keys:["left"],label:"L"},
+      {x:64,y:216,w:28,h:28,keys:["right"],label:"R"},
+      {x:36,y:187,w:28,h:25,keys:["up"],label:"U"},
+      {x:36,y:217,w:28,h:25,keys:["down"],label:"D"},
+      {x:425,y:205,w:36,h:36,keys:["jump"],label:"A",big:true},
+      {x:385,y:216,w:30,h:28,keys:["attack"],label:"B"},
+      {x:388,y:181,w:30,h:28,keys:["dash"],label:"C"},
+      {x:8,y:38,w:24,h:16,keys:["pause"],label:"II"}
+    ];
+  };
+  if(typeof input!=="undefined"&&input&&typeof input.setTouchLayout==="function")input.setTouchLayout(touchLayout());
+
+  // A small cinematic level banner, then get out of the player's way.
+  const _introV3=drawLevelIntro;
+  drawLevelIntro=function(r,game2,t2){
+    _introV3(r,game2,t2);
+    const p=clamp(t2/.5,0,1);
+    const title=(game2.level&&game2.level.title||"THE CRYSTAL KINGDOM").toUpperCase();
+    r.textOutCenter("THE WILD FRONTIER",r.w/2,48,"#75f1c6","#061018",{scale:.9,alpha:.9*p});
+    r.textOutCenter(title,r.w/2,66,"#e8fbff","#061018",{scale:.62,alpha:.82*p});
+  };
+})();
+
 /* PQ_CINEMATIC_V2 */
 (function installCinematicV2(){
   if (window.__PQ_CINEMATIC_V2) return;
