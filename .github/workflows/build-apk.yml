@@ -39,7 +39,7 @@ jobs:
             cp -f src/art/assets/premium/kenney/* "$premium_dir/"
             cp -f src/art/assets/modern/* "$modern_dir/"
             # Unpack bundled binary art packs during CI so Git stores them efficiently.
-            for pack in src/art/assets/modern/*_pack.zip; do
+            for pack in src/art/assets/modern/modern_env_core.zip src/art/assets/modern/modern_enemy_micro.zip; do
               [ -f "$pack" ] || continue
               unzip -q -o "$pack" -d "$modern_dir"
             done
