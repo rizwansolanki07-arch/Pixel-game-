@@ -716,6 +716,7 @@ var Input = class {
     this.gamepadIndex = -1;
     this.touchButtons = [];
     this.touchKeys = {};
+    this.activePointers = {};
     this.latched = {};
     this.axis = { x: 0, y: 0 };
     for (const a of AXES) {
@@ -752,6 +753,7 @@ var Input = class {
   pointerDown(x, y, id) {
     this.touchActive = true;
     this.pointer = { x, y, id };
+    this.activePointers[id] = { x, y };
     let onButton = false;
     for (const b of this.touchButtons) {
       if (b.hidden || b.w <= 0) continue;
@@ -764,37 +766,42 @@ var Input = class {
       this.tap = { x, y, id };
       this.tapQueued = true;
     }
-    this._applyTouchPointers(x, y, true);
+    this._applyTouchPointers();
   }
   pointerMove(x, y, id) {
     if (this.pointer && this.pointer.id === id) {
       this.pointer.x = x;
       this.pointer.y = y;
     }
-    this._applyTouchPointers(x, y, true);
+    if (this.activePointers[id]) this.activePointers[id] = { x, y };
+    this._applyTouchPointers();
   }
   pointerUp(x, y, id) {
     if (this.pointer && this.pointer.id === id) this.pointer = null;
-    this._applyTouchPointers(x, y, false, id);
+    delete this.activePointers[id];
+    this._applyTouchPointers();
   }
   setTouchLayout(buttons) {
     this.touchButtons = buttons || [];
   }
-  _applyTouchPointers(x, y, active) {
+  _applyTouchPointers() {
     const hit = /* @__PURE__ */ new Set();
-    for (const b of this.touchButtons) {
-      if (x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h) {
-        for (const k of b.keys) hit.add(k);
+    for (const p of Object.values(this.activePointers)) {
+      for (const b of this.touchButtons) {
+        if (b.hidden || b.w <= 0) continue;
+        if (p.x >= b.x && p.x < b.x + b.w && p.y >= b.y && p.y < b.y + b.h) {
+          for (const k of b.keys) hit.add(k);
+        }
       }
     }
-    if (!active) {
-      for (const k of Object.keys(this.touchKeys)) this.down[k] = false;
-      this.touchKeys = {};
-      return;
+    for (const k of Object.keys(this.touchKeys)) {
+      if (!hit.has(k)) {
+        this.down[k] = false;
+        delete this.touchKeys[k];
+      }
     }
-    for (const k of Object.keys(this.touchKeys)) if (!hit.has(k)) this.down[k] = false;
     for (const k of hit) {
-      if (!this.touchKeys[k]) this.down[k] = true;
+      this.down[k] = true;
       this.touchKeys[k] = true;
     }
   }
@@ -9299,14 +9306,14 @@ function drawTouchBack(r) {
 }
 function touchLayout() {
   return [
-    { x: 8, y: 196, w: 44, h: 42, keys: ["left"], label: "<" },
-    { x: 100, y: 196, w: 44, h: 42, keys: ["right"], label: ">" },
-    { x: 54, y: 152, w: 44, h: 40, keys: ["up"], label: "^" },
-    { x: 54, y: 196, w: 44, h: 42, keys: ["down"], label: "v" },
-    { x: 408, y: 182, w: 56, h: 50, keys: ["jump"], label: "A", big: true },
-    { x: 352, y: 192, w: 46, h: 42, keys: ["attack"], label: "B" },
-    { x: 358, y: 128, w: 46, h: 42, keys: ["dash"], label: "C" },
-    { x: 6, y: 40, w: 44, h: 22, keys: ["pause"], label: "II" }
+    { x: 10, y: 198, w: 40, h: 40, keys: ["left"], label: "L" },
+    { x: 96, y: 198, w: 40, h: 40, keys: ["right"], label: "R" },
+    { x: 53, y: 156, w: 40, h: 38, keys: ["up"], label: "U" },
+    { x: 53, y: 200, w: 40, h: 38, keys: ["down"], label: "D" },
+    { x: 410, y: 184, w: 50, h: 50, keys: ["jump"], label: "A", big: true },
+    { x: 356, y: 198, w: 42, h: 40, keys: ["attack"], label: "B" },
+    { x: 362, y: 140, w: 42, h: 40, keys: ["dash"], label: "C" },
+    { x: 8, y: 42, w: 40, h: 20, keys: ["pause"], label: "II" }
   ];
 }
 function pixelDisc(ctx, cx, cy, r, color) {
@@ -9323,18 +9330,14 @@ function drawTouchControls(r, input2, game2) {
     const active = b.keys.some((k) => input2.isDown(k));
     const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
     const rad = Math.min(b.w, b.h) / 2;
-    ctx.globalAlpha = active ? 0.55 : 0.38;
-    pixelDisc(ctx, cx, cy + 2, rad, "#05070f");
-    ctx.globalAlpha = active ? 0.95 : 0.72;
-    pixelDisc(ctx, cx, cy, rad, "#05070f");
-    ctx.globalAlpha = active ? 0.95 : 0.64;
-    pixelDisc(ctx, cx, cy, rad - 1, active ? "#2ba6dc" : "#1b2440");
-    ctx.globalAlpha = active ? 0.95 : 0.58;
-    pixelDisc(ctx, cx, cy - 1, rad - 2, active ? "#3fb8ea" : "#232c50");
-    ctx.globalAlpha = active ? 1 : 0.8;
-    pixelDisc(ctx, cx, cy - 2, rad - 4, active ? "#bff2ff" : "#2c3866");
+    ctx.globalAlpha = active ? 0.72 : 0.28;
+    pixelDisc(ctx, cx, cy + 2, rad + 2, "#02040a");
+    ctx.globalAlpha = active ? 0.96 : 0.55;
+    pixelDisc(ctx, cx, cy, rad, active ? "#45c8f4" : "#17203a");
+    ctx.globalAlpha = active ? 0.95 : 0.48;
+    pixelDisc(ctx, cx, cy - 1, Math.max(1, rad - 2), active ? "#bff4ff" : "#2a3557");
     ctx.globalAlpha = 1;
-    r.textOutCenter(b.label, cx, cy - 4, active ? "#05070f" : "#dfe8f7", "#05070f", { scale: b.big ? 1.6 : 1.2 });
+    r.textOutCenter(b.label, cx, cy - 4, active ? "#07111b" : "#e8f5ff", "#07111b", { scale: b.big ? 1.35 : 1.05 });
   }
 }
 function drawMenuBackdrop(r, game2, tint) {
