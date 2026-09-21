@@ -23,6 +23,21 @@ jobs:
             exit 1
           fi
 
+      - name: Sync source game and premium assets
+        run: |
+          targets=( $(find . -type f -path '*/app/src/main/assets/PixelQuest.html') )
+          if [ ${#targets[@]} -eq 0 ]; then
+            echo "::error::No packaged PixelQuest.html found."
+            exit 1
+          fi
+          for html in "${targets[@]}"; do
+            cp -f PixelQuest.html "$html"
+            asset_dir="$(dirname "$html")/src/art/assets/premium/kenney"
+            mkdir -p "$asset_dir"
+            cp -f src/art/assets/premium/kenney/* "$asset_dir/"
+            echo "Synced $html and premium art -> $asset_dir"
+          done
+
       - name: Upgrade game graphics
         run: |
           python3 - <<'PY'
