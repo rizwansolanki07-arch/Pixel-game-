@@ -12119,13 +12119,13 @@ function drawTileLab(themeName) {
   // Hero: use Kenney's CC0 character as the visible player while retaining
   // the existing physics, collision box and animation state machine.
   const heroFrames = {
-    idle: [512,896],
-    runA: [384,512],
-    runB: [384,384],
-    jump: [384,640],
-    duck: [512,128],
-    climb: [512,384],
-    hit: [384,896]
+    idle: [128,512],
+    runA: [128,256],
+    runB: [128,128],
+    jump: [128,384],
+    duck: [128,896],
+    climb: [256,128],
+    hit: [128,640]
   };
   function heroStateFrame(player){
     if (player.dead) return heroFrames.hit;
