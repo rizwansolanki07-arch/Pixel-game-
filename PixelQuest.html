@@ -5773,42 +5773,42 @@ var Projectile = class {
 var WORLD_DEFS = [
   {
     id: 0,
-    name: "SUNLIT MEADOW",
+    name: "EMBERWILD FRONTIER",
     theme: "meadow",
     colour: "#63cc48",
-    blurb: "Bright grasslands, flowers, small hills, waterfalls and wooden bridges.",
+    blurb: "A living frontier where the first Crystal Flame has vanished.",
     music: "meadow"
   },
   {
     id: 1,
-    name: "MYSTIC FOREST",
+    name: "MOONROOT WILDS",
     theme: "forest",
     colour: "#3f9e52",
-    blurb: "Towering trees, fog, vines, mushrooms and hidden paths.",
+    blurb: "An ancient forest infected by the Void Root.",
     music: "forest"
   },
   {
     id: 2,
-    name: "CRYSTAL CAVERNS",
+    name: "PRISM DEEPS",
     theme: "cavern",
     colour: "#7cf3ff",
-    blurb: "Glowing crystals, falling rocks, deep water and pools of lava.",
+    blurb: "A deep crystal mine where the kingdom's power is being drained.",
     music: "cavern"
   },
   {
     id: 3,
-    name: "SKY RUINS",
+    name: "STORMBOUND ISLES",
     theme: "sky",
     colour: "#8fd4ff",
-    blurb: "Floating islands, ancient ruins, wind currents and vanishing platforms.",
+    blurb: "Broken sky temples caught inside a permanent storm.",
     music: "sky"
   },
   {
     id: 4,
-    name: "SHADOW FORTRESS",
+    name: "VOID CITADEL",
     theme: "fortress",
     colour: "#ff5a44",
-    blurb: "Traps, crushing walls, fire hazards and the Crystal Warden itself.",
+    blurb: "The sealed fortress of the Void Emperor and the final Crystal Core.",
     music: "fortress"
   }
 ];
@@ -5816,8 +5816,8 @@ var STAGE_PLANS = [
   // ------------------------------------------------ WORLD 1 - SUNLIT MEADOW
   [
     {
-      title: "MEADOW AWAKENING",
-      focus: "RUN AND JUMP",
+      title: "THE AWAKENING TRAIL",
+      focus: "MASTER MOVEMENT",
       easy: ["ground", "hill", "tuft"],
       mid: ["platforms", "gap", "steps"],
       hard: ["gap", "tower", "platforms"],
@@ -5826,8 +5826,8 @@ var STAGE_PLANS = [
       features: {}
     },
     {
-      title: "FOREST PATH",
-      focus: "BREAKABLE BLOCKS",
+      title: "BROKEN FRONTIER",
+      focus: "BREAKABLE TERRAIN",
       easy: ["ground", "bridge", "tuft"],
       mid: ["crawl", "breakable", "gap", "platforms"],
       hard: ["breakable", "tower", "gap"],
@@ -5836,7 +5836,7 @@ var STAGE_PLANS = [
       features: { breakable: true }
     },
     {
-      title: "CRYSTAL CREEK",
+      title: "RIVER OF EMBERS",
       focus: "MOVING PLATFORMS",
       easy: ["ground", "water", "platforms"],
       mid: ["water", "bridge", "moving", "gap"],
@@ -5846,8 +5846,8 @@ var STAGE_PLANS = [
       features: { moving: true, water: true }
     },
     {
-      title: "FORGOTTEN CAVERN",
-      focus: "SPRINGS",
+      title: "ASHEN UNDERPASS",
+      focus: "SPRINGS + WALL JUMPS",
       easy: ["ground", "cave", "tunnel"],
       mid: ["springs", "cave", "platforms", "gap"],
       hard: ["springs", "tunnel", "crush", "gap"],
@@ -5856,8 +5856,8 @@ var STAGE_PLANS = [
       features: { spring: true, dark: true, crush: true }
     },
     {
-      title: "GUARDIAN'S GATE",
-      focus: "WATER",
+      title: "THE FLAME GATE",
+      focus: "WATER + COMBAT",
       easy: ["ground", "water"],
       mid: ["water", "platforms", "gap"],
       hard: ["water", "moving", "gap"],
@@ -5866,8 +5866,8 @@ var STAGE_PLANS = [
       features: { water: true }
     },
     {
-      title: "SUNKEN GROTTO",
-      focus: "SECRET STAGE",
+      title: "HIDDEN ASH GROVE",
+      focus: "SECRET ROUTE",
       secret: true,
       easy: ["ground", "tunnel"],
       mid: ["water", "breakable", "platforms"],
@@ -5877,7 +5877,7 @@ var STAGE_PLANS = [
       features: { water: true, dark: true, spikes: true }
     },
     {
-      title: "CRYSTAL GOLEM",
+      title: "EMBER COLOSSUS",
       focus: "BOSS",
       boss: true,
       easy: [],
@@ -5891,8 +5891,8 @@ var STAGE_PLANS = [
   // ------------------------------------------------ WORLD 2 - MYSTIC FOREST
   [
     {
-      title: "WHISPERING CANOPY",
-      focus: "ONE-WAY PLATFORMS",
+      title: "MOONLIT CANOPY",
+      focus: "WALL JUMP ROUTE",
       easy: ["ground", "platforms"],
       mid: ["crawl", "platforms", "gap", "hill"],
       hard: ["tower", "platforms", "gap"],
@@ -5901,8 +5901,8 @@ var STAGE_PLANS = [
       features: {}
     },
     {
-      title: "VINE HOLLOW",
-      focus: "CLIMBING",
+      title: "ROOTBOUND SHAFT",
+      focus: "CLIMB + DASH",
       easy: ["ground", "vine"],
       mid: ["vine", "shaft", "platforms"],
       hard: ["shaft", "vine", "tower"],
@@ -5911,7 +5911,7 @@ var STAGE_PLANS = [
       features: { ladder: true }
     },
     {
-      title: "FADING PATHS",
+      title: "PHANTOM PATHS",
       focus: "VANISHING PLATFORMS",
       easy: ["ground", "platforms"],
       mid: ["crawl", "vanish", "gap", "platforms"],
@@ -5921,7 +5921,7 @@ var STAGE_PLANS = [
       features: { vanish: true }
     },
     {
-      title: "THE DEEP ROOTS",
+      title: "HEART OF THE ROOT",
       focus: "BURROWERS",
       easy: ["ground", "tunnel"],
       mid: ["crawl", "arena", "gap", "platforms"],
@@ -5931,7 +5931,7 @@ var STAGE_PLANS = [
       features: { dark: true }
     },
     {
-      title: "MYCELIUM MAZE",
+      title: "LUMEN MAZE",
       focus: "BREAKABLE WALLS",
       easy: ["ground", "breakable"],
       mid: ["breakable", "platforms", "vine"],
@@ -5941,8 +5941,8 @@ var STAGE_PLANS = [
       features: { breakable: true, dark: true }
     },
     {
-      title: "GLOWWORM HOLLOW",
-      focus: "SECRET STAGE",
+      title: "WISPWOOD SANCTUM",
+      focus: "SECRET ROUTE",
       secret: true,
       easy: ["ground", "tunnel"],
       mid: ["vanish", "breakable", "water"],
@@ -5952,7 +5952,7 @@ var STAGE_PLANS = [
       features: { dark: true, spikes: true, lava: true }
     },
     {
-      title: "FOREST WARDEN",
+      title: "ROOT TYRANT",
       focus: "BOSS",
       boss: true,
       easy: [],
@@ -5966,7 +5966,7 @@ var STAGE_PLANS = [
   // ------------------------------------------------ WORLD 3 - CRYSTAL CAVERNS
   [
     {
-      title: "GLIMMER ENTRANCE",
+      title: "PRISM ENTRANCE",
       focus: "FALLING ROCKS",
       easy: ["ground", "cave"],
       mid: ["crush", "platforms", "gap"],
@@ -5976,8 +5976,8 @@ var STAGE_PLANS = [
       features: { crush: true, dark: true }
     },
     {
-      title: "MOLTEN VEINS",
-      focus: "LAVA",
+      title: "MOLTEN CORE",
+      focus: "LAVA RUN",
       easy: ["ground", "cave"],
       mid: ["crawl", "lava", "platforms", "moving"],
       hard: ["lava", "moving", "gap"],
@@ -5996,8 +5996,8 @@ var STAGE_PLANS = [
       features: { breakable: true, dark: true }
     },
     {
-      title: "THE GREAT BELT",
-      focus: "CONVEYORS",
+      title: "THE GREAT CONVEYOR",
+      focus: "SPEED CONTROL",
       easy: ["ground", "conveyor"],
       mid: ["conveyor", "gap", "moving"],
       hard: ["conveyor", "lava", "crush"],
@@ -6006,8 +6006,8 @@ var STAGE_PLANS = [
       features: { conveyor: true, dark: true }
     },
     {
-      title: "DEEPWATER MINE",
-      focus: "WATER AND CRUSHERS",
+      title: "ABYSSAL MINE",
+      focus: "WATER + CRUSHERS",
       easy: ["ground", "water"],
       mid: ["water", "crush", "platforms"],
       hard: ["water", "crush", "lava"],
@@ -6016,8 +6016,8 @@ var STAGE_PLANS = [
       features: { water: true, crush: true, dark: true }
     },
     {
-      title: "THE HOLLOW SEAM",
-      focus: "SECRET STAGE",
+      title: "HOLLOW SEAM",
+      focus: "SECRET ROUTE",
       secret: true,
       easy: ["ground", "tunnel"],
       mid: ["lava", "breakable", "vanish"],
@@ -6027,7 +6027,7 @@ var STAGE_PLANS = [
       features: { dark: true, lava: true, spikes: true }
     },
     {
-      title: "CRYSTAL SERPENT",
+      title: "OBSIDIAN SERPENT",
       focus: "BOSS",
       boss: true,
       easy: [],
@@ -6041,7 +6041,7 @@ var STAGE_PLANS = [
   // ------------------------------------------------ WORLD 4 - SKY RUINS
   [
     {
-      title: "CLOUD BREAK",
+      title: "STORM BREAK",
       focus: "FLOATING ISLANDS",
       easy: ["ground", "platforms"],
       mid: ["gap", "platforms", "moving"],
@@ -6051,8 +6051,8 @@ var STAGE_PLANS = [
       features: {}
     },
     {
-      title: "UPDRAFT TOWERS",
-      focus: "WIND CURRENTS",
+      title: "UPDRAFT SPIRES",
+      focus: "WALL JUMPS + WIND",
       easy: ["ground", "wind"],
       mid: ["crawl", "wind", "gap", "platforms"],
       hard: ["wind", "vanish", "tower"],
@@ -6061,8 +6061,8 @@ var STAGE_PLANS = [
       features: { wind: true }
     },
     {
-      title: "THE FADING RUINS",
-      focus: "DISAPPEARING PLATFORMS",
+      title: "VANISHING SKYWAY",
+      focus: "PRECISION PLATFORMS",
       easy: ["ground", "platforms"],
       mid: ["vanish", "platforms", "gap"],
       hard: ["vanish", "vanish", "moving"],
@@ -6071,8 +6071,8 @@ var STAGE_PLANS = [
       features: { vanish: true }
     },
     {
-      title: "SENTINEL WATCH",
-      focus: "CANNONS",
+      title: "THUNDER FORGE",
+      focus: "MOVING HAZARDS",
       easy: ["ground", "pillar"],
       mid: ["cannon", "platforms", "gap"],
       hard: ["cannon", "cannon", "moving"],
@@ -6081,8 +6081,8 @@ var STAGE_PLANS = [
       features: { cannon: true }
     },
     {
-      title: "THE LONG LEAP",
-      focus: "SPRINGS AND WIND",
+      title: "EYE OF THE STORM",
+      focus: "AIR COMBAT",
       easy: ["ground", "springs"],
       mid: ["springs", "wind", "gap"],
       hard: ["springs", "gap", "vanish"],
@@ -6091,8 +6091,8 @@ var STAGE_PLANS = [
       features: { spring: true, wind: true }
     },
     {
-      title: "SKYVAULT",
-      focus: "SECRET STAGE",
+      title: "CLOUD TEMPLE",
+      focus: "SECRET ROUTE",
       secret: true,
       easy: ["ground", "pillar"],
       mid: ["vanish", "wind", "cannon"],
@@ -6102,7 +6102,7 @@ var STAGE_PLANS = [
       features: { wind: true, cannon: true }
     },
     {
-      title: "SKY TITAN",
+      title: "GALE TITAN",
       focus: "BOSS",
       boss: true,
       easy: [],
@@ -6116,8 +6116,8 @@ var STAGE_PLANS = [
   // ------------------------------------------------ WORLD 5 - SHADOW FORTRESS
   [
     {
-      title: "DRAWBRIDGE",
-      focus: "FIRE TRAPS",
+      title: "CITADEL OUTSKIRTS",
+      focus: "TRAPS + COMBAT",
       easy: ["ground", "castle"],
       mid: ["firetrap", "platforms", "gap"],
       hard: ["firetrap", "spikes", "tower"],
@@ -6126,7 +6126,7 @@ var STAGE_PLANS = [
       features: { firetrap: true, dark: true }
     },
     {
-      title: "CRUSHING HALLS",
+      title: "DARK ENGINE",
       focus: "CRUSHERS",
       easy: ["ground", "castle"],
       mid: ["crush", "platforms", "spikes"],
@@ -6136,8 +6136,8 @@ var STAGE_PLANS = [
       features: { crush: true, dark: true }
     },
     {
-      title: "THE MOVING WALLS",
-      focus: "CONVEYORS AND BREAKABLES",
+      title: "VOID BRIDGE",
+      focus: "DASH PRECISION",
       easy: ["ground", "conveyor"],
       mid: ["crawl", "conveyor", "breakable", "platforms"],
       hard: ["conveyor", "breakable", "crush"],
@@ -6146,8 +6146,8 @@ var STAGE_PLANS = [
       features: { conveyor: true, breakable: true, dark: true }
     },
     {
-      title: "EMBER CHASM",
-      focus: "LAVA AND FIRE",
+      title: "BLACK FOUNDRY",
+      focus: "LAVA + CONVEYORS",
       easy: ["ground", "castle"],
       mid: ["lava", "firetrap", "platforms"],
       hard: ["lava", "firetrap", "moving"],
@@ -6156,8 +6156,8 @@ var STAGE_PLANS = [
       features: { lava: true, firetrap: true, dark: true }
     },
     {
-      title: "THE GAUNTLET",
-      focus: "EVERYTHING",
+      title: "CORE DESCENT",
+      focus: "MULTI-HAZARD",
       easy: ["ground", "castle"],
       mid: ["crush", "lava", "conveyor"],
       hard: ["crush", "spikes", "firetrap"],
@@ -6167,7 +6167,7 @@ var STAGE_PLANS = [
     },
     {
       title: "THE OUBLIETTE",
-      focus: "SECRET STAGE",
+      focus: "SECRET ROUTE",
       secret: true,
       easy: ["ground", "tunnel"],
       mid: ["spikes", "vanish", "breakable"],
@@ -6177,7 +6177,7 @@ var STAGE_PLANS = [
       features: { dark: true, spikes: true, lava: true, crush: true }
     },
     {
-      title: "THE CRYSTAL WARDEN",
+      title: "VOID EMPEROR NYX",
       focus: "FINAL BOSS",
       boss: true,
       easy: [],
@@ -6190,11 +6190,11 @@ var STAGE_PLANS = [
   ]
 ];
 var BOSS_DEFS = [
-  { id: "bloomwarden", name: "CRYSTAL GOLEM", world: 0, hp: 24, colour: "#63cc48" },
-  { id: "rotshade", name: "FOREST WARDEN", world: 1, hp: 30, colour: "#3f9e52" },
-  { id: "obsidrake", name: "CRYSTAL SERPENT", world: 2, hp: 36, colour: "#ff7a2a" },
-  { id: "galesentinel", name: "SKY TITAN", world: 3, hp: 42, colour: "#8fd4ff" },
-  { id: "nyxaros", name: "CRYSTAL WARDEN", world: 4, hp: 52, colour: "#a44ef0" }
+  { id: "bloomwarden", name: "EMBER COLOSSUS", world: 0, hp: 24, colour: "#63cc48" },
+  { id: "rotshade", name: "ROOT TYRANT", world: 1, hp: 30, colour: "#3f9e52" },
+  { id: "obsidrake", name: "OBSIDIAN SERPENT", world: 2, hp: 36, colour: "#ff7a2a" },
+  { id: "galesentinel", name: "GALE TITAN", world: 3, hp: 42, colour: "#8fd4ff" },
+  { id: "nyxaros", name: "VOID EMPEROR NYX", world: 4, hp: 52, colour: "#a44ef0" }
 ];
 function stagePlan(world, stage) {
   const list = STAGE_PLANS[world];
@@ -8234,7 +8234,7 @@ var BOSS_STYLES = {
     draw: drawGaleSentinel
   },
   nyxaros: {
-    name: "NYXAROS, THE HOLLOW KING",
+    name: "VOID EMPEROR NYX",
     colour: "#a44ef0",
     accent: "#ff5a44",
     size: { w: 46, h: 56 },
@@ -9867,9 +9867,9 @@ var STORY = {
     once: true,
     music: "meadow",
     beats: [
-      { text: "SUNLIT MEADOW", sub: "a quiet corner of the Crystal Kingdom", pan: [0, 44], hold: 150 },
-      { text: "The Ancient Crystals have gone dark.", pan: [44, 150], hold: 185 },
-      { text: "Something is wrong...", pan: [150, 260], hold: 220, colour: "#ff9a6a" }
+      { text: "EMBERWILD FRONTIER", sub: "the last safe land of the Crystal Kingdom", pan: [0, 44], hold: 150 },
+      { text: "The Ancient Crystals are being drained by a force called the Void.", pan: [44, 150], hold: 185 },
+      { text: "The Void Emperor has awakened...", pan: [150, 260], hold: 220, colour: "#ff9a6a" }
     ]
   },
   crystal1: {
@@ -9914,11 +9914,11 @@ var STORY = {
     music: "victory",
     beats: [
       { text: "The Crystal Warden is still.", finale: 0.08, hold: 170 },
-      { text: "The Core was never evil - only broken.", finale: 0.28, hold: 195 },
+      { text: "The Crystal Core was sealed for a reason.", finale: 0.28, hold: 195 },
       { text: "Kiro raises the three Ancient Crystals.", finale: 0.48, hold: 205 },
       { text: "and the light comes home to the kingdom.", finale: 0.72, hold: 225 },
       { text: "The monsters wander back to the wild.\nThe villages fill again.", finale: 1, hold: 235 },
-      { text: "THE ADVENTURE HAS ONLY JUST BEGUN...", hold: 275, colour: "#ffe14d" },
+      { text: "THE VOID IS ONLY THE BEGINNING...", hold: 275, colour: "#ffe14d" },
       { titleCard: true, hold: 460 }
     ]
   }
@@ -12057,6 +12057,66 @@ function drawTileLab(themeName) {
   renderer.textOut(`TILE LAB - ${theme.toUpperCase()}`, 4, 4, "#ffffff", "#171226");
   renderer.ctx.imageSmoothingEnabled = false;
 }
+/* PQ_REMAKE_SYSTEM_V1 */
+(function installPixelQuestRemake(){
+  const _playerUpdate=Player.prototype.update;
+  Player.prototype.update=function(game2){
+    const input2=game2.input, map=game2.map;
+    if(!map||this.dead)return _playerUpdate.call(this,game2);
+    const wasAirborne=!this.onGround;
+    const nearLeftWall=map.solidAtPx(this.x-2,this.y+5)||map.solidAtPx(this.x-2,this.y+this.h-3);
+    const nearRightWall=map.solidAtPx(this.x+this.w+2,this.y+5)||map.solidAtPx(this.x+this.w+2,this.y+this.h-3);
+    const wallDir=nearLeftWall?-1:nearRightWall?1:0;
+    if(wasAirborne&&!this.inWater&&input2.justPressed("jump")&&input2.isDown("down")){
+      this.groundSlam=12;this.jumpBuffer=0;this.vy=10.5;this.vx*=0.72;this.setState("fall");
+      game2.effects.burst("spark",this.cx,this.bottom,5,{speed:1.4,angle:Math.PI/2,spread:1.4});
+    }
+    if(wasAirborne&&wallDir&&input2.justPressed("jump")&&!this.groundSlam){
+      this.vy=-7.25;this.vx=-wallDir*4.35;this.jumpsLeft=1;this.jumpBuffer=0;this.wallJumpLock=7;
+      this.facing=-wallDir;this.setState("jump");
+      game2.effects.burst("dust",this.cx+wallDir*4,this.cy,7,{speed:1.4,spread:1.2});
+      game2.effects.ring(this.cx,this.cy,"#7cf3ff",{maxR:20,life:12,width:1});
+      if(game2.audio)game2.audio.play("doubleJump");
+    }
+    _playerUpdate.call(this,game2);
+    if(this.groundSlam>0)this.groundSlam--;
+    if(this.wallJumpLock>0)this.wallJumpLock--;
+    if(this.groundSlam>0&&this.onGround){
+      this.groundSlam=0;game2.camera.shake(3,9);
+      game2.effects.burst("rock",this.cx,this.bottom,14,{speed:2.4,angle:-Math.PI/2,spread:1.8});
+      game2.effects.ring(this.cx,this.bottom,"#ffe14d",{maxR:30,life:14,width:2});
+    }
+  };
+  const _drawWorld=Game.prototype.drawWorld;
+  Game.prototype.drawWorld=function(){
+    _drawWorld.call(this);
+    const ctx=this.r.ctx,t=this.time,theme=this.level&&this.level.theme;if(!theme)return;
+    ctx.save();ctx.globalAlpha=0.34;
+    const seed=(this.worldIndex+1)*17;
+    for(let i=0;i<18;i++){
+      const x=(i*83+t*(theme==="fortress"?-3:theme==="sky"?6:2)+seed)%this.r.w;
+      const y=(i*47+Math.sin(t*1.4+i)*10+seed*3)%this.r.h;
+      const size=i%3===0?2:1;
+      ctx.fillStyle=theme==="fortress"?"#a44ef0":theme==="cavern"?"#7cf3ff":theme==="sky"?"#ffe14d":"#8fffd0";
+      ctx.fillRect(Math.round(x),Math.round(y),size,size);
+    }
+    ctx.restore();
+  };
+  const _drawTitle=drawTitle;
+  drawTitle=function(r,game2,menu){
+    _drawTitle(r,game2,menu);
+    r.textOutCenter("THE VOID AWAKENS",r.w/2,88,"#ff5a8a","#171226",{scale:0.95});
+    r.textOutCenter("NEW MOVEMENT • NEW WORLDS • FINAL BATTLE",r.w/2,97,"#cfe4ff","#171226",{scale:0.62});
+  };
+  const _drawHud=drawHud;
+  drawHud=function(r,game2){
+    _drawHud(r,game2);
+    if(!game2.player||game2.state!=="playing")return;
+    r.textOut("WALL JUMP",r.w-78,r.h-31,"#7cf3ff","#171226",{scale:0.62});
+    r.textOut("SLAM",r.w-42,r.h-31,"#ffe14d","#171226",{scale:0.62});
+  };
+  window.PQ_REMAKE={version:1,campaign:"THE VOID AWAKENS",hero:"KIRO",villain:"VOID EMPEROR NYX",worlds:5,stages:35,movement:["RUN","DOUBLE JUMP","DASH","WALL JUMP","GROUND SLAM","SPIN ATTACK"]};
+})();
 var FIXED = 1 / 60;
 var acc = 0;
 var last = performance.now();
