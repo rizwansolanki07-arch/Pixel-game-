@@ -1,0 +1,1 @@
+Modern Moonroot sprite strips. Expected 128px-high files: knight_idle.png, knight_run.png, knight_jump.png, knight_attack_1.png, goblin_idle.png, goblin_running.png, goblin_slashing.png, goblin_dying.png, zombie_idle.png, zombie_running.png, zombie_slashing.png, reaper_idle.png, reaper_running.png, wizard_idle.png, wizard_attack_1.png. NewGame.html loads these directly.
