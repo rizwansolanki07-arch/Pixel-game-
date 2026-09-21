@@ -1,4 +1,4 @@
-name: Build Pixel Quest APK
+name: Build Shadowbound APK
 
 on:
   workflow_dispatch:
@@ -31,7 +31,7 @@ jobs:
             exit 1
           fi
           for html in "${targets[@]}"; do
-            cp -f PixelQuest.html "$html"
+            cp -f NewGame.html "$html"
             asset_root="$(dirname "$html")"
             asset_dir="$asset_root/src/art/assets/premium/kenney"
             mkdir -p "$asset_dir"
@@ -95,6 +95,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: apk-${{ github.run_number }}
-          name: Pixel Quest APK (build ${{ github.run_number }})
-          body: "Installable Pixel Quest APK."
+          name: Shadowbound APK (build ${{ github.run_number }})
+          body: "Installable Shadowbound: Echoes of Aether APK."
           files: ${{ steps.locate.outputs.dir }}/app/build/outputs/apk/release/*.apk
