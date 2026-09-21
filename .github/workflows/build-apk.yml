@@ -1,4 +1,4 @@
-name: Build Shadowbound APK
+name: Build Moonroot APK
 
 on:
   workflow_dispatch:
@@ -38,7 +38,12 @@ jobs:
             mkdir -p "$premium_dir" "$modern_dir"
             cp -f src/art/assets/premium/kenney/* "$premium_dir/"
             cp -f src/art/assets/modern/* "$modern_dir/"
-            echo "Synced $html + premium art + modern game art"
+            # Unpack bundled binary art packs during CI so Git stores them efficiently.
+            for pack in src/art/assets/modern/*_pack.zip; do
+              [ -f "$pack" ] || continue
+              unzip -q -o "$pack" -d "$modern_dir"
+            done
+            echo "Synced $html + premium art + bundled modern art"
             find "$modern_dir" -maxdepth 1 -type f -printf "  %f %s bytes\\n" | sort
           done
 
@@ -97,7 +102,7 @@ jobs:
       - name: Publish APK release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: apk-${{ github.run_number }}
-          name: Shadowbound APK (build ${{ github.run_number }})
-          body: "Installable Shadowbound: Echoes of Aether APK."
+          tag_name: moonroot-apk-${{ github.run_number }}
+          name: Moonroot APK (build ${{ github.run_number }})
+          body: "Installable Moonroot: Echoes of Aether APK. Visual direction based on the uploaded Moonroot design reference and uploaded pixel-art assets."
           files: ${{ steps.locate.outputs.dir }}/app/build/outputs/apk/release/*.apk
