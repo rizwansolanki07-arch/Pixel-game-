@@ -40,12 +40,14 @@ jobs:
           mkdir -p "$HOME/.local/share/godot/export_templates/4.5.1.stable"
           wget -q https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_export_templates.tpz -O templates.tpz
           unzip -q templates.tpz
-          cp -a templates/android/* "$HOME/.local/share/godot/export_templates/4.5.1.stable/"
+          echo "Godot export template files:"
+          find templates -maxdepth 2 -type f -print
+          cp -a templates/* "$HOME/.local/share/godot/export_templates/4.5.1.stable/"
 
       - name: Configure Android paths
         run: |
           mkdir -p "$HOME/.config/godot"
-          printf '%s\n' '[gd_resource type="EditorSettings" format=3]' '[resource]' 'export/android/android_sdk_path = "'"$HOME"'/android-sdk"' 'export/android/java_sdk_path = "/usr/lib/jvm/java-17-openjdk-amd64"' > "$HOME/.config/godot/editor_settings-4.tres"
+          printf '%s\n' '[gd_resource type="EditorSettings" format=3]' '[resource]' 'export/android/android_sdk_path = "'$HOME'/android-sdk"' 'export/android/java_sdk_path = "/usr/lib/jvm/java-17-openjdk-amd64"' > "$HOME/.config/godot/editor_settings-4.tres"
 
       - name: Verify project
         working-directory: godot
