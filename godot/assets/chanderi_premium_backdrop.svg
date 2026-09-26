@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="384" height="216" viewBox="0 0 384 216">
+<rect width="384" height="216" fill="#78ad63"/>
+<rect y="0" width="384" height="34" fill="#6d9e72"/>
+<path d="M0 52h384v10H0zM0 92h384v8H0zM0 146h384v9H0z" fill="#82b86c" opacity=".65"/>
+<path d="M331 0h53v122h-53z" fill="#3b91b5"/>
+<path d="M334 18h44M334 35h44M334 52h44M334 69h44M334 86h44" stroke="#72c4d8" stroke-width="2"/>
+<path d="M144 28h40v188h-40z" fill="#c9a56d"/>
+<path d="M17 112h350v31H17z" fill="#c9a56d"/>
+<path d="M144 30h3v178h-3M181 30h3v178h-3M18 112h348v3H18M18 140h348v3H18" fill="#a98556"/>
+<!-- distant hills -->
+<path d="M0 38L48 18l44 20 43-22 49 22 45-20 52 20 40-18 63 23v24H0z" fill="#4f8057" opacity=".72"/>
+<!-- inn -->
+<path d="M47 45h58v33H47z" fill="#8f533c"/><path d="M43 42h66v9H43z" fill="#d59d58"/>
+<path d="M53 55h46v7H53z" fill="#dca866"/><path d="M70 66h12v12H70z" fill="#352b2b"/>
+<!-- seth house -->
+<path d="M247 45h66v33h-66z" fill="#76534b"/><path d="M243 42h74v9h-74z" fill="#d19a57"/>
+<path d="M256 55h48v7h-48z" fill="#dca866"/><path d="M274 66h12v12h-12z" fill="#352b2b"/>
+<!-- mandir -->
+<path d="M276 128h49v36h-49z" fill="#a65d43"/><path d="M271 124h59v8h-59z" fill="#e0a85f"/><path d="M294 141h13v23h-13z" fill="#38292b"/>
+<path d="M299 116l5-9 5 9z" fill="#e0a85f"/>
+<!-- homes -->
+<path d="M47 153h58v30H47z" fill="#765a45"/><path d="M43 150h66v8H43z" fill="#c99555"/>
+<path d="M183 151h56v34h-56z" fill="#5d594a"/><path d="M179 148h64v8h-64z" fill="#bd955d"/>
+<!-- bazaar -->
+<path d="M186 103h58v9h-58z" fill="#673c2d"/><path d="M186 98h58v6h-58z" fill="#d5a25b"/>
+<!-- trees -->
+<g fill="#3e7547"><path d="M17 54h18v14H17z"/><path d="M118 48h18v14h-18z"/><path d="M347 44h18v14h-18z"/><path d="M16 181h18v14H16z"/><path d="M346 184h18v14h-18z"/></g>
+<g fill="#4e8b4e"><path d="M21 46h11v12H21z"/><path d="M122 40h11v12h-11z"/><path d="M351 36h11v12h-11z"/><path d="M20 173h11v12H20z"/><path d="M350 176h11v12h-11z"/></g>
+<g fill="#67a857"><rect x="24" y="42" width="5" height="5"/><rect x="125" y="36" width="5" height="5"/><rect x="354" y="32" width="5" height="5"/></g>
+<!-- ghats -->
+<path d="M326 108h58v7h-58z" fill="#a98259"/><path d="M326 115h58v5h-58z" fill="#806246"/>
+<rect x="10" y="34" width="4" height="4" fill="#d9c17a"/><rect x="30" y="98" width="3" height="3" fill="#d9c17a"/>
+<rect x="350" y="134" width="4" height="4" fill="#d9c17a"/><rect x="115" y="136" width="3" height="3" fill="#d9c17a"/>
+</svg>
