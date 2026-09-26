@@ -9,40 +9,6 @@ window/size/viewport_height=216
 window/size/window_width_override=1152
 window/size/window_height_override=648
 window/stretch/mode="canvas_items"
-window/handheld/orientation=1
-
-[rendering]
-textures/canvas_textures/default_texture_filter=0
-textures/vram_compression/import_etc2_astc=true
-renderer/rendering_method="gl_compatibility"
-renderer/rendering_method.mobile="gl_compatibility"
-
-[autoload]
-GameState="*res://scripts/GameState.gd"
-SaveManager="*res://scripts/SaveManager.gd"
-
-[input]
-move_up={
-"deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":87)]
-}
-move_down={
-"deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":83)]
-}
-move_left={
-"deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":65)]
-}
-move_right={
-"deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":68)]
-}
-interact={
-"deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":69)]
-}
-save_game={
-"deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":80)]
-}
+window/stretch/aspect="keep"
+window/size/mode=3
+window/handheld/orientation=0
