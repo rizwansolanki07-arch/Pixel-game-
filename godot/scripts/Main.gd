@@ -1,13 +1,19 @@
 extends Node2D
 
+const W := 384.0
+const H := 216.0
+
 var player: CharacterBody2D
 var message := ""
 var message_timer := 0.0
 var dialogue_visible := false
 var dialogue_title := ""
 var dialogue_text := ""
-var dialogue_choices: Array[String] = []
 var nearby := ""
+var move_touch_id := -1
+var interact_touch_id := -1
+var save_touch_id := -1
+var last_touch := Vector2.ZERO
 
 func _ready() -> void:
     RenderingServer.set_default_clear_color(Color("#101820"))
@@ -20,16 +26,17 @@ func _ready() -> void:
 
 func _build_world() -> void:
     for item in get_children():
-        item.queue_free()
-    # collision boundaries
-    _add_wall(Vector2(192, 24), Vector2(348, 8))
-    _add_wall(Vector2(192, 210), Vector2(348, 8))
-    _add_wall(Vector2(12, 117), Vector2(8, 178))
-    _add_wall(Vector2(372, 117), Vector2(8, 178))
-    _add_wall(Vector2(100, 72), Vector2(70, 32))
-    _add_wall(Vector2(280, 72), Vector2(76, 32))
-    _add_wall(Vector2(300, 148), Vector2(54, 42))
-    _add_wall(Vector2(74, 166), Vector2(56, 28))
+        if item != player:
+            item.queue_free()
+    _add_wall(Vector2(192, 31), Vector2(348, 8))
+    _add_wall(Vector2(192, 208), Vector2(348, 8))
+    _add_wall(Vector2(12, 120), Vector2(8, 168))
+    _add_wall(Vector2(372, 120), Vector2(8, 168))
+    _add_wall(Vector2(76, 67), Vector2(58, 31))
+    _add_wall(Vector2(278, 67), Vector2(68, 31))
+    _add_wall(Vector2(301, 150), Vector2(54, 43))
+    _add_wall(Vector2(75, 166), Vector2(58, 31))
+    _add_wall(Vector2(210, 166), Vector2(55, 34))
 
 func _add_wall(pos: Vector2, size: Vector2) -> void:
     var body := StaticBody2D.new()
@@ -41,29 +48,79 @@ func _add_wall(pos: Vector2, size: Vector2) -> void:
     body.add_child(shape)
     add_child(body)
 
+func _input(event: InputEvent) -> void:
+    if event is InputEventScreenTouch:
+        var p := event.position
+        if event.pressed:
+            if Rect2(10, 138, 72, 68).has_point(p):
+                move_touch_id = event.index
+                _set_touch_move(p)
+            elif Rect2(305, 148, 68, 60).has_point(p):
+                interact_touch_id = event.index
+                GameState.touch_interact = true
+            elif Rect2(267, 148, 36, 42).has_point(p):
+                save_touch_id = event.index
+                GameState.touch_save = true
+        else:
+            if event.index == move_touch_id:
+                move_touch_id = -1
+                GameState.touch_move = Vector2.ZERO
+            if event.index == interact_touch_id:
+                interact_touch_id = -1
+                GameState.touch_interact = false
+            if event.index == save_touch_id:
+                save_touch_id = -1
+                GameState.touch_save = false
+    elif event is InputEventScreenDrag:
+        if event.index == move_touch_id:
+            _set_touch_move(event.position)
+
+func _set_touch_move(p: Vector2) -> void:
+    var center := Vector2(44, 172)
+    var delta := p - center
+    GameState.touch_move = delta.limit_length(26.0) / 26.0
+    last_touch = p
+
 func _process(delta: float) -> void:
     if player:
         GameState.player_position = player.global_position
         _check_interaction()
+
+    if GameState.touch_interact:
+        GameState.touch_interact = false
+        if dialogue_visible:
+            _advance_dialogue()
+        else:
+            _interact()
+
+    if GameState.touch_save:
+        GameState.touch_save = false
+        if SaveManager.save_game():
+            _show_message("Game saved")
+
     if message_timer > 0:
         message_timer -= delta
         if message_timer <= 0:
             message = ""
             queue_redraw()
-    if Input.is_action_just_pressed("interact") and not dialogue_visible:
-        _interact()
-    elif Input.is_action_just_pressed("interact") and dialogue_visible:
-        _advance_dialogue()
+
+    if Input.is_action_just_pressed("interact"):
+        if dialogue_visible:
+            _advance_dialogue()
+        else:
+            _interact()
+
     if Input.is_action_just_pressed("save_game"):
         if SaveManager.save_game():
             _show_message("Game saved")
+
     queue_redraw()
 
 func _check_interaction() -> void:
     nearby = ""
     var targets = {
         "Gopal": Vector2(76, 56),
-        "Meera": Vector2(210, 92),
+        "Meera": Vector2(210, 91),
         "Pandit Dev": Vector2(305, 125),
         "Bazaar Crate": Vector2(215, 128)
     }
@@ -75,14 +132,12 @@ func _check_interaction() -> void:
 func _interact() -> void:
     if nearby == "Gopal":
         if GameState.quest_state == "not_started":
-            dialogue_title = "Gopal — Innkeeper"
+            dialogue_title = "Gopal • Innkeeper"
             dialogue_text = "Asha, bazaar se mera ek package gayab ho gaya hai. Kya tum use dhoondhogi?"
-            dialogue_choices = ["Haan, main dhoondhungi.", "Abhi nahi."]
             dialogue_visible = true
         elif GameState.quest_state == "found":
-            dialogue_title = "Gopal — Innkeeper"
+            dialogue_title = "Gopal • Innkeeper"
             dialogue_text = "Wahi package! Tumne use dhoondh liya. Shukriya, Asha."
-            dialogue_choices = ["Quest complete"]
             dialogue_visible = true
         else:
             _show_message("Gopal: Bazaar mein package check karo.")
@@ -101,15 +156,14 @@ func _advance_dialogue() -> void:
     if GameState.quest_state == "not_started" and dialogue_title.begins_with("Gopal"):
         GameState.quest_state = "accepted"
         dialogue_text = "Bahut achha. Bazaar ke crate ke paas dekho."
-        dialogue_choices = ["Samajh gayi."]
-    elif GameState.quest_state == "found":
+    elif GameState.quest_state == "found" and dialogue_title.begins_with("Gopal"):
         GameState.quest_state = "done"
         GameState.world_flags["gopal_helped"] = true
         dialogue_text = "Tumhari madad yaad rahegi."
-        dialogue_choices = ["Done"]
     else:
         dialogue_visible = false
-        dialogue_choices = []
+    if GameState.quest_state == "done":
+        dialogue_visible = false
     queue_redraw()
 
 func _show_message(text: String) -> void:
@@ -118,56 +172,124 @@ func _show_message(text: String) -> void:
     queue_redraw()
 
 func _draw() -> void:
-    # Chanderi village pixel-art blockout at the target 384x216 resolution.
-    draw_rect(Rect2(0, 0, 384, 216), Color("#83b86b"))
-    draw_rect(Rect2(0, 0, 384, 28), Color("#4d7891"))
-    draw_rect(Rect2(0, 28, 384, 6), Color("#d7c17a"))
-    # paths
-    draw_rect(Rect2(145, 34, 38, 176), Color("#c5a26b"))
-    draw_rect(Rect2(20, 112, 344, 30), Color("#c5a26b"))
-    # buildings
-    _building(Rect2(48, 42, 56, 34), "INN", Color("#8f5b3c"))
-    _building(Rect2(248, 42, 64, 34), "SETH", Color("#76534b"))
-    _building(Rect2(276, 126, 48, 36), "MANDIR", Color("#9b6048"))
-    _building(Rect2(48, 150, 54, 30), "HOME", Color("#6e5947"))
-    _building(Rect2(184, 148, 52, 34), "GODOWN", Color("#5d5647"))
-    # river and ghats
-    draw_rect(Rect2(330, 34, 42, 74), Color("#3f8fba"))
-    for y in range(42, 106, 12):
-        draw_line(Vector2(334, y), Vector2(368, y), Color("#76bdd5"), 1)
-    # bazaar stalls/crate
-    draw_rect(Rect2(188, 108, 54, 8), Color("#74422e"))
-    draw_rect(Rect2(210, 119, 12, 12), Color("#b67b3e"))
-    # NPC markers
-    _npc(Vector2(76, 56), "G")
-    _npc(Vector2(210, 92), "M")
-    _npc(Vector2(305, 125), "P")
-    # title
-    _label(Vector2(12, 8), "CHANDERI QUEST", 12, Color("#fff4d6"))
-    _label(Vector2(15, 194), "WASD / Arrows: Move   E / Space: Talk   P: Save", 7, Color("#17221a"))
+    # Base ground.
+    draw_rect(Rect2(0, 0, W, H), Color("#78ad63"))
+
+    # Subtle grass pixel pattern.
+    for y in range(36, 210, 12):
+        for x in range(8, 376, 16):
+            if (x + y) % 32 == 0:
+                draw_rect(Rect2(x, y, 2, 2), Color("#6a9d58"))
+
+    # Header.
+    draw_rect(Rect2(0, 0, W, 28), Color("#315b70"))
+    draw_rect(Rect2(0, 27, W, 3), Color("#d5b96a"))
+    _label(Vector2(12, 9), "CHANDERI QUEST", 12, Color("#fff2c9"))
+    _label(Vector2(274, 9), "QUEST", 7, Color("#dcecf1"))
+    _label(Vector2(311, 9), GameState.quest_state.to_upper(), 7, Color("#ffe6a5"))
+
+    # Main roads with edge pixels.
+    draw_rect(Rect2(144, 30, 40, 178), Color("#c7a16a"))
+    draw_rect(Rect2(18, 112, 348, 31), Color("#c7a16a"))
+    draw_rect(Rect2(144, 30, 2, 178), Color("#b18b58"))
+    draw_rect(Rect2(182, 30, 2, 178), Color("#b18b58"))
+    draw_rect(Rect2(18, 112, 348, 2), Color("#b18b58"))
+    draw_rect(Rect2(18, 141, 348, 2), Color("#b18b58"))
+
+    # River.
+    draw_rect(Rect2(331, 30, 41, 82), Color("#2d86b2"))
+    for y in range(38, 106, 10):
+        draw_line(Vector2(334, y), Vector2(368, y), Color("#67b8d2"), 1)
+    draw_rect(Rect2(326, 106, 46, 8), Color("#a98259"))
+    draw_rect(Rect2(326, 114, 46, 5), Color("#806246"))
+
+    # Buildings.
+    _building(Rect2(48, 43, 56, 33), "INN", Color("#92553c"), Color("#d39b57"))
+    _building(Rect2(248, 43, 64, 33), "SETH", Color("#76534b"), Color("#d09b57"))
+    _building(Rect2(276, 126, 48, 37), "MANDIR", Color("#a65d43"), Color("#e0a85f"))
+    _building(Rect2(48, 151, 55, 30), "HOME", Color("#765a45"), Color("#c99555"))
+    _building(Rect2(184, 149, 54, 34), "GODOWN", Color("#5d594a"), Color("#bd955d"))
+
+    # Bazaar stall and package crate.
+    draw_rect(Rect2(188, 106, 54, 7), Color("#673c2d"))
+    draw_rect(Rect2(188, 101, 54, 6), Color("#d5a25b"))
+    draw_rect(Rect2(210, 119, 12, 12), Color("#a96e35"))
+    draw_rect(Rect2(212, 121, 8, 8), Color("#c58a45"))
+
+    # Trees / greenery.
+    _tree(Vector2(26, 51))
+    _tree(Vector2(126, 49))
+    _tree(Vector2(356, 45))
+    _tree(Vector2(24, 184))
+    _tree(Vector2(354, 187))
+
+    # NPCs.
+    _npc(Vector2(76, 56), "G", Color("#45526d"), Color("#b97846"))
+    _npc(Vector2(210, 91), "M", Color("#5b496b"), Color("#d28b4f"))
+    _npc(Vector2(305, 125), "P", Color("#4e5969"), Color("#d6a55c"))
+
+    # Touch controls, intentionally semi-transparent and unobtrusive.
+    _joystick()
+    _touch_button(Rect2(267, 158, 34, 26), "SAVE", Color("#3b6b78"))
+    _touch_button(Rect2(311, 151, 57, 39), "TALK", Color("#6b4b62"))
+
+    # Desktop hint.
+    _label(Vector2(12, 205), "WASD / Arrows  •  E = Talk  •  P = Save", 6, Color("#eef1d9"))
+
     if nearby != "" and not dialogue_visible:
-        _panel(Rect2(122, 174, 140, 18), "E / TAP  " + nearby)
+        _panel(Rect2(112, 174, 154, 18), "E / TALK  " + nearby)
+
     if message != "":
-        _panel(Rect2(42, 174, 300, 18), message)
+        _panel(Rect2(36, 174, 278, 18), message)
+
     if dialogue_visible:
-        _panel(Rect2(22, 145, 340, 55), dialogue_title + "\n" + dialogue_text + "\n[Tap E/Space to continue]")
-    _label(Vector2(250, 10), "Quest: " + GameState.quest_state, 7, Color("#fff4d6"))
+        _dialogue_panel()
 
-func _building(rect: Rect2, text: String, c: Color) -> void:
-    draw_rect(rect, c)
-    draw_rect(Rect2(rect.position + Vector2(5, 7), Vector2(rect.size.x - 10, 8)), Color("#c99655"))
-    draw_rect(Rect2(rect.position + Vector2(rect.size.x/2 - 5, rect.size.y - 12), Vector2(10, 12)), Color("#352c2a"))
-    _label(rect.position + Vector2(5, 3), text, 7, Color("#fff4d6"))
+func _building(rect: Rect2, text: String, wall: Color, roof: Color) -> void:
+    # Roof shadow and wall.
+    draw_rect(Rect2(rect.position + Vector2(2, 2), rect.size), Color("#49352e"))
+    draw_rect(rect, wall)
+    draw_rect(Rect2(rect.position + Vector2(-2, -4), Vector2(rect.size.x + 4, 7)), roof)
+    draw_rect(Rect2(rect.position + Vector2(5, 9), Vector2(rect.size.x - 10, 6)), Color("#e0ad68"))
+    draw_rect(Rect2(rect.position + Vector2(rect.size.x / 2 - 5, rect.size.y - 11), Vector2(10, 11)), Color("#352b2b"))
+    _label(rect.position + Vector2(5, 4), text, 7, Color("#fff2d0"))
 
-func _npc(pos: Vector2, letter: String) -> void:
-    draw_circle(pos, 7, Color("#f1c7a5"))
-    draw_rect(Rect2(pos + Vector2(-7, 6), Vector2(14, 10)), Color("#4c536f"))
-    _label(pos + Vector2(-3, -3), letter, 7, Color("#201b22"))
+func _tree(pos: Vector2) -> void:
+    draw_rect(Rect2(pos + Vector2(-2, 5), Vector2(5, 9)), Color("#69472e"))
+    draw_rect(Rect2(pos + Vector2(-8, -4), Vector2(16, 11)), Color("#3e7547"))
+    draw_rect(Rect2(pos + Vector2(-5, -9), Vector2(11, 9)), Color("#4e8b4e"))
+    draw_rect(Rect2(pos + Vector2(-2, -11), Vector2(5, 5)), Color("#67a857"))
+
+func _npc(pos: Vector2, letter: String, clothes: Color, accent: Color) -> void:
+    draw_rect(Rect2(pos + Vector2(-4, 11), Vector2(8, 4)), Color("#5b4538"))
+    draw_circle(pos + Vector2(0, -1), 6, Color("#f0c5a2"))
+    draw_rect(Rect2(pos + Vector2(-7, 5), Vector2(14, 9)), clothes)
+    draw_rect(Rect2(pos + Vector2(-7, 5), Vector2(14, 2)), accent)
+    _label(pos + Vector2(-3, -4), letter, 6, Color("#241c22"))
+
+func _joystick() -> void:
+    draw_circle(Vector2(44, 172), 26, Color(0.05, 0.08, 0.10, 0.42))
+    draw_circle(Vector2(44, 172), 17, Color(0.16, 0.22, 0.24, 0.62))
+    draw_circle(Vector2(44, 172) + GameState.touch_move * 10.0, 9, Color("#d7b968"))
+    _label(Vector2(29, 202), "MOVE", 6, Color("#fff2c9"))
+
+func _touch_button(rect: Rect2, text: String, color: Color) -> void:
+    draw_rect(rect, Color(0, 0, 0, 0.30))
+    draw_rect(rect, color)
+    draw_rect(rect, Color("#e3c978"), false, 1)
+    _label(rect.position + Vector2(6, 16), text, 6, Color("#fff2c9"))
+
+func _dialogue_panel() -> void:
+    draw_rect(Rect2(14, 130, 356, 76), Color(0.06, 0.06, 0.08, 0.96))
+    draw_rect(Rect2(14, 130, 356, 76), Color("#d9bb67"), false, 2)
+    _label(Vector2(24, 143), dialogue_title, 8, Color("#ffd978"))
+    _label(Vector2(24, 158), dialogue_text, 7, Color("#fff4d6"))
+    _label(Vector2(24, 181), "TAP TALK / E to continue", 6, Color("#bcd0d4"))
 
 func _panel(rect: Rect2, text: String) -> void:
-    draw_rect(rect, Color("#17141b"))
+    draw_rect(rect, Color(0.07, 0.06, 0.08, 0.94))
     draw_rect(rect, Color("#e3c978"), false, 1)
-    _label(rect.position + Vector2(5, 6), text, 7, Color("#fff4d6"))
+    _label(rect.position + Vector2(5, 12), text, 6, Color("#fff4d6"))
 
 func _label(pos: Vector2, text: String, size: int, color: Color) -> void:
     draw_string(ThemeDB.fallback_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)
