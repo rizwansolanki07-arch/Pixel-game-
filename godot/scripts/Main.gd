@@ -17,12 +17,33 @@ var last_touch := Vector2.ZERO
 
 func _ready() -> void:
     RenderingServer.set_default_clear_color(Color("#101820"))
+    print("CHANDERI_RUNTIME_OK: Main._ready entered")
     _build_world()
+    _add_premium_backdrop()
     player = preload("res://scripts/Player.gd").new()
     player.name = "Asha"
     add_child(player)
     player.global_position = GameState.player_position
     queue_redraw()
+
+func _add_premium_backdrop() -> void:
+    # Use the repository's premium/modern art layer behind the authored village.
+    # It is optional at runtime so a missing imported texture never blocks gameplay.
+    var tex: Texture2D = load("res://src/art/assets/modern/bg_base.png")
+    if tex == null:
+        return
+    var backdrop := Sprite2D.new()
+    backdrop.texture = tex
+    backdrop.centered = true
+    backdrop.position = Vector2(W * 0.5, H * 0.5)
+    backdrop.z_index = -20
+    backdrop.modulate = Color(1, 1, 1, 0.42)
+    var tw := float(tex.get_width())
+    var th := float(tex.get_height())
+    if tw > 0.0 and th > 0.0:
+        var scale_factor := min(W / tw, H / th)
+        backdrop.scale = Vector2(scale_factor, scale_factor)
+    add_child(backdrop)
 
 func _build_world() -> void:
     for item in get_children():
@@ -50,7 +71,7 @@ func _add_wall(pos: Vector2, size: Vector2) -> void:
 
 func _input(event: InputEvent) -> void:
     if event is InputEventScreenTouch:
-        var p := event.position
+        var p: Vector2 = event.position
         if event.pressed:
             if Rect2(10, 138, 72, 68).has_point(p):
                 move_touch_id = event.index
