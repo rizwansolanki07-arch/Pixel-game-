@@ -16,7 +16,7 @@ canvas{width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-ed
 <div id="hud">CHANDERI VILLAGE<br><span id="pos">Entrance</span><br>HP <span id="hp">100</span> · GOLD <span id="gold">25</span></div>
 <div id="quest">QUEST<br><b>The Missing Package</b><br><span id="qtext">Talk to the innkeeper.</span></div>
 <div id="dialog"></div>
-<div class="touch"><div class="pad"><button class="b up" data-k="ArrowUp">▲</button><button class="b left" data-k="ArrowLeft">◀</button><button class="b down" data-k="ArrowDown">▼</button><button class="b right" data-k="ArrowRight">▶</button></div><div class="act"><button class="b" data-k="KeyE">TALK</button><button class="b" data-k="KeyI">ITEM</button><button class="b" data-k="KeyP">SAVE</button></div></div>
+<div class="touch"><div class="pad"><button class="b up" data-k="ArrowUp">▲</button><button class="b left" data-k="ArrowLeft">◀</button><button class="b down" data-k="ArrowDown">▼</button><button class="b right" data-k="ArrowRight">▶</button></div><div class="act"><button class="b" data-k="KeyE">TALK</button><button class="b" data-k="KeyI">ITEM</button><button class="b" data-k="KeyP">SAVE</button><button class="b" data-k="KeyL">LOAD</button></div></div>
 </div>
 <script>
 const C=document.getElementById('c'),ctx=C.getContext('2d'),W=384,H=216,T=16;
@@ -56,10 +56,10 @@ function interact(){if(state.dialog)return;const n=nearest();if(n){if(n.id==='in
 {label:'I will look for it.',action:()=>{state.quest='find';updateQuest();setDialog(n.name,n.lines[1][0],[])}}]);else if(n.id==='innkeeper'&&state.quest==='return'&&state.flags.package){state.quest='done';state.gold+=50;updateQuest();setDialog(n.name,'You found it! Thank you. Please accept 50 gold for your help.',[])}else setDialog(n.name,n.lines[0][0],[]);return}
 const o=nearestObject();if(o&&!o.done&&state.quest==='find'){o.done=true;state.flags.package=true;state.quest='return';updateQuest();setDialog('A sealed package','You found the missing package. Return to Gopal at the inn.',[])}}
 function updateQuest(){const q=document.getElementById('qtext');q.textContent=state.quest==='talk'?'Talk to the innkeeper.':state.quest==='find'?'Inspect the bazaar crate.':state.quest==='return'?'Return the package to Gopal.':'Quest complete! +50 gold';document.getElementById('gold').textContent=state.gold}
-function save(){try{sessionStorage.setItem('chanderiQuest',JSON.stringify(state));setDialog('Game Saved','Your progress has been saved for this session.',[])}catch(e){setDialog('Save','Save is unavailable in this browser.',[])}}
-function load(){try{const s=sessionStorage.getItem('chanderiQuest');if(s){Object.assign(state,JSON.parse(s));updateQuest()}}catch(e){}}
+function save(){try{localStorage.setItem('chanderiQuest',JSON.stringify({version:1,savedAt:new Date().toISOString(),state:state}));setDialog('Game Saved','Your progress has been saved permanently on this device.',[])}catch(e){setDialog('Save','Permanent save is unavailable in this browser.',[])}}
+function load(){try{const s=localStorage.getItem('chanderiQuest');if(s){const p=JSON.parse(s);Object.assign(state,p.state||p);updateQuest()}}catch(e){}}
 let last=performance.now();
-function update(dt){if(state.dialog)return;let dx=(down('ArrowRight')?1:0)-(down('ArrowLeft')?1:0),dy=(down('ArrowDown')?1:0)-(down('ArrowUp')?1:0);if(dx||dy){const l=Math.hypot(dx,dy);state.x+=dx/l*55*dt;state.y+=dy/l*55*dt}state.x=Math.max(12,Math.min(372,state.x));state.y=Math.max(18,Math.min(202,state.y));if(down('KeyE')){key.KeyE=0;interact()}if(down('KeyP')){key.KeyP=0;save()}}
+function update(dt){if(state.dialog)return;let dx=(down('ArrowRight')?1:0)-(down('ArrowLeft')?1:0),dy=(down('ArrowDown')?1:0)-(down('ArrowUp')?1:0);if(dx||dy){const l=Math.hypot(dx,dy);state.x+=dx/l*55*dt;state.y+=dy/l*55*dt}state.x=Math.max(12,Math.min(372,state.x));state.y=Math.max(18,Math.min(202,state.y));if(down('KeyE')){key.KeyE=0;interact()}if(down('KeyP')){key.KeyP=0;save()}if(down('KeyL')){key.KeyL=0;load();setDialog('Game Loaded','Your saved Chanderi progress has been restored.',[])}}
 function loop(t){const dt=Math.min(.033,(t-last)/1000);last=t;update(dt);draw();requestAnimationFrame(loop)}
 load();updateQuest();requestAnimationFrame(loop);
 </script></body></html>
