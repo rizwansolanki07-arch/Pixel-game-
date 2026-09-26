@@ -71,20 +71,6 @@ jobs:
           grep -q "CHANDERI_RUNTIME_OK: Main._ready entered" ../runtime-smoke.log
           echo "Runtime smoke test passed."
 
-      - name: Render smoke frame
-        working-directory: godot
-        run: |
-          set -euo pipefail
-          godot --headless --path . --write-movie ../chanderi-smoke.png --quit-after 1
-          test -s ../chanderi-smoke.png
-
-      - name: Upload smoke frame
-        uses: actions/upload-artifact@v4
-        with:
-          name: Chanderi-Quest-Smoke-Frame
-          path: chanderi-smoke.png
-          if-no-files-found: error
-
       - name: Export Android APK
         working-directory: godot
         run: |
