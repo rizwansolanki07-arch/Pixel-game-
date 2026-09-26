@@ -1,0 +1,31 @@
+{
+  "gameId": "chanderi-quest",
+  "title": "Chanderi Quest",
+  "protagonist": {
+    "id": "player_female_001",
+    "name": "Asha",
+    "gender": "female"
+  },
+  "start": {
+    "mapId": "chanderi_village",
+    "spawn": { "x": 18, "y": 22 }
+  },
+  "maps": [
+    "chanderi_village",
+    "chanderi_inn",
+    "chanderi_seth_house",
+    "chanderi_mandir",
+    "chanderi_godown"
+  ],
+  "firstQuest": {
+    "id": "quest_missing_package",
+    "title": "The Missing Package",
+    "steps": [
+      "talk_to_innkeeper",
+      "inspect_bazaar_crate",
+      "find_missing_package",
+      "return_to_innkeeper"
+    ]
+  },
+  "worldFlags": {}
+}
