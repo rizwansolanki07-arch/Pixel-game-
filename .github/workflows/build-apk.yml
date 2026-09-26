@@ -59,6 +59,18 @@ jobs:
         working-directory: godot
         run: godot --headless --editor --quit --path .
 
+      - name: Runtime smoke test
+        working-directory: godot
+        run: |
+          set -euo pipefail
+          godot --headless --path . --quit-after 5 2>&1 | tee ../runtime-smoke.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ERROR:" ../runtime-smoke.log; then
+            echo "Runtime smoke test found a Godot error."
+            exit 1
+          fi
+          grep -q "CHANDERI_RUNTIME_OK: Main._ready entered" ../runtime-smoke.log
+          echo "Runtime smoke test passed."
+
       - name: Export Android APK
         working-directory: godot
         run: |
