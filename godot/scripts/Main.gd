@@ -29,7 +29,7 @@ func _ready() -> void:
 func _add_premium_backdrop() -> void:
     # Use the repository's premium/modern art layer behind the authored village.
     # It is optional at runtime so a missing imported texture never blocks gameplay.
-    var tex: Texture2D = load("res://src/art/assets/modern/bg_base.png")
+    var tex: Texture2D = load("res://assets/chanderi_premium_backdrop.svg")
     if tex == null:
         return
     var backdrop := Sprite2D.new()
@@ -193,57 +193,7 @@ func _show_message(text: String) -> void:
     queue_redraw()
 
 func _draw() -> void:
-    # Base ground.
-    draw_rect(Rect2(0, 0, W, H), Color("#78ad63"))
-
-    # Subtle grass pixel pattern.
-    for y in range(36, 210, 12):
-        for x in range(8, 376, 16):
-            if (x + y) % 32 == 0:
-                draw_rect(Rect2(x, y, 2, 2), Color("#6a9d58"))
-
-    # Header.
-    draw_rect(Rect2(0, 0, W, 28), Color("#315b70"))
-    draw_rect(Rect2(0, 27, W, 3), Color("#d5b96a"))
-    _label(Vector2(12, 9), "CHANDERI QUEST", 12, Color("#fff2c9"))
-    _label(Vector2(274, 9), "QUEST", 7, Color("#dcecf1"))
-    _label(Vector2(311, 9), GameState.quest_state.to_upper(), 7, Color("#ffe6a5"))
-
-    # Main roads with edge pixels.
-    draw_rect(Rect2(144, 30, 40, 178), Color("#c7a16a"))
-    draw_rect(Rect2(18, 112, 348, 31), Color("#c7a16a"))
-    draw_rect(Rect2(144, 30, 2, 178), Color("#b18b58"))
-    draw_rect(Rect2(182, 30, 2, 178), Color("#b18b58"))
-    draw_rect(Rect2(18, 112, 348, 2), Color("#b18b58"))
-    draw_rect(Rect2(18, 141, 348, 2), Color("#b18b58"))
-
-    # River.
-    draw_rect(Rect2(331, 30, 41, 82), Color("#2d86b2"))
-    for y in range(38, 106, 10):
-        draw_line(Vector2(334, y), Vector2(368, y), Color("#67b8d2"), 1)
-    draw_rect(Rect2(326, 106, 46, 8), Color("#a98259"))
-    draw_rect(Rect2(326, 114, 46, 5), Color("#806246"))
-
-    # Buildings.
-    _building(Rect2(48, 43, 56, 33), "INN", Color("#92553c"), Color("#d39b57"))
-    _building(Rect2(248, 43, 64, 33), "SETH", Color("#76534b"), Color("#d09b57"))
-    _building(Rect2(276, 126, 48, 37), "MANDIR", Color("#a65d43"), Color("#e0a85f"))
-    _building(Rect2(48, 151, 55, 30), "HOME", Color("#765a45"), Color("#c99555"))
-    _building(Rect2(184, 149, 54, 34), "GODOWN", Color("#5d594a"), Color("#bd955d"))
-
-    # Bazaar stall and package crate.
-    draw_rect(Rect2(188, 106, 54, 7), Color("#673c2d"))
-    draw_rect(Rect2(188, 101, 54, 6), Color("#d5a25b"))
-    draw_rect(Rect2(210, 119, 12, 12), Color("#a96e35"))
-    draw_rect(Rect2(212, 121, 8, 8), Color("#c58a45"))
-
-    # Trees / greenery.
-    _tree(Vector2(26, 51))
-    _tree(Vector2(126, 49))
-    _tree(Vector2(356, 45))
-    _tree(Vector2(24, 184))
-    _tree(Vector2(354, 187))
-
+    # Premium village backdrop supplies terrain and buildings.
     # NPCs.
     _npc(Vector2(76, 56), "G", Color("#45526d"), Color("#b97846"))
     _npc(Vector2(210, 91), "M", Color("#5b496b"), Color("#d28b4f"))
