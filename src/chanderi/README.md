@@ -37,3 +37,7 @@ The first playable slice will use authored map data and stable IDs for every NPC
 6. Day/night NPC schedules
 7. Save/load integration across every system
 8. Android packaging for Chanderi Quest
+
+
+## Android build
+The Chanderi Quest Android project lives in `android/`. The APK workflow builds `assembleDebug` from this project and publishes the installable APK as a GitHub Actions artifact/release asset.
