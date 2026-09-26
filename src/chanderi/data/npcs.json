@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "npcs": [
+    {
+      "id": "innkeeper_gopal",
+      "name": "Gopal",
+      "role": "Innkeeper",
+      "mapId": "chanderi_village",
+      "x": 116,
+      "y": 92,
+      "sprite": "villager_male_01",
+      "schedule": {
+        "morning": "inn",
+        "day": "bazaar",
+        "evening": "inn"
+      }
+    },
+    {
+      "id": "merchant_meera",
+      "name": "Meera",
+      "role": "Merchant",
+      "mapId": "chanderi_village",
+      "x": 252,
+      "y": 102,
+      "sprite": "villager_female_01",
+      "schedule": {
+        "morning": "bazaar",
+        "day": "bazaar",
+        "evening": "home"
+      }
+    },
+    {
+      "id": "pandit_dev",
+      "name": "Pandit Dev",
+      "role": "Priest",
+      "mapId": "chanderi_village",
+      "x": 314,
+      "y": 160,
+      "sprite": "priest_01",
+      "schedule": {
+        "morning": "mandir",
+        "day": "mandir",
+        "evening": "mandir"
+      }
+    }
+  ]
+}
