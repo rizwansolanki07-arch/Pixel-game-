@@ -1,0 +1,65 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Chanderi Quest</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#111;display:grid;place-items:center;overflow:hidden;font-family:monospace}
+#game{position:relative;width:min(100vw,177.78vh);height:min(100vh,56.25vw);background:#16251c}
+canvas{width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none}
+#hud{position:absolute;left:7px;top:7px;padding:6px 8px;background:#111c;border:1px solid #9b835c;color:#f4e8ca;font-size:8px;line-height:1.45;pointer-events:none}
+#dialog{display:none;position:absolute;left:6%;right:6%;bottom:6%;padding:9px;background:#15120feF;border:2px solid #c9aa6a;color:#fff3d0;font-size:9px;line-height:1.5}
+#dialog strong{color:#f4cc79}.choice{display:block;width:100%;margin-top:5px;padding:6px;background:#292117;color:#f7e6bd;border:1px solid #8c7347;text-align:left;font:8px monospace}
+#quest{position:absolute;right:7px;top:7px;max-width:155px;padding:6px;background:#111c;border:1px solid #6f8d70;color:#e8f1d8;font-size:7px;line-height:1.45}
+.touch{display:none;position:absolute;left:8px;right:8px;bottom:8px;justify-content:space-between;pointer-events:none}.pad{display:grid;grid-template-columns:30px 30px 30px;grid-template-rows:30px 30px;gap:3px}.b{width:30px;height:30px;background:#101a16aa;border:1px solid #aaa6;color:#fff;display:grid;place-items:center;font:8px monospace;pointer-events:auto}.up{grid-column:2}.left{grid-column:1;grid-row:2}.down{grid-column:2;grid-row:2}.right{grid-column:3;grid-row:2}.act{display:flex;gap:4px;align-items:end}
+@media(pointer:coarse){.touch{display:flex}}
+</style></head><body>
+<div id="game"><canvas id="c" width="384" height="216"></canvas>
+<div id="hud">CHANDERI VILLAGE<br><span id="pos">Entrance</span><br>HP <span id="hp">100</span> · GOLD <span id="gold">25</span></div>
+<div id="quest">QUEST<br><b>The Missing Package</b><br><span id="qtext">Talk to the innkeeper.</span></div>
+<div id="dialog"></div>
+<div class="touch"><div class="pad"><button class="b up" data-k="ArrowUp">▲</button><button class="b left" data-k="ArrowLeft">◀</button><button class="b down" data-k="ArrowDown">▼</button><button class="b right" data-k="ArrowRight">▶</button></div><div class="act"><button class="b" data-k="KeyE">TALK</button><button class="b" data-k="KeyI">ITEM</button><button class="b" data-k="KeyP">SAVE</button></div></div>
+</div>
+<script>
+const C=document.getElementById('c'),ctx=C.getContext('2d'),W=384,H=216,T=16;
+ctx.imageSmoothingEnabled=false;
+const key={},touch={};addEventListener('keydown',e=>{key[e.code]=1;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault()});addEventListener('keyup',e=>key[e.code]=0);
+document.querySelectorAll('.b').forEach(b=>{const k=b.dataset.k;b.addEventListener('pointerdown',e=>{e.preventDefault();touch[k]=1});['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,e=>{e.preventDefault();touch[k]=0}))});
+const down=k=>!!(key[k]||touch[k]);
+const state={map:'chanderi_village',x:48,y:174,hp:100,gold:25,quest:'talk',flags:{package:false},dialog:false};
+const npcs=[
+{id:'innkeeper',name:'Gopal',x:116,y:92,color:'#8b5a3c',lines:[
+['Welcome to Chanderi, traveler. I am Gopal, the innkeeper.','choice'],
+['A courier package meant for the inn never arrived. Could you look around the bazaar?','accept']
+]},
+{id:'merchant',name:'Meera',x:252,y:102,color:'#a64b5a',lines:[
+['Namaste. I saw a small sealed bundle near the old bazaar crate.','info']
+]},
+{id:'priest',name:'Pandit Dev',x:314,y:160,color:'#d8c9a4',lines:[
+['The village has been quiet today. The river road is safe for now.','info']
+]}];
+const objects=[{id:'crate',x:250,y:145,done:false}];
+function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
+function text(s,x,y,size=7,c='#fff'){ctx.fillStyle=c;ctx.font=size+'px monospace';ctx.fillText(s,x,y)}
+function drawGround(){rect(0,0,W,H,'#5b8a4c');for(let y=0;y<H;y+=T)for(let x=0;x<W;x+=T){if((x/T+y/T)%3===0)rect(x,y,T,T,'#608f50')}rect(0,38,W,34,'#c7a76c');rect(0,73,W,9,'#b18e58');rect(0,180,W,36,'#4f7b45');}
+function house(x,y,w,h,name){rect(x+4,y+4,w,h,'#3e2c23');rect(x,y,w,h-6,'#b96f48');rect(x-3,y-7,w+6,8,'#703d2c');rect(x+w/2-6,y+h-18,12,18,'#4c3027');text(name,x+3,y+h+7,6,'#2d241e')}
+function tree(x,y){rect(x-2,y+9,5,10,'#65462d');rect(x-9,y-2,18,14,'#315e39');rect(x-6,y-8,12,10,'#3d7041')}
+function drawPlayer(){const x=state.x,y=state.y;rect(x-5,y-12,10,10,'#e0a875');rect(x-7,y-2,14,12,'#8b3f55');rect(x-7,y+9,5,7,'#3e3040');rect(x+2,y+9,5,7,'#3e3040');rect(x-7,y-14,14,4,'#3d2930');rect(x-8,y-11,2,8,'#3d2930');rect(x+7,y-11,2,8,'#3d2930');}
+function drawNPC(n){rect(n.x-5,n.y-12,10,10,'#d99b72');rect(n.x-7,n.y-2,14,12,n.color);rect(n.x-7,n.y+9,5,7,'#443b38');rect(n.x+2,n.y+9,5,7,'#443b38');}
+function draw(){ctx.clearRect(0,0,W,H);drawGround();house(18,20,65,42,'HOME');house(92,48,58,44,'INN');house(205,24,70,48,'SETH HOUSE');house(286,76,58,44,'MANDIR');house(185,137,64,34,'GODOWN');rect(0,96,42,55,'#3e7aa0');rect(0,112,52,5,'#79b4c5');for(let i=0;i<14;i++)tree(18+i*28,190-(i%3)*22);
+text('CHANDERI BAZAAR',145,65,7,'#4a3825');rect(226,137,38,22,'#755039');rect(232,142,26,16,'#9b6845');text('CRATE',231,134,6,'#2f241b');
+for(const n of npcs)drawNPC(n);drawPlayer();
+text('▲ NORTH',335,18,6,'#fff');document.getElementById('pos').textContent=state.x<70?'Village Entrance':state.x>280?'Mandir Road':'Bazaar';
+}
+function nearest(){let best=null,d=999;for(const n of npcs){const q=Math.hypot(n.x-state.x,n.y-state.y);if(q<d){d=q;best=n}}return d<25?best:null}
+function nearestObject(){for(const o of objects)if(Math.hypot(o.x-state.x,o.y-state.y)<27)return o;return null}
+function setDialog(title,msg,buttons=[]){const d=document.getElementById('dialog');d.style.display='block';d.innerHTML='<strong>'+title+'</strong><br>'+msg;buttons.forEach((b,i)=>{const btn=document.createElement('button');btn.className='choice';btn.textContent=(i+1)+'. '+b.label;btn.addEventListener('click',()=>{b.action();d.style.display='none'});d.appendChild(btn)});state.dialog=true}
+function interact(){if(state.dialog)return;const n=nearest();if(n){if(n.id==='innkeeper'&&state.quest==='talk')setDialog(n.name,n.lines[0][0],[
+{label:'I will look for it.',action:()=>{state.quest='find';updateQuest();setDialog(n.name,n.lines[1][0],[])}}]);else if(n.id==='innkeeper'&&state.quest==='return'&&state.flags.package){state.quest='done';state.gold+=50;updateQuest();setDialog(n.name,'You found it! Thank you. Please accept 50 gold for your help.',[])}else setDialog(n.name,n.lines[0][0],[]);return}
+const o=nearestObject();if(o&&!o.done&&state.quest==='find'){o.done=true;state.flags.package=true;state.quest='return';updateQuest();setDialog('A sealed package','You found the missing package. Return to Gopal at the inn.',[])}}
+function updateQuest(){const q=document.getElementById('qtext');q.textContent=state.quest==='talk'?'Talk to the innkeeper.':state.quest==='find'?'Inspect the bazaar crate.':state.quest==='return'?'Return the package to Gopal.':'Quest complete! +50 gold';document.getElementById('gold').textContent=state.gold}
+function save(){try{sessionStorage.setItem('chanderiQuest',JSON.stringify(state));setDialog('Game Saved','Your progress has been saved for this session.',[])}catch(e){setDialog('Save','Save is unavailable in this browser.',[])}}
+function load(){try{const s=sessionStorage.getItem('chanderiQuest');if(s){Object.assign(state,JSON.parse(s));updateQuest()}}catch(e){}}
+let last=performance.now();
+function update(dt){if(state.dialog)return;let dx=(down('ArrowRight')?1:0)-(down('ArrowLeft')?1:0),dy=(down('ArrowDown')?1:0)-(down('ArrowUp')?1:0);if(dx||dy){const l=Math.hypot(dx,dy);state.x+=dx/l*55*dt;state.y+=dy/l*55*dt}state.x=Math.max(12,Math.min(372,state.x));state.y=Math.max(18,Math.min(202,state.y));if(down('KeyE')){key.KeyE=0;interact()}if(down('KeyP')){key.KeyP=0;save()}}
+function loop(t){const dt=Math.min(.033,(t-last)/1000);last=t;update(dt);draw();requestAnimationFrame(loop)}
+load();updateQuest();requestAnimationFrame(loop);
+</script></body></html>
