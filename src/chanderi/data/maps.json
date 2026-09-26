@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "tileSize": 16,
+  "world": "chanderi",
+  "maps": {
+    "chanderi_village": {
+      "name": "Chanderi Village",
+      "size": {
+        "width": 24,
+        "height": 14
+      },
+      "spawn": {
+        "x": 48,
+        "y": 174
+      },
+      "exits": [
+        {
+          "id": "north_road",
+          "x": 344,
+          "y": 16,
+          "w": 40,
+          "h": 20,
+          "to": "chanderi_river",
+          "spawn": {
+            "x": 24,
+            "y": 180
+          }
+        }
+      ],
+      "buildings": [
+        {
+          "id": "home_player",
+          "type": "home",
+          "x": 18,
+          "y": 20,
+          "w": 65,
+          "h": 42
+        },
+        {
+          "id": "inn",
+          "type": "inn",
+          "x": 92,
+          "y": 48,
+          "w": 58,
+          "h": 44
+        },
+        {
+          "id": "seth_house",
+          "type": "house",
+          "x": 205,
+          "y": 24,
+          "w": 70,
+          "h": 48
+        },
+        {
+          "id": "mandir",
+          "type": "mandir",
+          "x": 286,
+          "y": 76,
+          "w": 58,
+          "h": 44
+        },
+        {
+          "id": "godown",
+          "type": "godown",
+          "x": 185,
+          "y": 137,
+          "w": 64,
+          "h": 34
+        }
+      ],
+      "interactables": [
+        {
+          "id": "bazaar_crate",
+          "type": "quest_object",
+          "x": 250,
+          "y": 145,
+          "quest": "quest_missing_package",
+          "step": "inspect_bazaar_crate"
+        }
+      ]
+    },
+    "chanderi_river": {
+      "name": "River & Ghats",
+      "size": {
+        "width": 24,
+        "height": 14
+      },
+      "spawn": {
+        "x": 24,
+        "y": 180
+      },
+      "exits": [
+        {
+          "id": "village_return",
+          "x": 0,
+          "y": 168,
+          "w": 24,
+          "h": 32,
+          "to": "chanderi_village",
+          "spawn": {
+            "x": 344,
+            "y": 30
+          }
+        }
+      ]
+    },
+    "chanderi_inn": {
+      "name": "Inn",
+      "size": {
+        "width": 12,
+        "height": 10
+      },
+      "spawn": {
+        "x": 96,
+        "y": 136
+      }
+    }
+  }
+}
