@@ -56,3 +56,13 @@ for it (fullscreen, own icon, offline after the first load).
 - Icons were generated from the game's own pixel art.
 - `source/` holds the build script + template that generate `PixelQuest.html`;
   regenerate from the generator workspace with `node src/mobile/build.mjs`.
+
+
+## Chanderi Quest — new game
+
+The new game is being built separately as **Chanderi Quest** and does not overwrite the existing Aether Resonance game.
+
+- Playable vertical-slice file: `ChanderiQuest.html`
+- New game data: `src/chanderi/data/story.json`
+- Runtime architecture: `src/chanderi/README.md`
+- Current slice: movement, Chanderi village layout, NPC interaction, dialogue choice, first quest, item discovery, quest completion, gold reward and session save/load.
