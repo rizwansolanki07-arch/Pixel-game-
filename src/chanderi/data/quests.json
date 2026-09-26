@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "quests": [
+    {
+      "id": "quest_missing_package",
+      "title": "The Missing Package",
+      "giver": "innkeeper_gopal",
+      "steps": [
+        {
+          "id": "talk_to_innkeeper",
+          "type": "talk",
+          "target": "innkeeper_gopal"
+        },
+        {
+          "id": "inspect_bazaar_crate",
+          "type": "inspect",
+          "target": "bazaar_crate"
+        },
+        {
+          "id": "find_missing_package",
+          "type": "collect",
+          "target": "missing_package"
+        },
+        {
+          "id": "return_to_innkeeper",
+          "type": "talk",
+          "target": "innkeeper_gopal"
+        }
+      ],
+      "reward": {
+        "gold": 50,
+        "items": []
+      },
+      "onComplete": {
+        "setFlags": {
+          "package_returned": true
+        }
+      }
+    }
+  ]
+}
