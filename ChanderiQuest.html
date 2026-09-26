@@ -24,7 +24,9 @@ ctx.imageSmoothingEnabled=false;
 const key={},touch={};addEventListener('keydown',e=>{key[e.code]=1;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault()});addEventListener('keyup',e=>key[e.code]=0);
 document.querySelectorAll('.b').forEach(b=>{const k=b.dataset.k;b.addEventListener('pointerdown',e=>{e.preventDefault();touch[k]=1});['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,e=>{e.preventDefault();touch[k]=0}))});
 const down=k=>!!(key[k]||touch[k]);
-const state={map:'chanderi_village',x:48,y:174,hp:100,gold:25,quest:'talk',flags:{package:false},dialog:false};
+const state={map:'chanderi_village',x:48,y:174,hp:100,gold:25,quest:'talk',flags:{package:false},dialog:false,inventory:[],time:{day:1,hour:8,minute:0}};
+const maps={chanderi_village:{name:'Chanderi Village',spawn:{x:48,y:174},exits:[{x:344,y:0,w:40,h:24,to:'chanderi_river',spawn:{x:28,y:180}}]},chanderi_river:{name:'River & Ghats',spawn:{x:28,y:180},exits:[{x:0,y:160,w:24,h:40,to:'chanderi_village',spawn:{x:336,y:32}}]}};
+function changeMap(id,spawn){const m=maps[id];if(!m)return;state.map=id;state.x=spawn.x;state.y=spawn.y;document.querySelector('#hud').firstChild.textContent=m.name+'\n';}
 const npcs=[
 {id:'innkeeper',name:'Gopal',x:116,y:92,color:'#8b5a3c',lines:[
 ['Welcome to Chanderi, traveler. I am Gopal, the innkeeper.','choice'],
@@ -39,12 +41,12 @@ const npcs=[
 const objects=[{id:'crate',x:250,y:145,done:false}];
 function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
 function text(s,x,y,size=7,c='#fff'){ctx.fillStyle=c;ctx.font=size+'px monospace';ctx.fillText(s,x,y)}
-function drawGround(){rect(0,0,W,H,'#5b8a4c');for(let y=0;y<H;y+=T)for(let x=0;x<W;x+=T){if((x/T+y/T)%3===0)rect(x,y,T,T,'#608f50')}rect(0,38,W,34,'#c7a76c');rect(0,73,W,9,'#b18e58');rect(0,180,W,36,'#4f7b45');}
+function drawGround(){if(state.map==='chanderi_river'){rect(0,0,W,H,'#5b8a4c');rect(0,70,W,80,'#3e7aa0');rect(0,92,W,6,'#75b6c7');for(let x=10;x<W;x+=34)rect(x,76,18,3,'#8ec9d2');rect(0,150,W,66,'#c7a76c');return}rect(0,0,W,H,'#5b8a4c');for(let y=0;y<H;y+=T)for(let x=0;x<W;x+=T){if((x/T+y/T)%3===0)rect(x,y,T,T,'#608f50')}rect(0,38,W,34,'#c7a76c');rect(0,73,W,9,'#b18e58');rect(0,180,W,36,'#4f7b45');}
 function house(x,y,w,h,name){rect(x+4,y+4,w,h,'#3e2c23');rect(x,y,w,h-6,'#b96f48');rect(x-3,y-7,w+6,8,'#703d2c');rect(x+w/2-6,y+h-18,12,18,'#4c3027');text(name,x+3,y+h+7,6,'#2d241e')}
 function tree(x,y){rect(x-2,y+9,5,10,'#65462d');rect(x-9,y-2,18,14,'#315e39');rect(x-6,y-8,12,10,'#3d7041')}
 function drawPlayer(){const x=state.x,y=state.y;rect(x-5,y-12,10,10,'#e0a875');rect(x-7,y-2,14,12,'#8b3f55');rect(x-7,y+9,5,7,'#3e3040');rect(x+2,y+9,5,7,'#3e3040');rect(x-7,y-14,14,4,'#3d2930');rect(x-8,y-11,2,8,'#3d2930');rect(x+7,y-11,2,8,'#3d2930');}
 function drawNPC(n){rect(n.x-5,n.y-12,10,10,'#d99b72');rect(n.x-7,n.y-2,14,12,n.color);rect(n.x-7,n.y+9,5,7,'#443b38');rect(n.x+2,n.y+9,5,7,'#443b38');}
-function draw(){ctx.clearRect(0,0,W,H);drawGround();house(18,20,65,42,'HOME');house(92,48,58,44,'INN');house(205,24,70,48,'SETH HOUSE');house(286,76,58,44,'MANDIR');house(185,137,64,34,'GODOWN');rect(0,96,42,55,'#3e7aa0');rect(0,112,52,5,'#79b4c5');for(let i=0;i<14;i++)tree(18+i*28,190-(i%3)*22);
+function draw(){ctx.clearRect(0,0,W,H);drawGround();if(state.map==='chanderi_river'){text('RIVER GHATS',150,164,8,'#3d3022');for(let i=0;i<7;i++)tree(24+i*55,190-(i%2)*18);drawPlayer();text('← VILLAGE',5,18,6,'#fff');document.getElementById('pos').textContent='River & Ghats';return}house(18,20,65,42,'HOME');house(92,48,58,44,'INN');house(205,24,70,48,'SETH HOUSE');house(286,76,58,44,'MANDIR');house(185,137,64,34,'GODOWN');rect(0,96,42,55,'#3e7aa0');rect(0,112,52,5,'#79b4c5');for(let i=0;i<14;i++)tree(18+i*28,190-(i%3)*22);
 text('CHANDERI BAZAAR',145,65,7,'#4a3825');rect(226,137,38,22,'#755039');rect(232,142,26,16,'#9b6845');text('CRATE',231,134,6,'#2f241b');
 for(const n of npcs)drawNPC(n);drawPlayer();
 text('▲ NORTH',335,18,6,'#fff');document.getElementById('pos').textContent=state.x<70?'Village Entrance':state.x>280?'Mandir Road':'Bazaar';
@@ -59,7 +61,7 @@ function updateQuest(){const q=document.getElementById('qtext');q.textContent=st
 function save(){try{localStorage.setItem('chanderiQuest',JSON.stringify({version:1,savedAt:new Date().toISOString(),state:state}));setDialog('Game Saved','Your progress has been saved permanently on this device.',[])}catch(e){setDialog('Save','Permanent save is unavailable in this browser.',[])}}
 function load(){try{const s=localStorage.getItem('chanderiQuest');if(s){const p=JSON.parse(s);Object.assign(state,p.state||p);updateQuest()}}catch(e){}}
 let last=performance.now();
-function update(dt){if(state.dialog)return;let dx=(down('ArrowRight')?1:0)-(down('ArrowLeft')?1:0),dy=(down('ArrowDown')?1:0)-(down('ArrowUp')?1:0);if(dx||dy){const l=Math.hypot(dx,dy);state.x+=dx/l*55*dt;state.y+=dy/l*55*dt}state.x=Math.max(12,Math.min(372,state.x));state.y=Math.max(18,Math.min(202,state.y));if(down('KeyE')){key.KeyE=0;interact()}if(down('KeyP')){key.KeyP=0;save()}if(down('KeyL')){key.KeyL=0;load();setDialog('Game Loaded','Your saved Chanderi progress has been restored.',[])}}
+function update(dt){if(state.dialog)return;let dx=(down('ArrowRight')?1:0)-(down('ArrowLeft')?1:0),dy=(down('ArrowDown')?1:0)-(down('ArrowUp')?1:0);if(dx||dy){const l=Math.hypot(dx,dy);state.x+=dx/l*55*dt;state.y+=dy/l*55*dt}state.x=Math.max(12,Math.min(372,state.x));state.y=Math.max(18,Math.min(202,state.y));for(const e of maps[state.map].exits){if(state.x>e.x&&state.x<e.x+e.w&&state.y>e.y&&state.y<e.y+e.h){changeMap(e.to,e.spawn);break;}}if(down('KeyE')){key.KeyE=0;interact()}if(down('KeyP')){key.KeyP=0;save()}if(down('KeyL')){key.KeyL=0;load();setDialog('Game Loaded','Your saved Chanderi progress has been restored.',[])}}
 function loop(t){const dt=Math.min(.033,(t-last)/1000);last=t;update(dt);draw();requestAnimationFrame(loop)}
 load();updateQuest();requestAnimationFrame(loop);
 </script></body></html>
