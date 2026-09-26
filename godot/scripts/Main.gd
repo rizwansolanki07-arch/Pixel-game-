@@ -41,7 +41,7 @@ func _add_premium_backdrop() -> void:
     var tw := float(tex.get_width())
     var th := float(tex.get_height())
     if tw > 0.0 and th > 0.0:
-        var scale_factor := min(W / tw, H / th)
+        var scale_factor: float = min(W / tw, H / th)
         backdrop.scale = Vector2(scale_factor, scale_factor)
     add_child(backdrop)
 
