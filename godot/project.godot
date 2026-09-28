@@ -1,6 +1,6 @@
 [application]
-config/name="Chanderi Quest"
-run/main_scene="res://scenes/Main.tscn"
+config/name="Starlight Café — Raat ka Menu"
+run/main_scene="res://scenes/StarlightCafe.tscn"
 config/features=PackedStringArray("4.5", "GL Compatibility")
 
 [display]
@@ -14,13 +14,15 @@ window/size/mode=3
 window/handheld/orientation=0
 
 [rendering]
+textures/default_filters/use_nearest_mipmap_filter=false
 textures/canvas_textures/default_texture_filter=0
 textures/vram_compression/import_etc2_astc=true
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 
 [autoload]
-GameState="*res://scripts/GameState.gd"
+StarlightGameState="*res://scripts/StarlightGameState.gd"
+DayNightManager="*res://scripts/DayNightManager.gd"
 SaveManager="*res://scripts/SaveManager.gd"
 
 [input]
