@@ -1,0 +1,11 @@
+{
+  "moon_mushroom_soup": {
+    "name": "Moonlight Mushroom Soup",
+    "ingredients": [
+      {"id": "moon_mushroom", "amount": 1},
+      {"id": "village_herb", "amount": 2},
+      {"id": "milk", "amount": 1},
+      {"id": "salt", "amount": 1}
+    ]
+  }
+}
