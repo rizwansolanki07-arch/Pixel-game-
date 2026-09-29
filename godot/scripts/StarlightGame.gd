@@ -61,6 +61,16 @@ func _ready():
 func _process(delta):
  msg_time=maxf(0,msg_time-delta)
  ui_pulse += delta
+ var cap:=OS.get_environment("STARLIGHT_CAPTURE")
+ if cap!="":
+  capture_clock += delta
+  if capture_clock>0.6:
+   var im:Image=get_viewport().get_texture().get_image()
+   if cap=="night":
+    im.save_png("res://capture_cafe_night.png")
+   else:
+    im.save_png("res://capture_cafe_day.png")
+   call_deferred("queue_free")
  if mode=="title": queue_redraw(); return
  if mode=="village": _move_village(delta)
  else:
