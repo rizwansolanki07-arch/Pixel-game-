@@ -26,6 +26,9 @@ var ui_font: Font
 var recipe_book_open := false
 var atmosphere_time := 0.0
 var kitchen_open := false
+var door_open := false
+var window_interactive := false
+var interior_notice := ""
 
 var spots := {
     "moon_mushroom": Vector2(118, 155),
@@ -103,6 +106,8 @@ func _input(event: InputEvent) -> void:
         _save()
     if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_K:
         kitchen_open = not kitchen_open
+    if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_O:
+        door_open = not door_open
     if event is InputEventKey and event.pressed and not event.echo:
         if event.keycode == KEY_N:
             DayNightManager.set_phase("night")
@@ -124,6 +129,10 @@ func _update_interaction() -> void:
         interaction_hint = "E  Cook"
     elif target == "kitchen":
         interaction_hint = "E  Kitchen"
+    elif target == "door":
+        interaction_hint = "E  " + ("Close Door" if door_open else "Open Door")
+    elif target == "window":
+        interaction_hint = "E  Look Outside"
     else:
         interaction_hint = "E  Gather " + target.replace("_", " ")
 
@@ -141,6 +150,12 @@ func _nearest_target() -> String:
     var kitchen := Vector2(120, 78)
     if player.distance_to(kitchen) < 30.0 and player.distance_to(kitchen) < best_dist:
         return "kitchen"
+    var door := Vector2(213, 70)
+    if player.distance_to(door) < 30.0 and player.distance_to(door) < best_dist:
+        return "door"
+    var window := Vector2(122, 60)
+    if player.distance_to(window) < 30.0 and player.distance_to(window) < best_dist:
+        return "window"
     if spirit_visible:
         var spirit_pos := Vector2(235, 116)
         if player.distance_to(spirit_pos) < 30.0 and player.distance_to(spirit_pos) < best_dist:
@@ -160,6 +175,16 @@ func _interact() -> void:
         kitchen_open = true
         message = "Kitchen: stove, sink aur ingredient shelf ready."
         message_timer = 2.5
+        return
+    if target == "door":
+        door_open = not door_open
+        message = "Yui: Door " + ("open." if door_open else "closed.")
+        message_timer = 1.8
+        return
+    if target == "window":
+        window_interactive = true
+        message = "Yui: Gaon ki roshni raat mein kitni khoobsurat hai."
+        message_timer = 2.8
         return
     if target == "spirit":
         _serve_spirit()
