@@ -30,6 +30,10 @@ var door_open := false
 var window_interactive := false
 var interior_notice := ""
 var village_open := false
+var village_mode := false
+var village_player := Vector2(180, 160)
+var village_message := ""
+var village_message_timer := 0.0
 
 var spots := {
     "moon_mushroom": Vector2(118, 155),
@@ -48,6 +52,8 @@ func _ready() -> void:
     touch_controls.move_changed.connect(_on_touch_move_changed)
     touch_controls.interact_pressed.connect(_on_touch_interact)
     dialogue.finished.connect(_on_dialogue_finished)
+    if village_message_timer > 0.0:
+        village_message_timer -= delta
     queue_redraw()
 
 func _process(delta: float) -> void:
@@ -110,7 +116,13 @@ func _input(event: InputEvent) -> void:
     if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_O:
         door_open = not door_open
     if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_V:
-        village_open = not village_open
+        if village_open:
+            village_open = false
+            village_mode = false
+        else:
+            village_open = true
+            village_mode = true
+            village_player = Vector2(180, 160)
     if event is InputEventKey and event.pressed and not event.echo:
         if event.keycode == KEY_N:
             DayNightManager.set_phase("night")
@@ -333,6 +345,37 @@ func _draw() -> void:
     if village_open:
         _draw_village_preview()
 
+func _update_village_player(delta: float) -> void:
+    var input_vec := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+    if touch_move.length() > 0.05:
+        input_vec = touch_move
+    if input_vec.length() > 0.01:
+        input_vec = input_vec.normalized()
+        village_player += input_vec * MOVE_SPEED * delta
+        village_player.x = clamp(village_player.x, 58.0, 324.0)
+        village_player.y = clamp(village_player.y, 58.0, 164.0)
+    var spots = {
+        "herb_patch": Vector2(142, 116),
+        "well": Vector2(282, 130),
+        "cafe_return": Vector2(213, 160)
+    }
+    for key in spots:
+        if village_player.distance_to(spots[key]) < 18.0 and Input.is_action_just_pressed("interact"):
+            if key == "herb_patch":
+                if StarlightGameState.add_ingredient("village_herb", 1):
+                    village_message = "Village Herb +1"
+                else:
+                    village_message = "Herb pouch full."
+                village_message_timer = 2.0
+            elif key == "well":
+                village_message = "The old well hums softly in the night."
+                village_message_timer = 2.5
+            else:
+                village_open = false
+                village_mode = false
+                village_message = "Back to the café."
+                village_message_timer = 1.5
+
 func _draw_village_preview() -> void:
     draw_rect(Rect2(42, 38, 300, 142), Color("#152034"))
     draw_rect(Rect2(44, 40, 296, 138), Color("#334b4a"), false, 2.0)
@@ -362,7 +405,15 @@ func _draw_village_preview() -> void:
         draw_circle(p, 4.0, Color("#8ab45f"))
         draw_line(p, p + Vector2(0, -7), Color("#517a4e"), 2.0)
     draw_string(ui_font, Vector2(60, 57), "GREENHOLLOW VILLAGE", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("#ffe2a7"))
-    draw_string(ui_font, Vector2(258, 169), "V / CLOSE", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color("#ddd1e3"))
+    draw_circle(village_player + Vector2(0, 7), 6.0, Color(0.08, 0.07, 0.12, 0.45))
+    draw_circle(village_player, 7.0, Color("#e7b78f"))
+    draw_rect(Rect2(village_player + Vector2(-5, 4), Vector2(10, 10)), Color("#c28b55"))
+    draw_circle(village_player + Vector2(0, -7), 5.0, Color("#241f2d"))
+    draw_string(ui_font, Vector2(58, 57), "GREENHOLLOW VILLAGE", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("#ffe2a7"))
+    draw_string(ui_font, Vector2(58, 172), "WASD / JOYSTICK • E INTERACT • V RETURN", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color("#ddd1e3"))
+    if village_message_timer > 0.0:
+        draw_rect(Rect2(92, 88, 176, 28), Color(0.06, 0.05, 0.1, 0.92))
+        draw_string(ui_font, Vector2(104, 106), village_message, HORIZONTAL_ALIGNMENT_LEFT, 156, 8, Color("#ffe7bd"))
 
 func _draw_kitchen(night: bool) -> void:
     var metal := Color("#403a46") if night else Color("#5b5052")
