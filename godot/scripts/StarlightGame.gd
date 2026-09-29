@@ -72,7 +72,14 @@ func _process(delta):
     im.save_png("res://capture_cafe_day.png")
    call_deferred("queue_free")
  if mode=="title": queue_redraw(); return
- if mode=="village": _move_village(delta)
+ if mode=="village":
+  _move_village(delta)
+  yui.position=village_player
+  var vm:=touch_move if touch_move.length()>.05 else Vector2(
+   float(Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT)) - float(Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT)),
+   float(Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN)) - float(Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP))
+  )
+  yui.set_motion(vm, vm.length()>.05)
  else:
   _move_cafe(delta)
   if cooking!="":
@@ -111,6 +118,11 @@ func _start():
 
 func _move_cafe(d):
  var v=Input.get_vector("move_left","move_right","move_up","move_down")
+ var key_v:=Vector2(
+  float(Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT)) - float(Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT)),
+  float(Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN)) - float(Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP))
+ )
+ if key_v.length()>0.01: v=key_v.normalized()
  if touch_move.length()>v.length(): v=touch_move
  if v.length()<=.01: return
  v=v.normalized()*SPEED*d
@@ -139,6 +151,11 @@ func _cafe_ok(p):
 
 func _move_village(d):
  var v=Input.get_vector("ui_left","ui_right","ui_up","ui_down")
+ var key_v:=Vector2(
+  float(Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT)) - float(Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT)),
+  float(Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN)) - float(Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP))
+ )
+ if key_v.length()>0.01: v=key_v.normalized()
  if touch_move.length()>.05: v=touch_move
  if v.length()<=.01: return
  v=v.normalized()*SPEED*d
@@ -313,17 +330,7 @@ func _title():
 func _cafe():
  var night=StarlightGameState.phase=="night"
  # Render the actual café world first. HUD and touch controls sit above this layer.
- _draw_room_shell(night)
- _draw_floor_tiles(night)
- _draw_rugs(night)
- _draw_back_wall_details(night)
- _draw_kitchen_cluster(night)
- _draw_lounge_cluster(night)
- _draw_dining_cluster(night)
- _draw_plants_and_props(night)
- _draw_cafe_lived_in_details(night)
- _draw_pixel_finish(night)
- if night: _draw_night_motes()
+ # CafeVisual owns the world art. This node draws gameplay/HUD only.
  _draw_interaction_hint(night)
  var points={"moon_mushroom":Vector2(115,174),"village_herb":Vector2(331,160),"milk":Vector2(207,62),"salt":Vector2(225,62),"honey":Vector2(243,62),"grain":Vector2(261,62)}
  for id in points:
