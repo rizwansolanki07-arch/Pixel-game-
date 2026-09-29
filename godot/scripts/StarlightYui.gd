@@ -53,7 +53,20 @@ func _draw() -> void:
  # Ground shadow is deliberately tiny and hard-edged so Yui stays anchored to the 2:1 floor.
  _draw_ground_shadow()
  if sprite_texture==null:
-  draw_rect(Rect2(-8,-20,16,12),Color("#30263a")); draw_rect(Rect2(-6,-17,12,10),Color("#e9a47f")); draw_rect(Rect2(-8,-6,16,11),Color("#d6a33d")); draw_rect(Rect2(-12,3,24,12),Color("#9d3f44")); draw_rect(Rect2(-7,15,5,7),Color("#5b3935")); draw_rect(Rect2(2,15,5,7),Color("#5b3935"))
+  # 56px fallback Yui: chunky handcrafted pixel silhouette, kept on the same baseline.
+  draw_rect(Rect2(-13,-28,26,8),Color("#292230"))
+  draw_rect(Rect2(-10,-25,20,15),Color("#e7a47f"))
+  draw_rect(Rect2(-8,-21,3,3),Color("#3b2930"))
+  draw_rect(Rect2(5,-21,3,3),Color("#3b2930"))
+  draw_rect(Rect2(-11,-11,22,7),Color("#d5a33d"))
+  draw_rect(Rect2(-14,-4,28,17),Color("#9d3f44"))
+  draw_rect(Rect2(-10,1,20,4),Color("#b94e48"))
+  draw_rect(Rect2(-7,13,6,12),Color("#56363a"))
+  draw_rect(Rect2(2,13,6,12),Color("#56363a"))
+  draw_rect(Rect2(-9,24,8,3),Color("#30252d"))
+  draw_rect(Rect2(1,24,8,3),Color("#30252d"))
+  draw_rect(Rect2(-15,-5,4,11),Color("#e0a53f"))
+  draw_rect(Rect2(11,-5,4,11),Color("#e0a53f"))
  var frame:=int(floor(walk_clock))%5 if moving else 0
  var src:=Rect2(frame*FRAME_W,facing_index*FRAME_H,FRAME_W,FRAME_H)
  var bob:=0.0 if moving else sin(idle_clock*2.2)*0.5
