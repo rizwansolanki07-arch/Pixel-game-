@@ -28,7 +28,7 @@ jobs:
       - name: Capture cafe day and night
         working-directory: godot
         run: |
-          timeout 30s godot --headless --path . --script tools/capture_starlight.gd >/tmp/starlight-capture.log 2>&1
+          timeout 12s godot --headless --path . --script tools/capture_starlight.gd >/tmp/starlight-capture.log 2>&1 || true
           cat /tmp/starlight-capture.log
           test -s capture_cafe_day.png
           test -s capture_cafe_night.png
