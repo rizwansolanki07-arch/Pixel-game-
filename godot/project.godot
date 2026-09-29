@@ -8,8 +8,9 @@ window/size/viewport_width=384
 window/size/viewport_height=216
 window/size/window_width_override=1152
 window/size/window_height_override=648
-window/stretch/mode="canvas_items"
+window/stretch/mode="viewport"
 window/stretch/aspect="keep"
+window/stretch/scale_mode="integer"
 window/size/mode=3
 window/handheld/orientation=0
 

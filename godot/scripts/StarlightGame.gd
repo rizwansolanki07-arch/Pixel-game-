@@ -22,6 +22,8 @@ var font: Font
 var dialogue: Node2D
 var touch: Node2D
 var yui: Node2D
+var cafe_day_tex: Texture2D
+var cafe_night_tex: Texture2D
 
 var recipes := {
  "moon_mushroom_soup":{"name":"Moonlight Mushroom Soup","ingredients":{"moon_mushroom":1,"village_herb":2,"milk":1,"salt":1},"spirit":"spirit_001"},
@@ -36,6 +38,8 @@ var spirits := {
 func _ready():
  font=ThemeDB.fallback_font
  dialogue=$Dialogue; touch=$TouchControls; yui=$Yui
+ cafe_day_tex=load("res://assets/starlight/environment/cafe_day.png") as Texture2D
+ cafe_night_tex=load("res://assets/starlight/environment/cafe_night.png") as Texture2D
  touch.move_changed.connect(_touch_move)
  touch.interact_pressed.connect(_touch_interact)
  dialogue.finished.connect(_dialogue_finished)
@@ -93,9 +97,21 @@ func _move_cafe(d):
  StarlightGameState.player_position=player
 
 func _cafe_ok(p):
- if not CAFE.grow(-10).has_point(p): return false
- for b in [Rect2(176,43,88,47),Rect2(110,76,78,66),Rect2(266,93,78,66),Rect2(96,65,48,26)]:
-  if b.grow(6).has_point(p): return false
+ var floor_poly:=PackedVector2Array([
+  Vector2(12,112),Vector2(190,22),Vector2(373,111),Vector2(190,202)
+ ])
+ if not Geometry2D.is_point_in_polygon(p,floor_poly): return false
+ if p.y<65 or p.y>199: return false
+ for b in [
+  Rect2(146,48,112,48),
+  Rect2(54,128,72,30),
+  Rect2(160,103,64,28),
+  Rect2(274,125,54,30),
+  Rect2(258,86,42,48),
+  Rect2(42,91,48,60),
+  Rect2(296,100,44,55)
+ ]:
+  if b.grow(4).has_point(p): return false
  return true
 
 func _move_village(d):
@@ -114,7 +130,17 @@ func _village_ok(p):
  return true
 
 func _nearest():
- var t={"moon_mushroom":Vector2(118,155),"village_herb":Vector2(270,150),"milk":Vector2(286,92),"salt":Vector2(112,88),"honey":Vector2(300,115),"grain":Vector2(140,92),"counter":Vector2(222,78),"door":Vector2(213,70),"spirit":Vector2(235,116)}
+ var t={
+  "moon_mushroom":Vector2(135,176),
+  "village_herb":Vector2(333,153),
+  "milk":Vector2(214,49),
+  "salt":Vector2(176,47),
+  "honey":Vector2(258,48),
+  "grain":Vector2(198,48),
+  "counter":Vector2(202,70),
+  "door":Vector2(345,171),
+  "spirit":Vector2(235,122)
+ }
  var best=""; var bd=999.0
  for k in t:
   var dd=player.distance_to(t[k])
@@ -222,26 +248,34 @@ func _title():
 
 func _cafe():
  var night=StarlightGameState.phase=="night"
- draw_rect(Rect2(0,0,384,216),Color("#17152a") if night else Color("#c9a66b"))
- _floor(night)
- _draw_cafe_backdrop(night)
- draw_rect(Rect2(88,48,216,22),Color("#3f3151") if night else Color("#8c5b62"))
- draw_rect(Rect2(108,51,28,18),Color("#30263b")); draw_rect(Rect2(111,54,22,12),Color("#554b87") if night else Color("#e6b85e"))
- draw_rect(Rect2(270,51,28,18),Color("#30263b")); draw_rect(Rect2(273,54,22,12),Color("#554b87") if night else Color("#e6b85e"))
- draw_rect(Rect2(196,49,34,23),Color("#302638")); draw_rect(Rect2(201,53,24,19),Color("#17142a") if door_open else Color("#9a604a"))
- draw_string(font,Vector2(154,46),"STARLIGHT",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#ffe3a5"))
- _draw_counter()
- _draw_table(Vector2(148,113))
- _draw_table(Vector2(304,130))
- _draw_chair(Vector2(154,134))
- _draw_chair(Vector2(276,146))
- _draw_chair(Vector2(315,131))
- for id in ["moon_mushroom","village_herb","milk","salt","honey","grain"]:
-  var p={"moon_mushroom":Vector2(118,155),"village_herb":Vector2(270,150),"milk":Vector2(286,92),"salt":Vector2(112,88),"honey":Vector2(300,115),"grain":Vector2(140,92)}[id]
-  draw_circle(p,5,Color("#b8e37d") if not night else Color("#a18bd1"))
+ var tex:=cafe_night_tex if night else cafe_day_tex
+ if tex:
+  draw_texture_rect(tex,Rect2(0,0,384,216),false)
+ else:
+  draw_rect(Rect2(0,0,384,216),Color("#151b2e") if night else Color("#704c45"))
+ var points={
+  "moon_mushroom":Vector2(135,176),
+  "village_herb":Vector2(333,153),
+  "milk":Vector2(214,49),
+  "salt":Vector2(176,47),
+  "honey":Vector2(258,48),
+  "grain":Vector2(198,48)
+ }
+ for id in points:
+  var key=str(StarlightGameState.day)+"_"+id
+  if not gathered.has(key):
+   var pp:Vector2=points[id]
+   draw_rect(Rect2(pp.x-2,pp.y-4,5,5),Color("#d9c27a") if not night else Color("#b7a4e5"))
+   draw_rect(Rect2(pp.x-4,pp.y-2,9,2),Color("#e8d99a") if not night else Color("#c7b9f4"))
+ if door_open:
+  draw_rect(Rect2(333,157,25,24),Color("#111827"))
+  draw_rect(Rect2(331,157,4,24),Color("#8b5b48"))
+  draw_string(font,Vector2(340,171),"→",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("#f0c67b"))
  if night:
-  draw_circle(Vector2(235,116),13,Color(0.55,0.42,0.9,0.28)); draw_circle(Vector2(235,113),7,Color("#d8c9ff"))
- draw_rect(Rect2(7,7,370,28),Color(0.06,0.05,0.10,0.88))
+  draw_rect(Rect2(224,121,20,4),Color("#7e6ba4"))
+  draw_rect(Rect2(228,117,12,12),Color("#b8a5ee"))
+  draw_rect(Rect2(231,114,6,18),Color("#dcd1ff"))
+ draw_rect(Rect2(7,7,370,28),Color(0.06,0.05,0.10,0.90))
  draw_string(font,Vector2(14,25),"Day "+str(StarlightGameState.day)+" • "+("NIGHT" if night else "DAY"),HORIZONTAL_ALIGNMENT_LEFT,-1,11,Color("#f6dfad"))
  draw_string(font,Vector2(142,25),"E Use  I Bag  R Recipes  Q Quest  V Village",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#d8cfe4"))
  draw_string(font,Vector2(14,199),"P Save • F Settings • L Language",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#d8cfe4"))
@@ -250,8 +284,11 @@ func _cafe():
  if panel=="quest": _panel("QUEST",[_quest_text(),"","Q / CLOSE"])
  if panel=="settings": _panel("SETTINGS",["L Language: "+language,"N Night • D Day","V Village • P Save","F Close"])
  if cooking!="":
-  draw_rect(Rect2(110,108,164,8),Color("#2e2536")); draw_rect(Rect2(112,110,160*clampf(cook_time/cook_len,0,1),4),Color("#e0a45e"))
- if msg_time>0: draw_rect(Rect2(45,142,294,19),Color(0.06,0.04,0.1,0.92)); draw_string(font,Vector2(55,155),msg,HORIZONTAL_ALIGNMENT_LEFT,274,8,Color("#f2e6d0"))
+  draw_rect(Rect2(110,108,164,8),Color("#2e2536"))
+  draw_rect(Rect2(112,110,160*clampf(cook_time/cook_len,0,1),4),Color("#e0a45e"))
+ if msg_time>0:
+  draw_rect(Rect2(45,142,294,19),Color(0.06,0.04,0.1,0.92))
+  draw_string(font,Vector2(55,155),msg,HORIZONTAL_ALIGNMENT_LEFT,274,8,Color("#f2e6d0"))
 
 func _village():
  draw_rect(Rect2(0,0,384,216),Color("#182536")); draw_rect(Rect2(42,38,300,142),Color("#334b4a"))
