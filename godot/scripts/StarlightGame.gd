@@ -243,12 +243,35 @@ func _draw():
  else: _cafe()
 
 func _title():
- draw_rect(Rect2(0,0,384,216),Color("#17152a"))
- for i in range(22): draw_circle(Vector2(12+(i*53)%360,18+(i*29)%180),1.2,Color(0.9,0.78,0.58,0.45))
- draw_circle(Vector2(192,72),32,Color(0.55,0.4,0.85,0.18)); draw_circle(Vector2(192,72),22,Color("#e9c87a"))
- draw_string(font,Vector2(76,120),"STARLIGHT CAFÉ",HORIZONTAL_ALIGNMENT_LEFT,-1,20,Color("#ffe5ad"))
- draw_string(font,Vector2(110,139),"RAAT KA MENU",HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("#cbb9dd"))
- draw_string(font,Vector2(112,174),_t("E / TAP — Shuru karo","E / TAP — Start"),HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("#fff0c7"))
+ draw_rect(Rect2(0,0,384,216),Color("#0e1426"))
+ # Star field + moon glow.
+ for i in range(28):
+  var sx=8+(i*47)%368
+  var sy=8+(i*29)%88
+  draw_rect(Rect2(sx,sy,2,2),Color("#e8d8b4"))
+ draw_circle(Vector2(300,48),27,Color(0.62,0.54,0.86,0.10))
+ draw_circle(Vector2(300,48),18,Color("#efe5c0"))
+ draw_circle(Vector2(307,42),18,Color("#0e1426"))
+ # Tiny café silhouette.
+ draw_colored_polygon(PackedVector2Array([Vector2(71,151),Vector2(313,151),Vector2(295,115),Vector2(91,115)]),Color("#463341"))
+ draw_colored_polygon(PackedVector2Array([Vector2(61,115),Vector2(323,115),Vector2(192,83)]),Color("#6b3f3e"))
+ draw_colored_polygon(PackedVector2Array([Vector2(84,151),Vector2(84,132),Vector2(121,132),Vector2(121,151)]),Color("#3c3440"))
+ draw_colored_polygon(PackedVector2Array([Vector2(264,151),Vector2(264,132),Vector2(301,132),Vector2(301,151)]),Color("#3c3440"))
+ draw_rect(Rect2(167,128,46,23),Color("#302934"))
+ draw_rect(Rect2(174,134,12,10),Color("#efb95e")); draw_rect(Rect2(194,134,12,10),Color("#efb95e"))
+ # Lanterns.
+ for p in [Vector2(108,108),Vector2(275,108)]:
+  draw_line(p+Vector2(0,-10),p,Color("#30272e"),1); draw_rect(Rect2(p.x-4,p.y,8,6),Color("#d49a55")); draw_rect(Rect2(p.x-2,p.y+1,4,4),Color("#ffe08b"))
+ # Logo + menu card.
+ draw_string(font,Vector2(62,42),"STARLIGHT CAFÉ",HORIZONTAL_ALIGNMENT_LEFT,-1,19,Color("#ffe5ad"))
+ draw_string(font,Vector2(132,57),"RAAT KA MENU",HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("#d2bfdb"))
+ draw_rect(Rect2(118,156,148,43),Color(0.05,0.04,0.09,0.92))
+ draw_rect(Rect2(120,158,144,39),Color("#6d4d68"),false,2)
+ draw_string(font,Vector2(130,171),_t("TAP / E  START GAME","TAP / E  START GAME"),HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("#fff1c7"))
+ draw_string(font,Vector2(134,184),"CONTINUE     SETTINGS",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#d9c9df"))
+ draw_string(font,Vector2(154,194),"EN / HI: "+language,HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#e9bf7d"))
+
+
 
 func _cafe():
  var night=StarlightGameState.phase=="night"
