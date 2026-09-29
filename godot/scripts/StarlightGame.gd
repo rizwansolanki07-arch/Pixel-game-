@@ -224,6 +224,7 @@ func _cafe():
  var night=StarlightGameState.phase=="night"
  draw_rect(Rect2(0,0,384,216),Color("#17152a") if night else Color("#c9a66b"))
  _floor(night)
+ _draw_cafe_backdrop(night)
  draw_rect(Rect2(88,48,216,22),Color("#3f3151") if night else Color("#8c5b62"))
  draw_rect(Rect2(108,51,28,18),Color("#30263b")); draw_rect(Rect2(111,54,22,12),Color("#554b87") if night else Color("#e6b85e"))
  draw_rect(Rect2(270,51,28,18),Color("#30263b")); draw_rect(Rect2(273,54,22,12),Color("#554b87") if night else Color("#e6b85e"))
@@ -315,8 +316,58 @@ func _ing(d):
  return s
 
 func _floor(night):
- var c=Color("#493e58") if night else Color("#355246")
+ var base=Color("#43394f") if night else Color("#4e3b38")
  for y in range(-3,8):
   for x in range(-3,10):
    var p=Vector2(190,110)+Vector2((x-y)*32,(x+y)*16)
-   draw_colored_polygon(PackedVector2Array([p+Vector2(0,-16),p+Vector2(32,0),p+Vector2(0,16),p+Vector2(-32,0)]),c)
+   var tile=Color("#4a3e51") if night else Color("#684a3e")
+   if (x+y)%2==0: tile=Color("#44394c") if night else Color("#5b4239")
+   draw_colored_polygon(PackedVector2Array([p+Vector2(0,-16),p+Vector2(32,0),p+Vector2(0,16),p+Vector2(-32,0)]),tile)
+   draw_line(p+Vector2(-18,0),p+Vector2(0,9),Color(0.12,0.09,0.13,0.35),1)
+   draw_line(p+Vector2(0,9),p+Vector2(18,0),Color(0.12,0.09,0.13,0.25),1)
+
+func _draw_cafe_backdrop(night: bool) -> void:
+ var wall=Color("#30283b") if night else Color("#6e4b52")
+ var trim=Color("#6f5879") if night else Color("#9a6653")
+ draw_rect(Rect2(78,43,244,132),wall)
+ draw_rect(Rect2(82,47,236,124),Color("#3b3044") if night else Color("#81555b"))
+ # timber beams
+ for x in [92,160,228,308]:
+  draw_rect(Rect2(x,48,5,116),Color("#4b3541") if night else Color("#5b3d3d"))
+ draw_rect(Rect2(84,68,232,6),trim)
+ draw_rect(Rect2(84,158,232,7),Color("#392b38") if night else Color("#57383a"))
+ # windows with four panes
+ _draw_window(Vector2(108,56),night)
+ _draw_window(Vector2(270,56),night)
+ # hanging lamps
+ _draw_lamp(Vector2(146,61),night)
+ _draw_lamp(Vector2(238,61),night)
+ # back shelf and jars
+ draw_rect(Rect2(164,76,72,5),Color("#8d5b46"))
+ draw_rect(Rect2(168,81,64,22),Color("#4b3540"))
+ for i in range(6):
+  var x=171+i*10
+  draw_rect(Rect2(x,84,7,12),Color("#9b6a4d") if i%2==0 else Color("#6d7b65"))
+  draw_circle(Vector2(x+3,84),3,Color("#d6aa62"))
+ # plants
+ _draw_plant(Vector2(95,105),night)
+ _draw_plant(Vector2(306,103),night)
+
+func _draw_window(p:Vector2,night:bool) -> void:
+ draw_rect(Rect2(p.x-15,p.y-4,30,28),Color("#241d2b"))
+ draw_rect(Rect2(p.x-11,p.y,22,20),Color("#6a5b8d") if night else Color("#e7b965"))
+ draw_rect(Rect2(p.x-2,p.y,4,20),Color("#4c3947"))
+ draw_rect(Rect2(p.x-11,p.y+8,22,4),Color("#4c3947"))
+ if night:
+  draw_circle(p+Vector2(4,6),8,Color(0.65,0.5,1.0,0.10))
+
+func _draw_lamp(p:Vector2,night:bool) -> void:
+ draw_line(p+Vector2(0,-12),p+Vector2(0,-2),Color("#352a35"),2)
+ draw_rect(Rect2(p.x-5,p.y-1,10,7),Color("#a86e48"))
+ draw_rect(Rect2(p.x-3,p.y,6,5),Color("#efbd62"))
+ draw_circle(p+Vector2(0,3),10,Color(1.0,0.68,0.28,0.08) if night else Color(1.0,0.75,0.35,0.04))
+
+func _draw_plant(p:Vector2,night:bool) -> void:
+ draw_rect(Rect2(p.x-4,p.y+5,8,8),Color("#754b3d"))
+ for off in [Vector2(-5,2),Vector2(0,-3),Vector2(5,2)]:
+  draw_circle(p+off,5,Color("#456c4c") if night else Color("#5f8a50"))
