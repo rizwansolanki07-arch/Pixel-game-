@@ -21,7 +21,7 @@ const DIRS := [
 ]
 
 func _ready() -> void:
- sprite_texture=load("res://assets/starlight/characters/yui_8dir_5frame.png") as Texture2D
+ sprite_texture=null
  queue_redraw()
 
 func set_motion(direction: Vector2, is_moving: bool) -> void:
