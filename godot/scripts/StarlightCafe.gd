@@ -443,11 +443,33 @@ func _draw_village_preview() -> void:
         draw_circle(p, 4.0, Color("#8ab45f"))
         draw_line(p, p + Vector2(0, -7), Color("#517a4e"), 2.0)
     draw_string(ui_font, Vector2(60, 57), "GREENHOLLOW VILLAGE", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("#ffe2a7"))
+    # Street props: fences, crates, barrels, benches and crop beds.
+    for x in range(58, 108, 12):
+        draw_rect(Rect2(x, 137, 8, 3), Color("#5b4037"))
+        draw_rect(Rect2(x + 2, 133, 3, 10), Color("#6e4a3b"))
+    for x in [72, 86, 300, 314]:
+        draw_rect(Rect2(x, 106, 10, 10), Color("#76513d"))
+        draw_rect(Rect2(x + 2, 108, 6, 6), Color("#9a6948"))
+    for p in [Vector2(68, 118), Vector2(82, 118), Vector2(300, 116)]:
+        draw_circle(p, 6.0, Color("#63463d"))
+        draw_line(p + Vector2(-4, -4), p + Vector2(4, 4), Color("#89604a"), 2.0)
+        draw_line(p + Vector2(4, -4), p + Vector2(-4, 4), Color("#89604a"), 2.0)
+    for p in [Vector2(278, 74), Vector2(292, 74), Vector2(306, 74)]:
+        draw_rect(Rect2(p + Vector2(-5, -3), Vector2(10, 6)), Color("#6b5a42"))
+        for i in range(3):
+            draw_line(p + Vector2(-3 + i * 3, 2), p + Vector2(-4 + i * 3, -3), Color("#71914f"), 1.0)
     # Lamps: warm pools become stronger as the evening advances.
     var glow := 0.5 + 0.5 * sin(village_light_time * 2.0)
     for lamp_pos in [Vector2(128, 58), Vector2(198, 104), Vector2(276, 104)]:
         draw_circle(lamp_pos, 11.0, Color(1.0, 0.72, 0.38, 0.07 + glow * 0.05))
         draw_circle(lamp_pos, 3.0, Color("#f3b85f"))
+    # Signboards.
+    draw_rect(Rect2(116, 106, 3, 18), Color("#604238"))
+    draw_rect(Rect2(119, 108, 30, 10), Color("#9b704c"))
+    draw_string(ui_font, Vector2(122, 116), "CAFE", HORIZONTAL_ALIGNMENT_LEFT, -1, 6, Color("#f4d29b"))
+    draw_rect(Rect2(268, 145, 3, 14), Color("#604238"))
+    draw_rect(Rect2(271, 146, 38, 10), Color("#9b704c"))
+    draw_string(ui_font, Vector2(274, 154), "MARKET", HORIZONTAL_ALIGNMENT_LEFT, -1, 6, Color("#f4d29b"))
     # NPCs.
     draw_circle(Vector2(108, 92), 7.0, Color("#d89b78"))
     draw_rect(Rect2(103, 99, 10, 12), Color("#6b7894"))
