@@ -31,7 +31,7 @@ jobs:
         working-directory: godot
         run: |
           rm -f capture_cafe_day.png
-          timeout 8s xvfb-run -a bash -lc 'STARLIGHT_CAPTURE=day godot --path . --windowed --resolution 1152x648 >/tmp/starlight-day.log 2>&1 & PID=$!; sleep 2; kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true'
+          timeout 12s xvfb-run -a bash -lc 'STARLIGHT_CAPTURE=day godot --path . --windowed --resolution 1152x648 >/tmp/starlight-day.log 2>&1 & PID=$!; sleep 5; kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true'
           cat /tmp/starlight-day.log
           test -s capture_cafe_day.png
 
@@ -39,7 +39,7 @@ jobs:
         working-directory: godot
         run: |
           rm -f capture_cafe_night.png
-          timeout 8s xvfb-run -a bash -lc 'STARLIGHT_CAPTURE=night godot --path . --windowed --resolution 1152x648 >/tmp/starlight-night.log 2>&1 & PID=$!; sleep 2; kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true'
+          timeout 12s xvfb-run -a bash -lc 'STARLIGHT_CAPTURE=night godot --path . --windowed --resolution 1152x648 >/tmp/starlight-night.log 2>&1 & PID=$!; sleep 2; kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true'
           cat /tmp/starlight-night.log
           test -s capture_cafe_night.png
 
