@@ -53,7 +53,7 @@ func _draw() -> void:
  # Ground shadow is deliberately tiny and hard-edged so Yui stays anchored to the 2:1 floor.
  _draw_ground_shadow()
  if sprite_texture==null:
-  return
+  draw_rect(Rect2(-8,-20,16,32),Color("#9d3f44"))
  var frame:=int(floor(walk_clock))%5 if moving else 0
  var src:=Rect2(frame*FRAME_W,facing_index*FRAME_H,FRAME_W,FRAME_H)
  var bob:=0.0 if moving else sin(idle_clock*2.2)*0.5
