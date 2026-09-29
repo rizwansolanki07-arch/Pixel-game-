@@ -321,6 +321,7 @@ func _cafe():
  _draw_lounge_cluster(night)
  _draw_dining_cluster(night)
  _draw_plants_and_props(night)
+ _draw_cafe_lived_in_details(night)
  _draw_pixel_finish(night)
  if night: _draw_night_motes()
  _draw_interaction_hint(night)
@@ -526,6 +527,76 @@ func _draw_plants_and_props(night:bool)->void:
   draw_rect(Rect2(p.x-5,p.y-2,4,4),Color("#e2a06c"))
   draw_rect(Rect2(p.x+1,p.y-3,4,4),Color("#f0c076"))
 
+
+func _draw_cafe_lived_in_details(night:bool)->void:
+ # Reference-driven finishing layer: customers, pet, menu board, staircase and table dressing.
+ var outline=Color("#241c28") if not night else Color("#171522")
+ var cloth_red=Color("#9f4547") if not night else Color("#653743")
+ var cloth_gold=Color("#d99a55") if not night else Color("#9c6a58")
+ # Large central communal table: runner, dishes and flower vase.
+ draw_colored_polygon(PackedVector2Array([Vector2(160,132),Vector2(185,122),Vector2(210,132),Vector2(185,142)]),cloth_red)
+ draw_rect(Rect2(181,126,7,2),cloth_gold)
+ draw_circle(Vector2(174,130),2,Color("#eee0b8"))
+ draw_circle(Vector2(194,132),2,Color("#eee0b8"))
+ draw_rect(Rect2(182,126,3,5),Color("#4f7548"))
+ draw_rect(Rect2(179,124,9,3),Color("#5f8e50"))
+ # Small tablecloths and readable place settings.
+ for p in [Vector2(272,138),Vector2(214,168)]:
+  draw_line(p+Vector2(-10,-3),p+Vector2(10,3),cloth_red,3)
+  draw_rect(Rect2(p.x-3,p.y-2,5,2),Color("#e8d7b0"))
+  draw_circle(p+Vector2(6,2),2,Color("#d5a55f"))
+ # Back chalkboard/menu.
+ draw_rect(Rect2(94,70,45,23),outline)
+ draw_rect(Rect2(97,73,39,17),Color("#29463d"))
+ for i in range(4):
+  draw_rect(Rect2(101,76+i*3,22-(i*2),1),Color("#d8bf83"))
+ draw_rect(Rect2(126,76,6,2),Color("#b97854"))
+ # Staircase at right rear, matching the reference silhouette.
+ draw_colored_polygon(PackedVector2Array([Vector2(306,86),Vector2(329,78),Vector2(351,91),Vector2(328,100)]),Color("#7b4c3d") if not night else Color("#51383e"))
+ for i in range(4):
+  var sx=311+i*7
+  draw_line(Vector2(sx,86+i*2),Vector2(sx+18,94+i*2),Color("#c27b4b") if not night else Color("#77505a"),2)
+ draw_line(Vector2(305,84),Vector2(329,76),outline,2)
+ draw_line(Vector2(329,76),Vector2(353,90),outline,2)
+ # Cozy seated customers, deliberately smaller than Yui so the room reads populated.
+ _draw_customer(Vector2(159,137),Color("#314d45"),Color("#b87545"),false,night)
+ _draw_customer(Vector2(210,146),Color("#68453b"),Color("#d29a5a"),true,night)
+ _draw_customer(Vector2(287,143),Color("#40556c"),Color("#b86b53"),false,night)
+ # White spirit-pet near the center, a recurring visual anchor from the reference.
+ _draw_pet(Vector2(233,143),night)
+ # Extra wall frames and hanging herbs.
+ draw_rect(Rect2(47,92,24,17),outline)
+ draw_rect(Rect2(50,95,18,11),Color("#6e8d76") if not night else Color("#4d526b"))
+ draw_colored_polygon(PackedVector2Array([Vector2(52,104),Vector2(59,98),Vector2(66,104)]),Color("#b88c58"))
+ for i in range(5):
+  var hx=145+i*7
+  draw_line(Vector2(hx,59),Vector2(hx,66),Color("#46343a"),1)
+  draw_rect(Rect2(hx-2,65,4,5),Color("#76945a") if not night else Color("#526b56"))
+
+func _draw_customer(p:Vector2,shirt:Color,apron:Color,hat:bool,night:bool)->void:
+ var outline=Color("#241c28") if not night else Color("#171522")
+ draw_rect(Rect2(p.x-4,p.y-8,8,8),Color("#d99a78"))
+ draw_rect(Rect2(p.x-5,p.y-1,10,10),shirt)
+ draw_rect(Rect2(p.x-5,p.y+8,4,6),outline)
+ draw_rect(Rect2(p.x+1,p.y+8,4,6),outline)
+ draw_rect(Rect2(p.x-3,p.y+1,6,6),apron)
+ if hat:
+  draw_rect(Rect2(p.x-7,p.y-11,14,3),outline)
+  draw_rect(Rect2(p.x-4,p.y-14,8,4),Color("#a06b43"))
+ else:
+  draw_rect(Rect2(p.x-5,p.y-11,10,3),Color("#342631"))
+
+func _draw_pet(p:Vector2,night:bool)->void:
+ var outline=Color("#30242d") if not night else Color("#1b1825")
+ var fur=Color("#f3e4c7") if not night else Color("#d8d2e8")
+ draw_rect(Rect2(p.x-7,p.y-5,14,9),outline)
+ draw_rect(Rect2(p.x-5,p.y-4,10,8),fur)
+ draw_rect(Rect2(p.x-6,p.y-8,4,4),fur)
+ draw_rect(Rect2(p.x+2,p.y-8,4,4),fur)
+ draw_rect(Rect2(p.x-3,p.y-1,2,2),Color("#2b2530"))
+ draw_rect(Rect2(p.x+2,p.y-1,2,2),Color("#2b2530"))
+ draw_rect(Rect2(p.x+5,p.y-1,4,2),fur)
+ draw_rect(Rect2(p.x+8,p.y-4,3,3),fur)
 
 func _draw_iso_window(p:Vector2,night:bool)->void:
  var frame=Color("#5b3b37") if not night else Color("#342b38")
