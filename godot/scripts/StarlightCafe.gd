@@ -36,6 +36,7 @@ var village_message := ""
 var village_message_timer := 0.0
 var village_npc_message := ""
 var village_npc_timer := 0.0
+var village_light_time := 0.0
 
 var spots := {
     "moon_mushroom": Vector2(118, 155),
@@ -409,6 +410,12 @@ func _draw_village_preview() -> void:
         draw_rect(Rect2(p + Vector2(-3, 5), Vector2(6, 16)), Color("#513b36"))
         draw_circle(p, 15.0, Color("#284c42"))
         draw_circle(p + Vector2(-5, -4), 8.0, Color("#3f6b50"))
+    # Inn.
+    draw_rect(Rect2(132, 58, 58, 40), Color("#745247"))
+    draw_colored_polygon(PackedVector2Array([Vector2(126, 60), Vector2(196, 60), Vector2(161, 42)]), Color("#4d4050"))
+    draw_rect(Rect2(157, 76, 12, 22), Color("#382c32"))
+    draw_rect(Rect2(139, 69, 12, 9), Color("#f0b86d"))
+    draw_string(ui_font, Vector2(143, 55), "INN", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color("#f2c98b"))
     # Bazaar stall.
     draw_rect(Rect2(94, 76, 32, 22), Color("#704b3f"))
     draw_colored_polygon(PackedVector2Array([Vector2(90, 78), Vector2(130, 78), Vector2(124, 68), Vector2(96, 68)]), Color("#a45f50"))
@@ -419,6 +426,12 @@ func _draw_village_preview() -> void:
     draw_colored_polygon(PackedVector2Array([Vector2(214, 64), Vector2(274, 64), Vector2(244, 48)]), Color("#493d52"))
     draw_rect(Rect2(240, 78, 10, 18), Color("#3a2e35"))
     draw_rect(Rect2(224, 72, 10, 8), Color("#f0b86d"))
+    # Shrine / mandir.
+    draw_rect(Rect2(198, 106, 46, 30), Color("#80634e"))
+    draw_colored_polygon(PackedVector2Array([Vector2(192, 108), Vector2(250, 108), Vector2(221, 90)]), Color("#5c4650"))
+    draw_rect(Rect2(216, 112, 10, 24), Color("#4a3030"))
+    draw_circle(Vector2(221, 102), 4.0, Color("#e6ad68"))
+    draw_string(ui_font, Vector2(204, 145), "SHRINE", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color("#f2c98b"))
     # Village well.
     draw_circle(Vector2(282, 130), 14.0, Color("#6e6262"))
     draw_circle(Vector2(282, 130), 9.0, Color("#293441"))
@@ -430,6 +443,11 @@ func _draw_village_preview() -> void:
         draw_circle(p, 4.0, Color("#8ab45f"))
         draw_line(p, p + Vector2(0, -7), Color("#517a4e"), 2.0)
     draw_string(ui_font, Vector2(60, 57), "GREENHOLLOW VILLAGE", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("#ffe2a7"))
+    # Lamps: warm pools become stronger as the evening advances.
+    var glow := 0.5 + 0.5 * sin(village_light_time * 2.0)
+    for lamp_pos in [Vector2(128, 58), Vector2(198, 104), Vector2(276, 104)]:
+        draw_circle(lamp_pos, 11.0, Color(1.0, 0.72, 0.38, 0.07 + glow * 0.05))
+        draw_circle(lamp_pos, 3.0, Color("#f3b85f"))
     # NPCs.
     draw_circle(Vector2(108, 92), 7.0, Color("#d89b78"))
     draw_rect(Rect2(103, 99, 10, 12), Color("#6b7894"))
