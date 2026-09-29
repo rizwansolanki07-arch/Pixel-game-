@@ -311,20 +311,18 @@ func _title():
 func _cafe():
  var night=StarlightGameState.phase=="night"
  draw_rect(Rect2(0,0,384,216),Color("#101522") if night else Color("#2c3140"))
- if cafe_day_tex!=null and not night:
-  draw_texture_rect(cafe_day_tex,Rect2(0,0,384,216),false)
- elif cafe_night_tex!=null and night:
-  draw_texture_rect(cafe_night_tex,Rect2(0,0,384,216),false)
- # _draw_floor_tiles(night)
- # _draw_rugs(night)
- # _draw_back_wall_details(night)
- # _draw_kitchen_cluster(night)
- # _draw_lounge_cluster(night)
- # _draw_dining_cluster(night)
- # _draw_plants_and_props(night)
+ _draw_room_shell(night)
+ _draw_floor_tiles(night)
+ _draw_rugs(night)
+ _draw_back_wall_details(night)
+ _draw_kitchen_cluster(night)
+ _draw_lounge_cluster(night)
+ _draw_dining_cluster(night)
+ _draw_plants_and_props(night)
  _draw_cafe_characters(night)
  _draw_pet(night)
- # _draw_pixel_finish(night)
+
+ _draw_pixel_finish(night)
  if night: _draw_night_motes()
  _draw_interaction_hint(night)
  var points={"moon_mushroom":Vector2(135,176),"village_herb":Vector2(333,153),"milk":Vector2(214,49),"salt":Vector2(176,47),"honey":Vector2(258,48),"grain":Vector2(198,48)}
