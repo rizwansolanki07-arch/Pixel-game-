@@ -312,6 +312,17 @@ func _title():
 
 func _cafe():
  var night=StarlightGameState.phase=="night"
+ # Render the actual café world first. HUD and touch controls sit above this layer.
+ _draw_room_shell(night)
+ _draw_floor_tiles(night)
+ _draw_rugs(night)
+ _draw_back_wall_details(night)
+ _draw_kitchen_cluster(night)
+ _draw_lounge_cluster(night)
+ _draw_dining_cluster(night)
+ _draw_plants_and_props(night)
+ _draw_pixel_finish(night)
+ if night: _draw_night_motes()
  _draw_interaction_hint(night)
  var points={"moon_mushroom":Vector2(115,174),"village_herb":Vector2(331,160),"milk":Vector2(207,62),"salt":Vector2(225,62),"honey":Vector2(243,62),"grain":Vector2(261,62)}
  for id in points:
