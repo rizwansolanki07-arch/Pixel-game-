@@ -36,8 +36,8 @@
 - [x] Night cooking glow
 
 ## Phase 3 — Vertical slice expansion
-- [ ] Village exterior
-- [ ] Ingredient gathering route
+- [x] Village exterior prototype connection
+- [x] Ingredient gathering route prototype
 - [ ] Café opening/closing state
 - [ ] Multiple recipes
 - [ ] Aoi story continuation
