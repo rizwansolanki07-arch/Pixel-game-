@@ -45,7 +45,13 @@ func _ready():
  touch.move_changed.connect(_touch_move)
  touch.interact_pressed.connect(_touch_interact)
  dialogue.finished.connect(_dialogue_finished)
- if StarlightSaveManager.load_game():
+ var capture_mode:=OS.get_environment("STARLIGHT_CAPTURE")
+ if capture_mode!="":
+  mode="cafe"
+  cafe_opened=true
+  StarlightGameState.cafe_opened=true
+  StarlightGameState.phase="night" if capture_mode=="night" else "day"
+ if StarlightSaveManager.load_game() and capture_mode==""
   mode="cafe"; cafe_opened=StarlightGameState.cafe_opened; player=StarlightGameState.player_position
   quest_stage=int(StarlightGameState.story_flags.get("quest_stage",0))
   language=str(StarlightGameState.story_flags.get("language","EN"))
