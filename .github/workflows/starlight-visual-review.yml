@@ -27,12 +27,6 @@ jobs:
           chmod +x Godot_v4.5-stable_linux.x86_64
           sudo mv Godot_v4.5-stable_linux.x86_64 /usr/local/bin/godot
 
-      - name: Import Godot resources
-        working-directory: godot
-        run: |
-          xvfb-run -a godot --headless --editor --quit >/tmp/starlight-import.log 2>&1 || true
-          cat /tmp/starlight-import.log
-
       - name: Capture cafe day
         working-directory: godot
         run: |
