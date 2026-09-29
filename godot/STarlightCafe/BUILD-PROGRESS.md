@@ -22,11 +22,17 @@
 ## Phase 2 — Premium presentation
 - [ ] Replace placeholder café geometry with final modular pixel assets
 - [ ] Import 56px Yui 8-direction sprite set
-- [ ] Add proper wall, window, door, counter and kitchen modules
-- [ ] Add table/chair/shelf/lamp prop library
-- [ ] Add collision + interaction hotspots
+- [x] Add proper wall, window, door, counter and kitchen modules
+- [x] Add table/chair/shelf/lamp prop library
+- [x] Add collision + interaction hotspots
 - [ ] Add portrait/cut-in presentation for Aoi
 - [ ] Add polished day/night lighting and particles
+
+## Phase 2.5 — Kitchen production pass
+- [x] Stove, sink and ingredient shelf
+- [x] Kitchen interaction hotspot
+- [x] Kitchen inventory overlay
+- [x] Night cooking glow
 
 ## Phase 3 — Vertical slice expansion
 - [ ] Village exterior
