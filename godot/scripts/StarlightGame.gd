@@ -26,6 +26,7 @@ var cafe_day_tex: Texture2D
 var cafe_night_tex: Texture2D
 var near_target := ""
 var ui_pulse := 0.0
+var capture_clock := 0.0
 
 var recipes := {
  "moon_mushroom_soup":{"name":"Moonlight Mushroom Soup","ingredients":{"moon_mushroom":1,"village_herb":2,"milk":1,"salt":1},"spirit":"spirit_001"},
