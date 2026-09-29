@@ -57,9 +57,12 @@ func _draw() -> void:
 
     # Hair silhouette — long braid is kept as a recognizable side/back cue.
     var head_y := -22.0 + bob
-    draw_rect(Rect2(-10, head_y, 20, 16), Color("#2b1c2e"))
-    draw_rect(Rect2(-8, head_y + 5, 16, 11), Color("#e9b993"))
-    draw_rect(Rect2(-9, head_y + 2, 18, 5), Color("#382235"))
+    draw_rect(Rect2(-11, head_y, 22, 17), Color("#1d1824"))
+    draw_rect(Rect2(-9, head_y + 4, 18, 13), Color("#e7ad88"))
+    draw_rect(Rect2(-10, head_y + 1, 20, 7), Color("#35202e"))
+    draw_rect(Rect2(-8, head_y + 5, 16, 3), Color("#4a2935"))
+    draw_rect(Rect2(-10, head_y + 8, 3, 6), Color("#2b1c2e"))
+    draw_rect(Rect2(7, head_y + 8, 3, 6), Color("#2b1c2e"))
     draw_rect(Rect2(-7, head_y + 8, 2, 2), Color("#4b3028"))
     draw_rect(Rect2(5, head_y + 8, 2, 2), Color("#4b3028"))
 
@@ -70,14 +73,20 @@ func _draw() -> void:
 
     # Mustard blouse + brown laced bodice.
     var body_y := -6.0 + bob
-    draw_rect(Rect2(-11, body_y, 22, 19), Color("#d39a42"))
-    draw_rect(Rect2(-9, body_y + 1, 18, 17), Color("#714738"))
-    draw_rect(Rect2(-6, body_y + 3, 12, 13), Color("#8a563e"))
+    draw_rect(Rect2(-13, body_y + 2, 5, 9), Color("#d39a42"))
+    draw_rect(Rect2(8, body_y + 2, 5, 9), Color("#d39a42"))
+    draw_rect(Rect2(-11, body_y, 22, 19), Color("#d6a04a"))
+    draw_rect(Rect2(-9, body_y + 2, 18, 17), Color("#704638"))
+    draw_rect(Rect2(-6, body_y + 3, 12, 13), Color("#89543d"))
+    draw_line(Vector2(-4, body_y + 5), Vector2(4, body_y + 5), Color("#d7a06a"), 1)
+    draw_line(Vector2(-4, body_y + 8), Vector2(4, body_y + 8), Color("#d7a06a"), 1)
 
     # Brick-red long skirt.
     var skirt_y := 12.0 + bob
-    draw_rect(Rect2(-13, skirt_y, 26, 13), Color("#9d4b43"))
-    draw_rect(Rect2(-15, skirt_y + 8, 30, 7), Color("#783a3e"))
+    draw_rect(Rect2(-13, skirt_y, 26, 13), Color("#a34b43"))
+    draw_rect(Rect2(-15, skirt_y + 8, 30, 7), Color("#78373d"))
+    draw_rect(Rect2(-11, skirt_y + 2, 3, 9), Color("#c05b4b"))
+    draw_rect(Rect2(8, skirt_y + 2, 3, 9), Color("#8a3c3e"))
 
     # Walking leg separation, keeping a 56px silhouette.
     var leg_a := step
