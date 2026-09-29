@@ -257,6 +257,7 @@ func _cafe():
  _draw_lounge_cluster(night)
  _draw_dining_cluster(night)
  _draw_plants_and_props(night)
+ _draw_pixel_finish(night)
  if night: _draw_night_motes()
  var points={"moon_mushroom":Vector2(135,176),"village_herb":Vector2(333,153),"milk":Vector2(214,49),"salt":Vector2(176,47),"honey":Vector2(258,48),"grain":Vector2(198,48)}
  for id in points:
@@ -366,6 +367,56 @@ func _draw_iso_window(p:Vector2,night:bool)->void:
 
 func _draw_lamp(p:Vector2,night:bool)->void:
  draw_line(p+Vector2(0,-12),p+Vector2(0,-2),Color("#30262f"),2); draw_rect(Rect2(p.x-5,p.y-1,10,7),Color("#8d5942")); draw_rect(Rect2(p.x-3,p.y,6,5),Color("#f0bf62")); if night: draw_circle(p+Vector2(0,3),15,Color(0.95,0.62,0.25,0.10))
+
+func _draw_pixel_finish(night:bool)->void:
+ # Hand-authored pixel clusters: hard edges, limited palette, consistent upper-left light.
+ var outline=Color("#241c28") if not night else Color("#171522")
+ var wood=Color("#8f573c") if not night else Color("#573b3d")
+ var wood_hi=Color("#d08a50") if not night else Color("#8e5b4c")
+ var wood_sh=Color("#57333a") if not night else Color("#342839")
+ # Structural dark seams and chunky timber joints.
+ for p in [Vector2(64,60),Vector2(190,25),Vector2(316,60)]:
+  draw_rect(Rect2(p.x-2,p.y,4,8),outline)
+  draw_rect(Rect2(p.x-4,p.y+7,8,3),wood_sh)
+ # Floor plank grain: sparse 1px clusters, never noisy.
+ for p in [Vector2(132,132),Vector2(164,148),Vector2(202,139),Vector2(242,153),Vector2(286,128),Vector2(116,166),Vector2(252,178)]:
+  draw_line(p,p+Vector2(9,3),wood_hi if not night else Color("#76505a"),1)
+  draw_line(p+Vector2(12,4),p+Vector2(16,5),outline,1)
+ # Table construction details and readable silhouettes.
+ for p in [Vector2(184,135),Vector2(276,139),Vector2(216,169)]:
+  draw_line(p+Vector2(-17,-4),p+Vector2(17,4),outline,1)
+  draw_line(p+Vector2(-7,6),p+Vector2(-10,16),wood_sh,2)
+  draw_line(p+Vector2(7,6),p+Vector2(10,16),wood_sh,2)
+  draw_rect(Rect2(p+Vector2(-5,-2),Vector2(3,2)),wood_hi)
+ # Chair backs, seats and tiny joinery pixels.
+ for p in [Vector2(156,142),Vector2(213,129),Vector2(258,151),Vector2(299,135),Vector2(224,181)]:
+  draw_rect(Rect2(p.x-7,p.y-13,14,3),outline)
+  draw_rect(Rect2(p.x-5,p.y-12,10,2),wood_hi)
+  draw_rect(Rect2(p.x-5,p.y+3,10,2),wood_sh)
+ # Kitchen jars get individual labels/highlights; stove gets four readable burners.
+ for i in range(4):
+  var bx=193+i*16
+  draw_rect(Rect2(bx+1,77-i*2,7,1),outline)
+  draw_rect(Rect2(bx+2,79-i*2,2,4),wood_hi)
+ for i in range(4):
+  var bx=261+i*6
+  draw_rect(Rect2(bx,73,4,2),outline)
+  draw_rect(Rect2(bx+1,74,2,1),Color("#e9b86a") if not night else Color("#9b6171"))
+ # Café sign plaque and star motif.
+ draw_rect(Rect2(154,31,72,12),outline)
+ draw_rect(Rect2(157,33,66,8),wood_sh)
+ draw_string(font,Vector2(169,40),"STARLIGHT",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#f0c66f") if not night else Color("#d2b8f0"))
+ draw_rect(Rect2(187,34,3,3),Color("#ffe5a1") if not night else Color("#e5d5ff"))
+ # Door hardware.
+ if door_open:
+  draw_rect(Rect2(338,165,3,3),Color("#e2b76a"))
+ else:
+  draw_rect(Rect2(340,168,3,3),Color("#d99a52"))
+ # Pixel-level night atmosphere around light sources.
+ if night:
+  for p in [Vector2(148,55),Vector2(235,55),Vector2(267,86)]:
+   draw_rect(Rect2(p-Vector2(2,2),Vector2(4,4)),Color("#f5c86b"))
+   draw_rect(Rect2(p-Vector2(5,5),Vector2(10,1)),Color(0.95,0.62,0.25,0.08))
 
 func _draw_night_motes()->void:
  for i in range(18):
