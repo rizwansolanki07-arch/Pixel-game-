@@ -30,7 +30,7 @@ jobs:
       - name: Capture cafe day
         working-directory: godot
         run: |
-          xvfb-run -a bash -lc 'STARLIGHT_CAPTURE=day godot --path . --windowed --resolution 1152x648 >/tmp/godot-day-live.log 2>&1 & PID=$!; sleep 4; WIN=$(xdotool search --onlyvisible --name "Starlight" 2>/dev/null | head -1); test -n "$WIN"; import -window "$WIN" /tmp/starlight-day.png; kill $PID || true; wait $PID || true'
+          xvfb-run -a bash -lc 'STARLIGHT_CAPTURE=day godot --path . --windowed --resolution 1152x648 >/tmp/godot-day-live.log 2>&1 & PID=$!; sleep 4; WIN=$(xdotool search --onlyvisible --name "Starlight" 2>/dev/null | head -1); test -n "$WIN"; import -window "$WIN" /tmp/starlight-day.png'
           cat /tmp/godot-day-live.log || true
           test -s /tmp/starlight-day.png
           mv /tmp/starlight-day.png capture_cafe_day.png
@@ -38,7 +38,7 @@ jobs:
       - name: Capture cafe night
         working-directory: godot
         run: |
-          xvfb-run -a bash -lc 'STARLIGHT_CAPTURE=night godot --path . --windowed --resolution 1152x648 >/tmp/godot-night-live.log 2>&1 & PID=$!; sleep 4; WIN=$(xdotool search --onlyvisible --name "Starlight" 2>/dev/null | head -1); test -n "$WIN"; import -window "$WIN" /tmp/starlight-night.png; kill $PID || true; wait $PID || true'
+          xvfb-run -a bash -lc 'STARLIGHT_CAPTURE=night godot --path . --windowed --resolution 1152x648 >/tmp/godot-night-live.log 2>&1 & PID=$!; sleep 4; WIN=$(xdotool search --onlyvisible --name "Starlight" 2>/dev/null | head -1); test -n "$WIN"; import -window "$WIN" /tmp/starlight-night.png'
           cat /tmp/godot-night-live.log || true
           test -s /tmp/starlight-night.png
           mv /tmp/starlight-night.png capture_cafe_night.png
