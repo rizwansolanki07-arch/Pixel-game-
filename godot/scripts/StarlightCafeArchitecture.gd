@@ -41,10 +41,15 @@ func _draw_door(night: bool) -> void:
     var frame := Color("#302638")
     var wood := Color("#70464a") if night else Color("#9a604a")
     draw_rect(Rect2(196, 49, 34, 23), frame)
-    draw_rect(Rect2(200, 52, 26, 20), wood)
-    draw_rect(Rect2(203, 55, 20, 7), Color("#b97950") if not night else Color("#80546b"))
-    draw_rect(Rect2(203, 64, 20, 5), Color("#5b3941"))
-    draw_circle(Vector2(220, 62), 1.5, Color("#f2ca79"))
+    if not get_parent().door_open:
+        draw_rect(Rect2(200, 52, 26, 20), wood)
+        draw_rect(Rect2(203, 55, 20, 7), Color("#b97950") if not night else Color("#80546b"))
+        draw_rect(Rect2(203, 64, 20, 5), Color("#5b3941"))
+        draw_circle(Vector2(220, 62), 1.5, Color("#f2ca79"))
+    else:
+        draw_rect(Rect2(201, 53, 24, 19), Color("#17142a"))
+        draw_line(Vector2(202, 52), Vector2(202, 70), Color("#9b684c"), 3.0)
+        draw_string(ThemeDB.fallback_font, Vector2(206, 64), "→", HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color("#e7c179"))
 
 func _draw_lamps(night: bool) -> void:
     for x in [158.0, 242.0]:
