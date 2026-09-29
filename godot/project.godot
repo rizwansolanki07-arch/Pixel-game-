@@ -2,6 +2,7 @@
 config/name="Starlight Café — Raat ka Menu"
 run/main_scene="res://scenes/StarlightCafe.tscn"
 config/features=PackedStringArray("4.5", "GL Compatibility")
+boot_splash/show_image=false
 
 [display]
 window/size/viewport_width=384
