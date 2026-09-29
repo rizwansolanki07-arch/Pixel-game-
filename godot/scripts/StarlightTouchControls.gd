@@ -23,11 +23,11 @@ func _process(_delta: float) -> void:
 func _input(event: InputEvent) -> void:
     if event is InputEventScreenTouch:
         if event.pressed:
-            if event.position.distance_to(JOY_CENTER) <= JOY_RADIUS * 1.35 and active_touch == -1:
+            if _game_pos(event.position).distance_to(JOY_CENTER) <= JOY_RADIUS * 1.35 and active_touch == -1:
                 active_touch = event.index
                 _update_joystick(event.position)
                 get_viewport().set_input_as_handled()
-            elif event.position.distance_to(INTERACT_CENTER) <= BUTTON_RADIUS * 1.5:
+            elif _game_pos(event.position).distance_to(INTERACT_CENTER) <= BUTTON_RADIUS * 1.5:
                 interact_pressed.emit()
                 pressed_interact = true
                 get_viewport().set_input_as_handled()
@@ -43,8 +43,17 @@ func _input(event: InputEvent) -> void:
         _update_joystick(event.position)
         get_viewport().set_input_as_handled()
 
+func _game_pos(raw: Vector2) -> Vector2:
+ # Android can deliver touch coordinates in the physical window while the game uses a 384x216 viewport.
+ if raw.x > 384.0 or raw.y > 216.0:
+  var ws:=DisplayServer.window_get_size()
+  if ws.x > 0.0 and ws.y > 0.0:
+   return Vector2(raw.x * 384.0 / ws.x, raw.y * 216.0 / ws.y)
+ return raw
+
 func _update_joystick(screen_pos: Vector2) -> void:
-    var delta := screen_pos - JOY_CENTER
+    var p:=_game_pos(screen_pos)
+    var delta := p - JOY_CENTER
     if delta.length() > JOY_RADIUS:
         delta = delta.normalized() * JOY_RADIUS
     knob = JOY_CENTER + delta
