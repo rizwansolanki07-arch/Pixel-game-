@@ -26,7 +26,8 @@
 - [x] Add table/chair/shelf/lamp prop library
 - [x] Add collision + interaction hotspots
 - [ ] Add portrait/cut-in presentation for Aoi
-- [ ] Add polished day/night lighting and particles
+- [x] Add polished day/night lighting and particles
+- [x] Add door/window interactions
 
 ## Phase 2.5 — Kitchen production pass
 - [x] Stove, sink and ingredient shelf
