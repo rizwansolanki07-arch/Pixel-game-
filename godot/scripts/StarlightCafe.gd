@@ -29,6 +29,7 @@ var kitchen_open := false
 var door_open := false
 var window_interactive := false
 var interior_notice := ""
+var village_open := false
 
 var spots := {
     "moon_mushroom": Vector2(118, 155),
@@ -108,6 +109,8 @@ func _input(event: InputEvent) -> void:
         kitchen_open = not kitchen_open
     if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_O:
         door_open = not door_open
+    if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_V:
+        village_open = not village_open
     if event is InputEventKey and event.pressed and not event.echo:
         if event.keycode == KEY_N:
             DayNightManager.set_phase("night")
@@ -133,6 +136,8 @@ func _update_interaction() -> void:
         interaction_hint = "E  " + ("Close Door" if door_open else "Open Door")
     elif target == "window":
         interaction_hint = "E  Look Outside"
+    elif target == "village_gate":
+        interaction_hint = "E  Enter Village"
     else:
         interaction_hint = "E  Gather " + target.replace("_", " ")
 
@@ -156,6 +161,8 @@ func _nearest_target() -> String:
     var window := Vector2(122, 60)
     if player.distance_to(window) < 30.0 and player.distance_to(window) < best_dist:
         return "window"
+    if door_open and player.distance_to(Vector2(213, 70)) < 34.0 and player.distance_to(Vector2(213, 70)) < best_dist:
+        return "village_gate"
     if spirit_visible:
         var spirit_pos := Vector2(235, 116)
         if player.distance_to(spirit_pos) < 30.0 and player.distance_to(spirit_pos) < best_dist:
@@ -185,6 +192,11 @@ func _interact() -> void:
         window_interactive = true
         message = "Yui: Gaon ki roshni raat mein kitni khoobsurat hai."
         message_timer = 2.8
+        return
+    if target == "village_gate":
+        village_open = true
+        message = "Yui: Greenhollow village mein chalte hain."
+        message_timer = 2.5
         return
     if target == "spirit":
         _serve_spirit()
@@ -318,6 +330,39 @@ func _draw() -> void:
     if recipe_book_open:
         _draw_recipe_book()
     _draw_kitchen_overlay()
+    if village_open:
+        _draw_village_preview()
+
+func _draw_village_preview() -> void:
+    draw_rect(Rect2(42, 38, 300, 142), Color("#152034"))
+    draw_rect(Rect2(44, 40, 296, 138), Color("#334b4a"), false, 2.0)
+    # Path from café entrance into the village.
+    var path := PackedVector2Array([
+        Vector2(180, 160), Vector2(204, 160), Vector2(248, 54), Vector2(224, 54)
+    ])
+    draw_colored_polygon(path, Color("#b88a62"))
+    # Grass islands.
+    for p in [Vector2(82, 78), Vector2(300, 84), Vector2(76, 144), Vector2(306, 145)]:
+        draw_circle(p, 22.0, Color("#466451"))
+        for i in range(5):
+            draw_line(p + Vector2(i * 4 - 8, 5), p + Vector2(i * 4 - 9, -1), Color("#73905e"), 1.0)
+    # Trees.
+    for p in [Vector2(78, 65), Vector2(302, 65), Vector2(64, 140), Vector2(318, 140)]:
+        draw_rect(Rect2(p + Vector2(-3, 5), Vector2(6, 16)), Color("#513b36"))
+        draw_circle(p, 15.0, Color("#284c42"))
+        draw_circle(p + Vector2(-5, -4), 8.0, Color("#3f6b50"))
+    # Village well.
+    draw_circle(Vector2(282, 130), 14.0, Color("#6e6262"))
+    draw_circle(Vector2(282, 130), 9.0, Color("#293441"))
+    draw_rect(Rect2(269, 112, 4, 24), Color("#5b4338"))
+    draw_rect(Rect2(291, 112, 4, 24), Color("#5b4338"))
+    draw_line(Vector2(271, 114), Vector2(293, 114), Color("#76503e"), 3.0)
+    # Herb gathering patch.
+    for p in [Vector2(130, 116), Vector2(142, 112), Vector2(154, 116), Vector2(136, 126)]:
+        draw_circle(p, 4.0, Color("#8ab45f"))
+        draw_line(p, p + Vector2(0, -7), Color("#517a4e"), 2.0)
+    draw_string(ui_font, Vector2(60, 57), "GREENHOLLOW VILLAGE", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("#ffe2a7"))
+    draw_string(ui_font, Vector2(258, 169), "V / CLOSE", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color("#ddd1e3"))
 
 func _draw_kitchen(night: bool) -> void:
     var metal := Color("#403a46") if night else Color("#5b5052")
