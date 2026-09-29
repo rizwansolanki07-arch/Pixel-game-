@@ -31,12 +31,20 @@ jobs:
           godot --headless --editor --quit >/tmp/starlight-import.log 2>&1 || true
           cat /tmp/starlight-import.log
 
-      - name: Capture cafe day and night
+      - name: Capture cafe day
         working-directory: godot
         run: |
-          timeout 12s godot --headless --path . --script tools/capture_starlight.gd >/tmp/starlight-capture.log 2>&1 || true
-          cat /tmp/starlight-capture.log
+          rm -f capture_cafe_day.png
+          STARLIGHT_CAPTURE=day timeout 4s godot --headless --path . >/tmp/starlight-day.log 2>&1 || true
+          cat /tmp/starlight-day.log
           test -s capture_cafe_day.png
+
+      - name: Capture cafe night
+        working-directory: godot
+        run: |
+          rm -f capture_cafe_night.png
+          STARLIGHT_CAPTURE=night timeout 4s godot --headless --path . >/tmp/starlight-night.log 2>&1 || true
+          cat /tmp/starlight-night.log
           test -s capture_cafe_night.png
 
       - name: Upload visual review captures and log
@@ -46,5 +54,6 @@ jobs:
           path: |
             godot/capture_cafe_day.png
             godot/capture_cafe_night.png
-            /tmp/starlight-capture.log
+            /tmp/starlight-day.log
+            /tmp/starlight-night.log
           if-no-files-found: error
