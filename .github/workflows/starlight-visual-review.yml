@@ -37,7 +37,7 @@ jobs:
         working-directory: godot
         run: |
           rm -f capture_cafe_day.png
-          timeout 12s xvfb-run -a bash -lc 'STARLIGHT_CAPTURE=day godot --path . --windowed --resolution 1152x648 >/tmp/starlight-day.log 2>&1 & PID=$!; sleep 3; WIN=$(xdotool search --onlyvisible --name "Starlight" 2>/dev/null | head -1); test -n "$WIN"; import -window "$WIN" capture_cafe_day.png; kill "$PID" 2>/dev/null || true'
+          timeout 12s xvfb-run -a bash -lc 'set +e; STARLIGHT_CAPTURE=day godot --path . --windowed --resolution 1152x648 >/tmp/starlight-day.log 2>&1 & PID=$!; for i in $(seq 1 25); do WIN=$(xdotool search --onlyvisible --name "Starlight" 2>/dev/null | head -1); [ -n "$WIN" ] && break; sleep 0.2; done; if [ -n "$WIN" ]; then import -window "$WIN" capture_cafe_day.png; fi; kill "$PID" 2>/dev/null || true'
           cat /tmp/starlight-day.log
           test -s capture_cafe_day.png
 
@@ -45,7 +45,7 @@ jobs:
         working-directory: godot
         run: |
           rm -f capture_cafe_night.png
-          timeout 12s xvfb-run -a bash -lc 'STARLIGHT_CAPTURE=night godot --path . --windowed --resolution 1152x648 >/tmp/starlight-night.log 2>&1 & PID=$!; sleep 3; WIN=$(xdotool search --onlyvisible --name "Starlight" 2>/dev/null | head -1); test -n "$WIN"; import -window "$WIN" capture_cafe_night.png; kill "$PID" 2>/dev/null || true'
+          timeout 12s xvfb-run -a bash -lc 'set +e; STARLIGHT_CAPTURE=night godot --path . --windowed --resolution 1152x648 >/tmp/starlight-night.log 2>&1 & PID=$!; for i in $(seq 1 25); do WIN=$(xdotool search --onlyvisible --name "Starlight" 2>/dev/null | head -1); [ -n "$WIN" ] && break; sleep 0.2; done; if [ -n "$WIN" ]; then import -window "$WIN" capture_cafe_night.png; fi; kill "$PID" 2>/dev/null || true'
           cat /tmp/starlight-night.log
           test -s capture_cafe_night.png
 
