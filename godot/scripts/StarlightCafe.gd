@@ -25,6 +25,7 @@ var gathered_today: Dictionary = {}
 var ui_font: Font
 var recipe_book_open := false
 var atmosphere_time := 0.0
+var kitchen_open := false
 
 var spots := {
     "moon_mushroom": Vector2(118, 155),
@@ -100,6 +101,8 @@ func _input(event: InputEvent) -> void:
         _interact()
     if event.is_action_pressed("save_game"):
         _save()
+    if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_K:
+        kitchen_open = not kitchen_open
     if event is InputEventKey and event.pressed and not event.echo:
         if event.keycode == KEY_N:
             DayNightManager.set_phase("night")
@@ -119,6 +122,8 @@ func _update_interaction() -> void:
         interaction_hint = "E  Talk / Serve"
     elif target == "counter":
         interaction_hint = "E  Cook"
+    elif target == "kitchen":
+        interaction_hint = "E  Kitchen"
     else:
         interaction_hint = "E  Gather " + target.replace("_", " ")
 
@@ -133,6 +138,9 @@ func _nearest_target() -> String:
     var counter := Vector2(222, 78)
     if player.distance_to(counter) < 28.0 and player.distance_to(counter) < best_dist:
         return "counter"
+    var kitchen := Vector2(120, 78)
+    if player.distance_to(kitchen) < 30.0 and player.distance_to(kitchen) < best_dist:
+        return "kitchen"
     if spirit_visible:
         var spirit_pos := Vector2(235, 116)
         if player.distance_to(spirit_pos) < 30.0 and player.distance_to(spirit_pos) < best_dist:
@@ -147,6 +155,11 @@ func _interact() -> void:
         return
     if target == "counter":
         _cook()
+        return
+    if target == "kitchen":
+        kitchen_open = true
+        message = "Kitchen: stove, sink aur ingredient shelf ready."
+        message_timer = 2.5
         return
     if target == "spirit":
         _serve_spirit()
@@ -269,6 +282,7 @@ func _draw() -> void:
     _draw_atmosphere(night)
     _draw_shell(night)
     _draw_props(night)
+    _draw_kitchen(night)
     _draw_gather_spots(night)
 
     if spirit_visible:
@@ -278,6 +292,42 @@ func _draw() -> void:
     _draw_ui(night)
     if recipe_book_open:
         _draw_recipe_book()
+    _draw_kitchen_overlay()
+
+func _draw_kitchen(night: bool) -> void:
+    var metal := Color("#403a46") if night else Color("#5b5052")
+    var wood := Color("#765047") if night else Color("#98644c")
+    var brass := Color("#c58c50")
+    draw_rect(Rect2(92, 70, 56, 28), metal)
+    draw_rect(Rect2(96, 66, 48, 6), wood)
+    draw_rect(Rect2(99, 72, 16, 20), Color("#292530"))
+    draw_rect(Rect2(119, 72, 22, 20), Color("#352f39"))
+    for p in [Vector2(103, 77), Vector2(111, 77), Vector2(103, 85), Vector2(111, 85)]:
+        draw_circle(p, 2.5, Color("#e6a24d") if not night else Color("#f0b95d"))
+    draw_rect(Rect2(121, 75, 18, 12), Color("#8a8588"))
+    draw_rect(Rect2(124, 78, 12, 7), Color("#39343e"))
+    draw_line(Vector2(132, 76), Vector2(132, 71), brass, 2.0)
+    draw_line(Vector2(132, 71), Vector2(136, 71), brass, 2.0)
+    draw_rect(Rect2(92, 53, 56, 5), wood)
+    draw_rect(Rect2(94, 57, 52, 3), wood)
+    for i in range(5):
+        var x := 98.0 + float(i) * 9.0
+        draw_rect(Rect2(x, 48, 6, 8), Color("#b97a50"))
+        draw_rect(Rect2(x + 1, 47, 4, 2), brass)
+    if night:
+        draw_circle(Vector2(107, 82), 18.0, Color(1.0, 0.55, 0.25, 0.07))
+
+func _draw_kitchen_overlay() -> void:
+    if not kitchen_open:
+        return
+    draw_rect(Rect2(58, 48, 268, 112), Color(0.04, 0.03, 0.08, 0.95))
+    draw_rect(Rect2(60, 50, 264, 108), Color("#76566d"), false, 2.0)
+    draw_string(ui_font, Vector2(78, 70), "STARLIGHT KITCHEN", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("#ffe6aa"))
+    draw_string(ui_font, Vector2(78, 88), "Stove • Sink • Ingredient Shelf", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color("#ded2e2"))
+    draw_string(ui_font, Vector2(78, 105), "Moon Mushroom   " + str(int(StarlightGameState.inventory.get("moon_mushroom", 0))), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color("#d8c8b5"))
+    draw_string(ui_font, Vector2(78, 119), "Village Herb     " + str(int(StarlightGameState.inventory.get("village_herb", 0))), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color("#d8c8b5"))
+    draw_string(ui_font, Vector2(78, 133), "Milk / Salt      " + str(int(StarlightGameState.inventory.get("milk", 0))) + " / " + str(int(StarlightGameState.inventory.get("salt", 0))), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color("#d8c8b5"))
+    draw_string(ui_font, Vector2(252, 145), "K / CLOSE", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color("#d9cde4"))
 
 func _draw_atmosphere(night: bool) -> void:
     if not night:
