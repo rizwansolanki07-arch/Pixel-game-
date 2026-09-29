@@ -544,9 +544,6 @@ func _draw_iso_window(p:Vector2,night:bool)->void:
 
 
 
-func _draw_lamp(p:Vector2,night:bool)->void:
- draw_line(p+Vector2(0,-12),p+Vector2(0,-2),Color("#30262f"),2); draw_rect(Rect2(p.x-5,p.y-1,10,7),Color("#8d5942")); draw_rect(Rect2(p.x-3,p.y,6,5),Color("#f0bf62")); if night: draw_circle(p+Vector2(0,3),15,Color(0.95,0.62,0.25,0.10))
-
 func _draw_cafe_characters(night:bool)->void:
  # Two tiny daytime customers keep the room visually alive; spirits replace them at night.
  if not night:
