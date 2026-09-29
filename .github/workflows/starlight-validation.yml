@@ -1,0 +1,27 @@
+name: Starlight Café Validation
+
+on:
+  push:
+    branches:
+      - starlight-cafe-foundation
+  pull_request:
+    branches:
+      - main
+      - starlight-cafe-foundation
+    paths:
+      - "godot/**"
+      - ".github/workflows/starlight-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  godot-validate:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.5.0
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Godot project
+        working-directory: godot
+        run: godot --headless --editor --quit
