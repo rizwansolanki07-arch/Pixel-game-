@@ -13,7 +13,9 @@ func save_game() -> bool:
         "inventory": StarlightGameState.inventory,
         "unlocked_recipes": StarlightGameState.unlocked_recipes,
         "spirit_progress": StarlightGameState.spirit_progress,
-        "cafe_opened": StarlightGameState.cafe_opened
+        "cafe_opened": StarlightGameState.cafe_opened,
+        "current_recipe": StarlightGameState.current_recipe,
+        "story_flags": StarlightGameState.story_flags
     }
     var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
     if file == null:
@@ -42,4 +44,6 @@ func load_game() -> bool:
     StarlightGameState.unlocked_recipes = parsed.get("unlocked_recipes", ["moon_mushroom_soup"])
     StarlightGameState.spirit_progress = parsed.get("spirit_progress", {"spirit_001": 0})
     StarlightGameState.cafe_opened = bool(parsed.get("cafe_opened", false))
+    StarlightGameState.current_recipe = str(parsed.get("current_recipe", ""))
+    StarlightGameState.story_flags = parsed.get("story_flags", {})
     return true
