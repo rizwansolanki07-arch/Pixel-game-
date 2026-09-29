@@ -145,6 +145,7 @@ func _draw() -> void:
  for p in [Vector2(177,128),Vector2(207,132),Vector2(260,132),Vector2(300,121),Vector2(124,142)]:
   draw_rect(Rect2(p.x-2,p.y-2,4,3),gold)
  _detail_pass(night)
+ _reference_detail_pass(night)
  if night:
   for p in [Vector2(143,53),Vector2(235,53),Vector2(281,84)]:
    draw_circle(p,16,Color(1.0,0.66,0.27,0.07))
@@ -204,6 +205,104 @@ func _detail_pass(night:bool)->void:
  draw_rect(Rect2(328,159,24,3),hi)
  draw_rect(Rect2(340,130,3,3),Color("#e4b76a"))
  _rug(Vector2(338,169),Vector2(30,14),Color("#74464a") if not night else Color("#493a50"))
+
+
+func _reference_detail_pass(night:bool)->void:
+ # Reference-matching micro-detail layer: curtains, shelf clutter, stove kettle/firewood,
+ # wall art, vines and table service. All shapes stay on the 2:1 isometric footprint.
+ var outline:=Color("#241b27") if not night else Color("#171522")
+ var wood_hi:=Color("#c9874f") if not night else Color("#7f554c")
+ var cloth:=Color("#b34f50") if not night else Color("#673c4e")
+ var cream:=Color("#f0dfbb") if not night else Color("#cfc2df")
+ var green:=Color("#5d8a53") if not night else Color("#4c6b58")
+
+ # Window curtains and tie-backs.
+ for x in [84.0,298.0]:
+  draw_colored_polygon(PackedVector2Array([
+   Vector2(x-22,48),Vector2(x-14,51),Vector2(x-17,77),Vector2(x-25,72)
+  ]),Color("#d5b27f") if not night else Color("#75637b"))
+  draw_colored_polygon(PackedVector2Array([
+   Vector2(x+22,48),Vector2(x+14,51),Vector2(x+17,77),Vector2(x+25,72)
+  ]),Color("#c9a56f") if not night else Color("#6c5b72"))
+  draw_rect(Rect2(x-17,62,4,2),wood_hi)
+  draw_rect(Rect2(x+13,62,4,2),wood_hi)
+
+ # Tall left bookshelf packed with readable pixel clusters.
+ draw_rect(Rect2(34,93,44,39),outline)
+ draw_rect(Rect2(38,97,36,31),Color("#633e35") if not night else Color("#44333b"))
+ for row in range(3):
+  draw_line(Vector2(39,106+row*9),Vector2(73,106+row*9),wood_hi,1)
+  for i in range(6):
+   var bx:=41.0+i*5.0
+   draw_rect(Rect2(bx,98+row*9,3,7),[Color("#b56b4d"),Color("#70885e"),Color("#d0a35d")][(i+row)%3])
+ draw_rect(Rect2(32,129,48,3),wood_hi)
+
+ # Counter serviceware: bowls, plates, cutting board and kettle.
+ for p in [Vector2(171,68),Vector2(190,63),Vector2(209,58),Vector2(229,53)]:
+  draw_rect(Rect2(p.x-4,p.y,8,2),cream)
+  draw_rect(Rect2(p.x-2,p.y-3,4,3),Color("#8a5945") if not night else Color("#563d48"))
+ draw_rect(Rect2(236,48,9,7),Color("#8b5a45") if not night else Color("#563b43"))
+ draw_rect(Rect2(244,46,5,2),wood_hi)
+ draw_rect(Rect2(247,43,2,5),outline)
+
+ # Hanging pan / ladle silhouettes.
+ for i in range(4):
+  var hx:=156.0+i*18.0
+  draw_line(Vector2(hx,43),Vector2(hx,51),outline,1)
+  draw_circle(Vector2(hx,54),4,Color("#57505a") if not night else Color("#403b48"))
+  draw_rect(Rect2(hx-1,57,2,5),wood_hi)
+
+ # Stove kettle, firewood basket and stronger hearth glow.
+ draw_rect(Rect2(273,67,18,3),outline)
+ draw_rect(Rect2(277,62,11,7),Color("#6d4a42") if not night else Color("#47343d"))
+ draw_rect(Rect2(280,59,5,4),Color("#9b6b4c") if not night else Color("#5e4550"))
+ draw_rect(Rect2(256,93,10,9),outline)
+ for i in range(4):
+  draw_line(Vector2(258+i*2,94),Vector2(263+i*2,100),wood_hi,1)
+ if night:
+  draw_circle(Vector2(281,83),17,Color(1.0,0.55,0.22,0.07))
+
+ # Central table service: patterned runner, vase, flowers, cups and bread.
+ draw_colored_polygon(PackedVector2Array([
+  Vector2(169,140),Vector2(191,132),Vector2(213,140),Vector2(191,148)
+ ]),cloth)
+ draw_rect(Rect2(188,133,6,2),Color("#e1a65d"))
+ draw_rect(Rect2(190,128,3,6),Color("#5b754d"))
+ draw_rect(Rect2(186,127,4,3),green)
+ draw_rect(Rect2(193,126,4,3),Color("#d9a86c"))
+ for p in [Vector2(177,137),Vector2(203,139)]:
+  draw_circle(p,2,cream)
+  draw_rect(Rect2(p.x-1,p.y-3,2,2),wood_hi)
+
+ # Right tables get their own distinct runner/placemat and books.
+ draw_line(Vector2(264,143),Vector2(292,149),Color("#5c83a0") if not night else Color("#4c5c7a"),3)
+ draw_rect(Rect2(275,143,7,3),cream)
+ draw_rect(Rect2(283,145,8,3),Color("#694a5b") if not night else Color("#443746"))
+ draw_line(Vector2(204,169),Vector2(236,176),Color("#a64d50") if not night else Color("#5d3d50"),3)
+ draw_rect(Rect2(217,170,6,3),cream)
+
+ # Entrance vine, flowers and welcome detail.
+ for i in range(5):
+  var vx:=332.0+i*4.0
+  draw_line(Vector2(vx,105+i*2),Vector2(vx-2,126+i*2),Color("#3e6747"),2)
+  draw_rect(Rect2(vx-5,121+i*2,5,5),green)
+  if i%2==0:
+   draw_rect(Rect2(vx-1,118+i*2,3,3),Color("#e6c2b4") if not night else Color("#c5a6ca"))
+
+ # Wall clock and framed landscape remain small but readable.
+ draw_rect(Rect2(314,45,18,18),outline)
+ draw_circle(Vector2(323,54),6,Color("#efe1bd"))
+ draw_line(Vector2(323,54),Vector2(323,50),outline,1)
+ draw_line(Vector2(323,54),Vector2(326,56),outline,1)
+ draw_rect(Rect2(42,47,31,20),outline)
+ draw_rect(Rect2(46,50,23,14),Color("#507568") if not night else Color("#4d4a67"))
+ draw_colored_polygon(PackedVector2Array([Vector2(48,62),Vector2(56,54),Vector2(64,62)]),Color("#8aa064"))
+
+ # Small foreground crate/barrel cluster.
+ for p in [Vector2(311,169),Vector2(329,178)]:
+  draw_rect(Rect2(p.x-7,p.y-7,14,10),Color("#654234") if not night else Color("#44343b"))
+  draw_line(Vector2(p.x-6,p.y-3),Vector2(p.x+6,p.y+1),wood_hi,1)
+  draw_rect(Rect2(p.x-5,p.y-6,10,2),wood_hi)
 
 func _rug(c:Vector2,size:Vector2,col:Color)->void:
  var hw=size.x*0.5
