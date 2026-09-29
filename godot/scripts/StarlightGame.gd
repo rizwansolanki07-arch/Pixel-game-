@@ -286,7 +286,7 @@ func _cafe():
  # _draw_plants_and_props(night)
  _draw_cafe_characters(night)
  _draw_pet(night)
- _draw_pixel_finish(night)
+ # _draw_pixel_finish(night)
  if night: _draw_night_motes()
  _draw_interaction_hint(night)
  var points={"moon_mushroom":Vector2(135,176),"village_herb":Vector2(333,153),"milk":Vector2(214,49),"salt":Vector2(176,47),"honey":Vector2(258,48),"grain":Vector2(198,48)}
