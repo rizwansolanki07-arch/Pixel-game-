@@ -7,6 +7,7 @@ const MOVE_SPEED := 95.0
 const TABLE_TEX = preload("res://assets/starlight/props/cafe_table.png")
 const CHAIR_TEX = preload("res://assets/starlight/props/cafe_chair.png")
 const COUNTER_TEX = preload("res://assets/starlight/props/cafe_counter.png")
+const PLAYER_RADIUS := 6.0
 
 var player := Vector2(190, 138)
 var message := "Yui: Café band hai... aaj se phir kholna hai."
@@ -54,11 +55,36 @@ func _move_player(delta: float) -> void:
     var input_dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
     if touch_move.length() > input_dir.length():
         input_dir = touch_move
-    if input_dir.length() > 0.0:
-        player += input_dir.normalized() * MOVE_SPEED * delta
-        player.x = clampf(player.x, CAFE_RECT.position.x + 10.0, CAFE_RECT.end.x - 10.0)
-        player.y = clampf(player.y, CAFE_RECT.position.y + 22.0, CAFE_RECT.end.y - 8.0)
-        StarlightGameState.player_position = player
+    if input_dir.length() <= 0.0:
+        return
+
+    var velocity := input_dir.normalized() * MOVE_SPEED * delta
+    var next_x := player + Vector2(velocity.x, 0.0)
+    if _walkable(next_x):
+        player = next_x
+
+    var next_y := player + Vector2(0.0, velocity.y)
+    if _walkable(next_y):
+        player = next_y
+
+    StarlightGameState.player_position = player
+
+func _walkable(pos: Vector2) -> bool:
+    if pos.x < CAFE_RECT.position.x + 10.0 or pos.x > CAFE_RECT.end.x - 10.0:
+        return false
+    if pos.y < CAFE_RECT.position.y + 22.0 or pos.y > CAFE_RECT.end.y - 8.0:
+        return false
+
+    var obstacles := [
+        Rect2(176, 43, 88, 47),     # counter
+        Rect2(110, 76, 78, 66),     # table 1
+        Rect2(266, 93, 78, 66),     # table 2
+        Rect2(96, 65, 48, 26)       # stove
+    ]
+    for obstacle in obstacles:
+        if obstacle.grow(PLAYER_RADIUS).has_point(pos):
+            return false
+    return true
 
 func _input(event: InputEvent) -> void:
     if dialogue != null and dialogue.active:
