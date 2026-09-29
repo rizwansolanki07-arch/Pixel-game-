@@ -51,7 +51,7 @@ func _ready():
   cafe_opened=true
   StarlightGameState.cafe_opened=true
   StarlightGameState.phase="night" if capture_mode=="night" else "day"
- if StarlightSaveManager.load_game() and capture_mode==""
+ if StarlightSaveManager.load_game() and capture_mode=="":
   mode="cafe"; cafe_opened=StarlightGameState.cafe_opened; player=StarlightGameState.player_position
   quest_stage=int(StarlightGameState.story_flags.get("quest_stage",0))
   language=str(StarlightGameState.story_flags.get("language","EN"))
