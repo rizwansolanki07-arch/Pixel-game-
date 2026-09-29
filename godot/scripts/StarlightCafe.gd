@@ -55,13 +55,18 @@ func _ready() -> void:
     touch_controls.move_changed.connect(_on_touch_move_changed)
     touch_controls.interact_pressed.connect(_on_touch_interact)
     dialogue.finished.connect(_on_dialogue_finished)
-    if village_message_timer > 0.0:
-        village_message_timer -= delta
-    if village_npc_timer > 0.0:
-        village_npc_timer -= delta
     queue_redraw()
 
 func _process(delta: float) -> void:
+    if village_mode:
+        village_light_time += delta
+        _update_village_player(delta)
+        if village_message_timer > 0.0:
+            village_message_timer = maxf(0.0, village_message_timer - delta)
+        if village_npc_timer > 0.0:
+            village_npc_timer = maxf(0.0, village_npc_timer - delta)
+        queue_redraw()
+        return
     _move_player(delta)
     yui_visual.position = player
     yui_visual.set_motion(touch_move if touch_move.length() > 0.05 else Input.get_vector("move_left", "move_right", "move_up", "move_down"), touch_move.length() > 0.05 or Input.get_vector("move_left", "move_right", "move_up", "move_down").length() > 0.05)
@@ -367,7 +372,8 @@ func _update_village_player(delta: float) -> void:
     for key in spots:
         if village_player.distance_to(spots[key]) < 18.0 and Input.is_action_just_pressed("interact"):
             if key == "herb_patch":
-                if StarlightGameState.add_ingredient("village_herb", 1):
+                StarlightGameState.add_item("village_herb", 1)
+                if true:
                     village_message = "Village Herb +1"
                 else:
                     village_message = "Herb pouch full."
