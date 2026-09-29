@@ -261,6 +261,8 @@ func _cafe():
  _draw_lounge_cluster(night)
  _draw_dining_cluster(night)
  _draw_plants_and_props(night)
+ _draw_cafe_characters(night)
+ _draw_pet(night)
  _draw_pixel_finish(night)
  if night: _draw_night_motes()
  _draw_interaction_hint(night)
@@ -426,13 +428,31 @@ func _draw_dining_cluster(night:bool)->void:
 
 func _draw_iso_table(c:Vector2,size:Vector2,night:bool)->void:
  var hw=size.x*0.5; var hh=size.y*0.5
- draw_colored_polygon(PackedVector2Array([c+Vector2(0,-hh),c+Vector2(hw,0),c+Vector2(0,hh),c-Vector2(hw,0)]),Color("#754632") if night else Color("#a86a43"))
- draw_colored_polygon(PackedVector2Array([c+Vector2(-hw,0),c,c+Vector2(0,hh),c-Vector2(hw,0)]),Color("#53363a") if night else Color("#7d4c3c")); draw_colored_polygon(PackedVector2Array([c,c+Vector2(hw,0),c+Vector2(0,hh),c-Vector2(hw,0)]),Color("#493139") if night else Color("#704237"))
- draw_line(c+Vector2(-hw+4,0),c+Vector2(hw-4,0),Color("#d08b52"),1); draw_line(c+Vector2(-8,-2),c+Vector2(8,2),Color("#d06b57") if not night else Color("#8f5164"),3); draw_circle(c+Vector2(4,-2),3,Color("#d6c3a0")); draw_rect(Rect2(c+Vector2(2,-5),Vector2(4,2)),Color("#7c5b4e"))
+ var top=Color("#a86a43") if not night else Color("#754632")
+ var side_l=Color("#7d4c3c") if not night else Color("#53363a")
+ var side_r=Color("#704237") if not night else Color("#493139")
+ draw_colored_polygon(PackedVector2Array([c+Vector2(0,-hh),c+Vector2(hw,0),c+Vector2(0,hh),c-Vector2(hw,0)]),top)
+ draw_colored_polygon(PackedVector2Array([c+Vector2(-hw,0),c,c+Vector2(0,hh),c-Vector2(hw,0)]),side_l)
+ draw_colored_polygon(PackedVector2Array([c,c+Vector2(hw,0),c+Vector2(0,hh),c-Vector2(hw,0)]),side_r)
+ draw_line(c+Vector2(-hw+4,0),c+Vector2(hw-4,0),Color("#d08b52"),1)
+ # Table runner + place setting.
+ draw_line(c+Vector2(-8,-2),c+Vector2(9,3),Color("#a74449") if not night else Color("#7e4c62"),3)
+ draw_circle(c+Vector2(4,-2),3,Color("#d6c3a0"))
+ draw_rect(Rect2(c+Vector2(2,-5),Vector2(4,2)),Color("#7c5b4e"))
+ draw_rect(Rect2(c+Vector2(-11,1),Vector2(5,2)),Color("#d5b46f"))
+
 
 func _draw_iso_chair(p:Vector2,night:bool)->void:
- var wood=Color("#3c2a31") if night else Color("#654039"); var hi=Color("#8b5a43") if night else Color("#a96b45")
- draw_colored_polygon(PackedVector2Array([p+Vector2(-8,-7),p+Vector2(8,-7),p+Vector2(7,4),p+Vector2(-7,4)]),hi); draw_rect(Rect2(p.x-6,p.y-12,12,6),wood); draw_line(p+Vector2(-5,4),p+Vector2(-7,15),wood,2); draw_line(p+Vector2(5,4),p+Vector2(7,15),wood,2)
+ var wood=Color("#654039") if not night else Color("#3c2a31")
+ var hi=Color("#a96b45") if not night else Color("#8b5a43")
+ draw_rect(Rect2(p.x-6,p.y-13,12,6),wood)
+ draw_rect(Rect2(p.x-5,p.y-12,10,2),hi)
+ draw_colored_polygon(PackedVector2Array([p+Vector2(-8,-6),p+Vector2(8,-6),p+Vector2(7,4),p+Vector2(-7,4)]),hi)
+ draw_rect(Rect2(p.x-5,p.y+1,10,3),wood)
+ draw_line(p+Vector2(-5,4),p+Vector2(-7,15),wood,2)
+ draw_line(p+Vector2(5,4),p+Vector2(7,15),wood,2)
+
+
 
 func _draw_plants_and_props(night:bool)->void:
  var plant_points=[Vector2(35,111),Vector2(335,105),Vector2(300,94),Vector2(128,88),Vector2(312,153),Vector2(96,175)]
@@ -453,13 +473,67 @@ func _draw_plants_and_props(night:bool)->void:
 
 
 func _draw_iso_window(p:Vector2,night:bool)->void:
- draw_rect(Rect2(p.x-22,p.y-12,44,32),Color("#4b3037") if not night else Color("#292433")); draw_rect(Rect2(p.x-18,p.y-8,36,24),Color("#6e94a1") if not night else Color("#4c4671")); draw_line(Vector2(p.x,p.y-8),Vector2(p.x,p.y+16),Color("#68443e"),2); draw_line(Vector2(p.x-18,p.y+4),Vector2(p.x+18,p.y+4),Color("#68443e"),2)
+ var frame=Color("#5b3b37") if not night else Color("#342b38")
+ var glass=Color("#6e94a1") if not night else Color("#4c4671")
+ draw_rect(Rect2(p.x-24,p.y-13,48,33),Color("#2b2028"))
+ draw_rect(Rect2(p.x-20,p.y-9,40,25),frame)
+ draw_rect(Rect2(p.x-17,p.y-6,34,19),glass)
+ draw_line(Vector2(p.x,p.y-6),Vector2(p.x,p.y+13),Color("#4a3337"),2)
+ draw_line(Vector2(p.x-17,p.y+4),Vector2(p.x+17,p.y+4),Color("#4a3337"),2)
+ # Curtains and sill.
+ draw_colored_polygon(PackedVector2Array([Vector2(p.x-22,p.y-11),Vector2(p.x-17,p.y-9),Vector2(p.x-18,p.y+14),Vector2(p.x-24,p.y+10)]),Color("#f0d7b0") if not night else Color("#806a86"))
+ draw_colored_polygon(PackedVector2Array([Vector2(p.x+22,p.y-11),Vector2(p.x+17,p.y-9),Vector2(p.x+18,p.y+14),Vector2(p.x+24,p.y+10)]),Color("#ecd3ad") if not night else Color("#78637f"))
+ draw_rect(Rect2(p.x-21,p.y+14,42,3),Color("#7c5947") if not night else Color("#493945"))
+ # Outside greenery / moon.
  if not night:
-  draw_colored_polygon(PackedVector2Array([p+Vector2(-16,14),p+Vector2(-6,5),p+Vector2(0,14)]),Color("#51745a")); draw_colored_polygon(PackedVector2Array([p+Vector2(3,14),p+Vector2(12,4),p+Vector2(17,14)]),Color("#3f624f"))
- else: draw_circle(p+Vector2(8,-1),5,Color("#e5d2a2"))
+  draw_colored_polygon(PackedVector2Array([p+Vector2(-15,13),p+Vector2(-6,5),p+Vector2(0,13)]),Color("#51745a"))
+  draw_colored_polygon(PackedVector2Array([p+Vector2(2,13),p+Vector2(11,4),p+Vector2(16,13)]),Color("#3f624f"))
+  draw_rect(Rect2(p.x-4,p.y+8,8,3),Color("#f2d17c"))
+ else:
+  draw_circle(p+Vector2(7,-1),5,Color("#e5d2a2"))
+
+
 
 func _draw_lamp(p:Vector2,night:bool)->void:
  draw_line(p+Vector2(0,-12),p+Vector2(0,-2),Color("#30262f"),2); draw_rect(Rect2(p.x-5,p.y-1,10,7),Color("#8d5942")); draw_rect(Rect2(p.x-3,p.y,6,5),Color("#f0bf62")); if night: draw_circle(p+Vector2(0,3),15,Color(0.95,0.62,0.25,0.10))
+
+func _draw_cafe_characters(night:bool)->void:
+ # Two tiny daytime customers keep the room visually alive; spirits replace them at night.
+ if not night:
+  _draw_guest(Vector2(260,145),Color("#cf8b72"),Color("#5b728c"),false)
+  _draw_guest(Vector2(315,150),Color("#b87963"),Color("#7a5c46"),true)
+ else:
+  # Aoi / Ren spirit glow at the story table.
+  var glow=Color(0.60,0.42,0.95,0.10)
+  draw_circle(Vector2(235,116),15,glow)
+  draw_circle(Vector2(235,116),9,Color(0.47,0.35,0.75,0.65))
+  draw_circle(Vector2(231,114),2,Color("#e8dcff"))
+  draw_circle(Vector2(239,114),2,Color("#e8dcff"))
+  draw_rect(Rect2(230,118,10,5),Color("#73579a"))
+  # Small spirit particles.
+  for p in [Vector2(223,106),Vector2(246,109),Vector2(242,126)]:
+   draw_rect(Rect2(p.x,p.y,2,2),Color("#d7c6ff"))
+ 
+func _draw_guest(p:Vector2,skin:Color,cloth:Color,hat:bool)->void:
+ draw_circle(p+Vector2(0,-6),5,skin)
+ if hat: draw_rect(Rect2(p.x-6,p.y-12,12,4),Color("#4c4d63")); draw_rect(Rect2(p.x-4,p.y-15,8,3),Color("#5d6579"))
+ draw_colored_polygon(PackedVector2Array([p+Vector2(-5,-1),p+Vector2(5,-1),p+Vector2(7,9),p+Vector2(-7,9)]),cloth)
+ draw_rect(Rect2(p.x-5,p.y+9,4,5),Color("#2f2931"))
+ draw_rect(Rect2(p.x+1,p.y+9,4,5),Color("#2f2931"))
+
+func _draw_pet(night:bool)->void:
+ var p=Vector2(player.x+18,player.y+10) if mode=="cafe" else Vector2(0,0)
+ if mode!="cafe": return
+ # Tiny fluffy white companion, kept separate from Yui's sprite.
+ draw_circle(p+Vector2(0,2),7,Color("#2e2732"))
+ draw_circle(p+Vector2(-4,-2),5,Color("#f4efe7"))
+ draw_circle(p+Vector2(4,-3),5,Color("#efe8de"))
+ draw_circle(p+Vector2(0,-6),5,Color("#fff8ef"))
+ draw_rect(Rect2(p.x-2,p.y+5,4,3),Color("#b5a39a"))
+ draw_rect(Rect2(p.x-5,p.y+1,2,2),Color("#2b2430"))
+ draw_rect(Rect2(p.x+3,p.y+1,2,2),Color("#2b2430"))
+ if night:
+  draw_rect(Rect2(p.x-1,p.y-9,2,2),Color("#d9c7ff"))
 
 func _draw_pixel_finish(night:bool)->void:
  # Hand-authored pixel clusters: hard edges, limited palette, consistent upper-left light.
