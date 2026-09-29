@@ -3,11 +3,11 @@ extends Node2D
 signal move_changed(direction: Vector2)
 signal interact_pressed
 
-const JOY_CENTER := Vector2(58, 165)
-const JOY_RADIUS := 42.0
-const KNOB_RADIUS := 14.0
-const INTERACT_CENTER := Vector2(330, 165)
-const BUTTON_RADIUS := 24.0
+const JOY_CENTER := Vector2(46, 176)
+const JOY_RADIUS := 32.0
+const KNOB_RADIUS := 11.0
+const INTERACT_CENTER := Vector2(342, 176)
+const BUTTON_RADIUS := 20.0
 
 var active_touch := -1
 var knob := JOY_CENTER
@@ -52,13 +52,13 @@ func _update_joystick(screen_pos: Vector2) -> void:
 
 func _draw() -> void:
     # Soft translucent controls keep the game visible underneath.
-    draw_circle(JOY_CENTER, JOY_RADIUS + 5.0, Color(0.04, 0.03, 0.07, 0.42))
-    draw_circle(JOY_CENTER, JOY_RADIUS, Color(0.16, 0.13, 0.24, 0.65))
+    draw_circle(JOY_CENTER, JOY_RADIUS + 4.0, Color(0.04, 0.03, 0.07, 0.30))
+    draw_circle(JOY_CENTER, JOY_RADIUS, Color(0.16, 0.13, 0.24, 0.48))
     draw_circle(knob, KNOB_RADIUS, Color(0.92, 0.82, 0.60, 0.86))
     draw_circle(knob, KNOB_RADIUS - 4.0, Color(0.40, 0.31, 0.47, 0.95))
 
-    var button_color := Color(0.76, 0.54, 0.73, 0.86)
-    draw_circle(INTERACT_CENTER, BUTTON_RADIUS + 3.0, Color(0.04, 0.03, 0.07, 0.42))
+    var button_color := Color(0.76, 0.54, 0.73, 0.78)
+    draw_circle(INTERACT_CENTER, BUTTON_RADIUS + 3.0, Color(0.04, 0.03, 0.07, 0.30))
     draw_circle(INTERACT_CENTER, BUTTON_RADIUS, button_color)
     draw_circle(INTERACT_CENTER, BUTTON_RADIUS - 5.0, Color(0.32, 0.24, 0.40, 0.95))
     draw_string(ThemeDB.fallback_font, INTERACT_CENTER + Vector2(-7, 5), "E", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("#fff1c7"))
