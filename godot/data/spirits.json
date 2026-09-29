@@ -1,0 +1,9 @@
+{
+  "spirit_001": {
+    "name": "Aoi",
+    "arrival_night": 1,
+    "favorite_recipe": "moon_mushroom_soup",
+    "story_stage": 0,
+    "memory_fragments": ["fragment_01", "fragment_02", "fragment_03"]
+  }
+}

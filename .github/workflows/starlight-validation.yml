@@ -1,0 +1,33 @@
+name: Starlight Café Validation
+
+on:
+  push:
+    branches:
+      - starlight-cafe-foundation
+  pull_request:
+    branches:
+      - main
+      - starlight-cafe-foundation
+    paths:
+      - "godot/**"
+      - ".github/workflows/starlight-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  godot-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot 4.5
+        run: |
+          curl -L --fail --retry 3             -o godot.zip             https://github.com/godotengine/godot/releases/download/4.5-stable/Godot_v4.5-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.5-stable_linux.x86_64
+          sudo mv Godot_v4.5-stable_linux.x86_64 /usr/local/bin/godot
+
+      - name: Validate Godot project
+        working-directory: godot
+        run: godot --headless --editor --quit
