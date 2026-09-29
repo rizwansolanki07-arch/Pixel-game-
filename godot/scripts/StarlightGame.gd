@@ -248,49 +248,130 @@ func _title():
 
 func _cafe():
  var night=StarlightGameState.phase=="night"
- var tex:=cafe_night_tex if night else cafe_day_tex
- if tex:
-  draw_texture_rect(tex,Rect2(0,0,384,216),false)
- else:
-  draw_rect(Rect2(0,0,384,216),Color("#151b2e") if night else Color("#704c45"))
- var points={
-  "moon_mushroom":Vector2(135,176),
-  "village_herb":Vector2(333,153),
-  "milk":Vector2(214,49),
-  "salt":Vector2(176,47),
-  "honey":Vector2(258,48),
-  "grain":Vector2(198,48)
- }
+ draw_rect(Rect2(0,0,384,216),Color("#101522") if night else Color("#2c3140"))
+ _draw_room_shell(night)
+ _draw_floor_tiles(night)
+ _draw_rugs(night)
+ _draw_back_wall_details(night)
+ _draw_kitchen_cluster(night)
+ _draw_lounge_cluster(night)
+ _draw_dining_cluster(night)
+ _draw_plants_and_props(night)
+ if night: _draw_night_motes()
+ var points={"moon_mushroom":Vector2(135,176),"village_herb":Vector2(333,153),"milk":Vector2(214,49),"salt":Vector2(176,47),"honey":Vector2(258,48),"grain":Vector2(198,48)}
  for id in points:
-  var key=str(StarlightGameState.day)+"_"+id
-  if not gathered.has(key):
+  if not gathered.has(str(StarlightGameState.day)+"_"+id):
    var pp:Vector2=points[id]
-   draw_rect(Rect2(pp.x-2,pp.y-4,5,5),Color("#d9c27a") if not night else Color("#b7a4e5"))
-   draw_rect(Rect2(pp.x-4,pp.y-2,9,2),Color("#e8d99a") if not night else Color("#c7b9f4"))
+   draw_rect(Rect2(pp.x-2,pp.y-4,5,5),Color("#e8d99a") if not night else Color("#c9b9ff"))
  if door_open:
-  draw_rect(Rect2(333,157,25,24),Color("#111827"))
-  draw_rect(Rect2(331,157,4,24),Color("#8b5b48"))
-  draw_string(font,Vector2(340,171),"→",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("#f0c67b"))
- if night:
-  draw_rect(Rect2(224,121,20,4),Color("#7e6ba4"))
-  draw_rect(Rect2(228,117,12,12),Color("#b8a5ee"))
-  draw_rect(Rect2(231,114,6,18),Color("#dcd1ff"))
- draw_rect(Rect2(7,7,370,28),Color(0.06,0.05,0.10,0.90))
+  draw_rect(Rect2(334,157,20,22),Color("#111522"))
+  draw_line(Vector2(334,157),Vector2(334,179),Color("#b16d4c"),3)
+  draw_string(font,Vector2(346,170),"→",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("#f3c878"))
+ draw_rect(Rect2(7,7,370,28),Color(0.04,0.035,0.07,0.91))
  draw_string(font,Vector2(14,25),"Day "+str(StarlightGameState.day)+" • "+("NIGHT" if night else "DAY"),HORIZONTAL_ALIGNMENT_LEFT,-1,11,Color("#f6dfad"))
  draw_string(font,Vector2(142,25),"E Use  I Bag  R Recipes  Q Quest  V Village",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#d8cfe4"))
- draw_string(font,Vector2(14,199),"P Save • F Settings • L Language",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#d8cfe4"))
+ draw_string(font,Vector2(14,210),"P Save • F Settings • L Language",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#d8cfe4"))
  if panel=="inventory": _panel("INVENTORY",_inventory())
  if panel=="recipes": _panel("RECIPES",_recipes())
  if panel=="quest": _panel("QUEST",[_quest_text(),"","Q / CLOSE"])
  if panel=="settings": _panel("SETTINGS",["L Language: "+language,"N Night • D Day","V Village • P Save","F Close"])
  if cooking!="":
-  draw_rect(Rect2(110,108,164,8),Color("#2e2536"))
-  draw_rect(Rect2(112,110,160*clampf(cook_time/cook_len,0,1),4),Color("#e0a45e"))
+  draw_rect(Rect2(110,108,164,8),Color("#2e2536")); draw_rect(Rect2(112,110,160*clampf(cook_time/cook_len,0,1),4),Color("#e0a45e"))
  if msg_time>0:
-  draw_rect(Rect2(45,142,294,19),Color(0.06,0.04,0.1,0.92))
-  draw_string(font,Vector2(55,155),msg,HORIZONTAL_ALIGNMENT_LEFT,274,8,Color("#f2e6d0"))
+  draw_rect(Rect2(45,142,294,19),Color(0.06,0.04,0.1,0.92)); draw_string(font,Vector2(55,155),msg,HORIZONTAL_ALIGNMENT_LEFT,274,8,Color("#f2e6d0"))
 
-func _village():
+func _draw_room_shell(night:bool)->void:
+ var wall=Color("#352b43") if night else Color("#8b514b")
+ draw_colored_polygon(PackedVector2Array([Vector2(18,74),Vector2(190,20),Vector2(366,74),Vector2(190,126)]),wall)
+ draw_colored_polygon(PackedVector2Array([Vector2(18,74),Vector2(190,126),Vector2(190,205),Vector2(18,112)]),Color("#47333b") if night else Color("#75453f"))
+ draw_colored_polygon(PackedVector2Array([Vector2(190,126),Vector2(366,74),Vector2(366,112),Vector2(190,205)]),Color("#3c3040") if night else Color("#69413e"))
+ for y in [45,61,77,93]:
+  draw_line(Vector2(45,y),Vector2(190,y+48),Color("#573a49") if night else Color("#7c4742"),1)
+  draw_line(Vector2(190,y+48),Vector2(335,y),Color("#513847") if night else Color("#74433f"),1)
+ for p in [Vector2(64,60),Vector2(190,25),Vector2(316,60)]: draw_line(p,p+Vector2(0,58),Color("#4b3040") if night else Color("#663b37"),4)
+ draw_line(Vector2(18,74),Vector2(190,126),Color("#b36a4d") if not night else Color("#6e5365"),3)
+ draw_line(Vector2(190,126),Vector2(366,74),Color("#a45e48") if not night else Color("#654c60"),3)
+ _draw_iso_window(Vector2(88,56),night); _draw_iso_window(Vector2(289,56),night)
+ draw_colored_polygon(PackedVector2Array([Vector2(325,103),Vector2(348,96),Vector2(348,151),Vector2(325,160)]),Color("#432f35") if night else Color("#704237"))
+ draw_line(Vector2(325,103),Vector2(325,160),Color("#b16d4c"),2)
+
+func _draw_floor_tiles(night:bool)->void:
+ var top=Color("#51455a") if night else Color("#a86d4d")
+ var alt=Color("#493e50") if night else Color("#996247")
+ for y in range(0,5):
+  for x in range(0,7):
+   var p=Vector2(190,126)+Vector2((x-y)*32,(x+y)*16)
+   var c=top if (x+y)%2==0 else alt
+   draw_colored_polygon(PackedVector2Array([p+Vector2(0,-16),p+Vector2(32,0),p+Vector2(0,16),p+Vector2(-32,0)]),c)
+   draw_line(p+Vector2(-28,0),p,Color(0.12,0.08,0.11,0.38),1); draw_line(p,p+Vector2(28,0),Color(0.12,0.08,0.11,0.24),1)
+
+func _draw_rugs(night:bool)->void:
+ _draw_iso_rug(Vector2(103,146),Vector2(64,30),Color("#5f3344") if night else Color("#a34445"))
+ _draw_iso_rug(Vector2(279,157),Vector2(52,25),Color("#34496b") if night else Color("#3e6173"))
+
+func _draw_iso_rug(c:Vector2,size:Vector2,col:Color)->void:
+ var hw=size.x*0.5; var hh=size.y*0.5
+ draw_colored_polygon(PackedVector2Array([c+Vector2(0,-hh),c+Vector2(hw,0),c+Vector2(0,hh),c-Vector2(hw,0)]),col)
+ draw_polyline(PackedVector2Array([c+Vector2(0,-hh+2),c+Vector2(hw-3,0),c+Vector2(0,hh-2),c-Vector2(hw-3,0),c+Vector2(0,-hh+2)]),Color("#e0b06a"),1)
+
+func _draw_back_wall_details(night:bool)->void:
+ draw_rect(Rect2(42,67,34,21),Color("#3b2831") if night else Color("#6a4138")); draw_rect(Rect2(45,70,28,15),Color("#4d6d77") if night else Color("#7e9d86"))
+ draw_colored_polygon(PackedVector2Array([Vector2(48,82),Vector2(58,73),Vector2(69,82)]),Color("#526b58"))
+ draw_rect(Rect2(112,49,62,5),Color("#70483d") if night else Color("#77473c")); draw_rect(Rect2(117,54,52,3),Color("#4c3439"))
+ for i in range(5):
+  var xx=119+i*10; draw_rect(Rect2(xx,57,7,11),Color("#9b6a4d") if i%2==0 else Color("#5e7b64")); draw_rect(Rect2(xx+1,56,5,2),Color("#e3b96b"))
+ draw_rect(Rect2(311,65,19,19),Color("#c0a36d")); draw_circle(Vector2(320,74),7,Color("#eee1bc")); draw_line(Vector2(320,74),Vector2(320,69),Color("#5b4650"),1); draw_line(Vector2(320,74),Vector2(324,76),Color("#5b4650"),1)
+ _draw_lamp(Vector2(148,52),night); _draw_lamp(Vector2(235,52),night)
+
+func _draw_kitchen_cluster(night:bool)->void:
+ draw_colored_polygon(PackedVector2Array([Vector2(146,82),Vector2(264,46),Vector2(303,58),Vector2(183,99)]),Color("#5a3b38") if night else Color("#7a4939"))
+ draw_colored_polygon(PackedVector2Array([Vector2(146,82),Vector2(183,99),Vector2(183,112),Vector2(146,95)]),Color("#3a2934")); draw_colored_polygon(PackedVector2Array([Vector2(183,99),Vector2(303,58),Vector2(303,72),Vector2(183,112)]),Color("#4a3035"))
+ for i in range(6):
+  var x=193+i*16; draw_rect(Rect2(x,76-i*2,9,11),Color("#8e6045")); draw_rect(Rect2(x+2,78-i*2,5,6),Color("#d9a95e"))
+ draw_rect(Rect2(254,71,34,45),Color("#29262e")); draw_rect(Rect2(258,77,26,19),Color("#5a3b35")); draw_rect(Rect2(262,80,18,13),Color("#e58b3f") if not night else Color("#c35d43")); draw_rect(Rect2(266,82,10,9),Color("#ffd16a")); draw_rect(Rect2(267,44,9,28),Color("#34303a")); draw_rect(Rect2(264,43,15,4),Color("#4e4148"))
+ for i in range(4):
+  var xx=207+i*13; draw_line(Vector2(xx,65),Vector2(xx,72),Color("#29242d"),1); draw_circle(Vector2(xx,75),4,Color("#5f5961"))
+ draw_rect(Rect2(173,72,23,13),Color("#7d7373")); draw_rect(Rect2(177,75,15,7),Color("#3d5560")); draw_line(Vector2(187,73),Vector2(187,67),Color("#8d8a8b"),2)
+
+func _draw_lounge_cluster(night:bool)->void:
+ draw_colored_polygon(PackedVector2Array([Vector2(50,126),Vector2(83,115),Vector2(122,128),Vector2(88,141)]),Color("#3f513f") if night else Color("#5d7c48"))
+ draw_colored_polygon(PackedVector2Array([Vector2(50,126),Vector2(88,141),Vector2(88,155),Vector2(50,140)]),Color("#2c3b38") if night else Color("#4a633f")); draw_colored_polygon(PackedVector2Array([Vector2(88,141),Vector2(122,128),Vector2(122,142),Vector2(88,155)]),Color("#35453a") if night else Color("#4f693f"))
+ draw_rect(Rect2(67,126,17,5),Color("#d8a065")); draw_colored_polygon(PackedVector2Array([Vector2(62,148),Vector2(81,142),Vector2(96,148),Vector2(77,154)]),Color("#6e463d")); draw_rect(Rect2(69,148,15,8),Color("#4c3437")); draw_circle(Vector2(76,146),3,Color("#e3b45e"))
+
+func _draw_dining_cluster(night:bool)->void:
+ _draw_iso_table(Vector2(184,135),Vector2(56,27),night); _draw_iso_table(Vector2(276,139),Vector2(44,22),night); _draw_iso_table(Vector2(216,169),Vector2(48,24),night)
+ for p in [Vector2(156,142),Vector2(213,129),Vector2(258,151),Vector2(299,135),Vector2(224,181)]: _draw_iso_chair(p,night)
+
+func _draw_iso_table(c:Vector2,size:Vector2,night:bool)->void:
+ var hw=size.x*0.5; var hh=size.y*0.5
+ draw_colored_polygon(PackedVector2Array([c+Vector2(0,-hh),c+Vector2(hw,0),c+Vector2(0,hh),c-Vector2(hw,0)]),Color("#754632") if night else Color("#a86a43"))
+ draw_colored_polygon(PackedVector2Array([c+Vector2(-hw,0),c,c+Vector2(0,hh),c-Vector2(hw,0)]),Color("#53363a") if night else Color("#7d4c3c")); draw_colored_polygon(PackedVector2Array([c,c+Vector2(hw,0),c+Vector2(0,hh),c-Vector2(hw,0)]),Color("#493139") if night else Color("#704237"))
+ draw_line(c+Vector2(-hw+4,0),c+Vector2(hw-4,0),Color("#d08b52"),1); draw_line(c+Vector2(-8,-2),c+Vector2(8,2),Color("#d06b57") if not night else Color("#8f5164"),3); draw_circle(c+Vector2(4,-2),3,Color("#d6c3a0")); draw_rect(Rect2(c+Vector2(2,-5),Vector2(4,2)),Color("#7c5b4e"))
+
+func _draw_iso_chair(p:Vector2,night:bool)->void:
+ var wood=Color("#3c2a31") if night else Color("#654039"); var hi=Color("#8b5a43") if night else Color("#a96b45")
+ draw_colored_polygon(PackedVector2Array([p+Vector2(-8,-7),p+Vector2(8,-7),p+Vector2(7,4),p+Vector2(-7,4)]),hi); draw_rect(Rect2(p.x-6,p.y-12,12,6),wood); draw_line(p+Vector2(-5,4),p+Vector2(-7,15),wood,2); draw_line(p+Vector2(5,4),p+Vector2(7,15),wood,2)
+
+func _draw_plants_and_props(night:bool)->void:
+ for p in [Vector2(35,111),Vector2(335,105),Vector2(300,94),Vector2(127,89)]:
+  draw_rect(Rect2(p.x-5,p.y+5,10,9),Color("#70483d"))
+  for off in [Vector2(-5,1),Vector2(0,-5),Vector2(5,1),Vector2(2,4)]: draw_rect(Rect2(p+off,Vector2(5,5)),Color("#426a49") if night else Color("#5f8b4f"))
+ for p in [Vector2(327,173),Vector2(317,178),Vector2(337,179)]: draw_rect(Rect2(p.x-7,p.y-5,14,8),Color("#76513e")); draw_line(p+Vector2(-5,-2),p+Vector2(5,-2),Color("#b0784c"),1)
+
+func _draw_iso_window(p:Vector2,night:bool)->void:
+ draw_rect(Rect2(p.x-22,p.y-12,44,32),Color("#4b3037") if not night else Color("#292433")); draw_rect(Rect2(p.x-18,p.y-8,36,24),Color("#6e94a1") if not night else Color("#4c4671")); draw_line(Vector2(p.x,p.y-8),Vector2(p.x,p.y+16),Color("#68443e"),2); draw_line(Vector2(p.x-18,p.y+4),Vector2(p.x+18,p.y+4),Color("#68443e"),2)
+ if not night:
+  draw_colored_polygon(PackedVector2Array([p+Vector2(-16,14),p+Vector2(-6,5),p+Vector2(0,14)]),Color("#51745a")); draw_colored_polygon(PackedVector2Array([p+Vector2(3,14),p+Vector2(12,4),p+Vector2(17,14)]),Color("#3f624f"))
+ else: draw_circle(p+Vector2(8,-1),5,Color("#e5d2a2"))
+
+func _draw_lamp(p:Vector2,night:bool)->void:
+ draw_line(p+Vector2(0,-12),p+Vector2(0,-2),Color("#30262f"),2); draw_rect(Rect2(p.x-5,p.y-1,10,7),Color("#8d5942")); draw_rect(Rect2(p.x-3,p.y,6,5),Color("#f0bf62")); if night: draw_circle(p+Vector2(0,3),15,Color(0.95,0.62,0.25,0.10))
+
+func _draw_night_motes()->void:
+ for i in range(18):
+  var x=25+(i*47)%335; var y=43+(i*31)%130; draw_rect(Rect2(x,y,2,2),Color(0.75,0.67,1.0,0.42))
+
+
  draw_rect(Rect2(0,0,384,216),Color("#182536")); draw_rect(Rect2(42,38,300,142),Color("#334b4a"))
  draw_colored_polygon(PackedVector2Array([Vector2(180,160),Vector2(204,160),Vector2(248,54),Vector2(224,54)]),Color("#b88a62"))
  for p in [Vector2(78,65),Vector2(302,65),Vector2(64,140),Vector2(318,140)]: draw_circle(p,15,Color("#284c42")); draw_circle(p+Vector2(-5,-4),8,Color("#3f6b50"))
