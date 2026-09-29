@@ -53,20 +53,45 @@ func _draw() -> void:
  # Ground shadow is deliberately tiny and hard-edged so Yui stays anchored to the 2:1 floor.
  _draw_ground_shadow()
  if sprite_texture==null:
-  # 56px fallback Yui: chunky handcrafted pixel silhouette, kept on the same baseline.
-  draw_rect(Rect2(-13,-28,26,8),Color("#292230"))
-  draw_rect(Rect2(-10,-25,20,15),Color("#e7a47f"))
-  draw_rect(Rect2(-8,-21,3,3),Color("#3b2930"))
-  draw_rect(Rect2(5,-21,3,3),Color("#3b2930"))
-  draw_rect(Rect2(-11,-11,22,7),Color("#d5a33d"))
-  draw_rect(Rect2(-14,-4,28,17),Color("#9d3f44"))
-  draw_rect(Rect2(-10,1,20,4),Color("#b94e48"))
-  draw_rect(Rect2(-7,13,6,12),Color("#56363a"))
-  draw_rect(Rect2(2,13,6,12),Color("#56363a"))
-  draw_rect(Rect2(-9,24,8,3),Color("#30252d"))
-  draw_rect(Rect2(1,24,8,3),Color("#30252d"))
-  draw_rect(Rect2(-15,-5,4,11),Color("#e0a53f"))
-  draw_rect(Rect2(11,-5,4,11),Color("#e0a53f"))
+  # Detailed 56px fallback Yui: readable hair, face, blouse, apron, skirt and boots.
+  var outline:=Color("#292230")
+  var hair:=Color("#302531")
+  var skin:=Color("#e7a47f")
+  var skin_hi:=Color("#f0b58d")
+  var blouse:=Color("#d7a33f")
+  var skirt:=Color("#9d3f44")
+  var skirt_hi:=Color("#b94e48")
+  var boot:=Color("#4a3031")
+  # Hair silhouette and tied ponytail.
+  draw_rect(Rect2(-13,-28,26,8),outline)
+  draw_rect(Rect2(-11,-26,22,10),hair)
+  draw_rect(Rect2(-14,-23,5,11),hair)
+  draw_rect(Rect2(9,-24,6,16),hair)
+  draw_rect(Rect2(12,-15,5,5),hair)
+  # Face with ears and hair fringe.
+  draw_rect(Rect2(-10,-19,20,14),skin)
+  draw_rect(Rect2(-8,-21,16,4),hair)
+  draw_rect(Rect2(-5,-18,3,3),Color("#3b2930"))
+  draw_rect(Rect2(3,-18,3,3),Color("#3b2930"))
+  draw_rect(Rect2(-2,-13,4,2),skin_hi)
+  # Mustard blouse + warm collar.
+  draw_rect(Rect2(-11,-5,22,9),blouse)
+  draw_rect(Rect2(-4,-7,8,4),Color("#e8bd55"))
+  # Red skirt with two readable folds.
+  draw_rect(Rect2(-14,4,28,13),skirt)
+  draw_rect(Rect2(-10,5,5,11),skirt_hi)
+  draw_rect(Rect2(5,5,5,11, ),Color("#8b353f"))
+  draw_rect(Rect2(-14,16,28,4),skirt)
+  # Arms and hands.
+  draw_rect(Rect2(-15,-4,4,11),skin_hi)
+  draw_rect(Rect2(11,-4,4,11),skin_hi)
+  draw_rect(Rect2(-16,6,5,4),skin)
+  draw_rect(Rect2(11,6,5,4),skin)
+  # Legs and boots.
+  draw_rect(Rect2(-7,20,6,7),boot)
+  draw_rect(Rect2(2,20,6,7),boot)
+  draw_rect(Rect2(-10,26,9,3),outline)
+  draw_rect(Rect2(1,26,9,3),outline)
  var frame:=int(floor(walk_clock))%5 if moving else 0
  var src:=Rect2(frame*FRAME_W,facing_index*FRAME_H,FRAME_W,FRAME_H)
  var bob:=0.0 if moving else sin(idle_clock*2.2)*0.5
