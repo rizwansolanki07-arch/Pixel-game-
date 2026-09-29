@@ -34,6 +34,8 @@ var village_mode := false
 var village_player := Vector2(180, 160)
 var village_message := ""
 var village_message_timer := 0.0
+var village_npc_message := ""
+var village_npc_timer := 0.0
 
 var spots := {
     "moon_mushroom": Vector2(118, 155),
@@ -54,6 +56,8 @@ func _ready() -> void:
     dialogue.finished.connect(_on_dialogue_finished)
     if village_message_timer > 0.0:
         village_message_timer -= delta
+    if village_npc_timer > 0.0:
+        village_npc_timer -= delta
     queue_redraw()
 
 func _process(delta: float) -> void:
@@ -375,6 +379,17 @@ func _update_village_player(delta: float) -> void:
                 village_mode = false
                 village_message = "Back to the café."
                 village_message_timer = 1.5
+    var npc_points = {
+        "Mina": Vector2(108, 92),
+        "Bram": Vector2(244, 86)
+    }
+    for npc_name in npc_points:
+        if village_player.distance_to(npc_points[npc_name]) < 20.0 and Input.is_action_just_pressed("interact"):
+            if npc_name == "Mina":
+                village_npc_message = "Mina: Bazaar mein aaj fresh herbs aaye hain."
+            else:
+                village_npc_message = "Bram: Raat ko café ki lamp sabse door se dikhti hai."
+            village_npc_timer = 3.0
 
 func _draw_village_preview() -> void:
     draw_rect(Rect2(42, 38, 300, 142), Color("#152034"))
@@ -394,6 +409,16 @@ func _draw_village_preview() -> void:
         draw_rect(Rect2(p + Vector2(-3, 5), Vector2(6, 16)), Color("#513b36"))
         draw_circle(p, 15.0, Color("#284c42"))
         draw_circle(p + Vector2(-5, -4), 8.0, Color("#3f6b50"))
+    # Bazaar stall.
+    draw_rect(Rect2(94, 76, 32, 22), Color("#704b3f"))
+    draw_colored_polygon(PackedVector2Array([Vector2(90, 78), Vector2(130, 78), Vector2(124, 68), Vector2(96, 68)]), Color("#a45f50"))
+    draw_rect(Rect2(100, 87, 20, 8), Color("#d8a45e"))
+    draw_string(ui_font, Vector2(92, 63), "BAZAAR", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color("#f2c98b"))
+    # Small house.
+    draw_rect(Rect2(220, 62, 48, 34), Color("#76564c"))
+    draw_colored_polygon(PackedVector2Array([Vector2(214, 64), Vector2(274, 64), Vector2(244, 48)]), Color("#493d52"))
+    draw_rect(Rect2(240, 78, 10, 18), Color("#3a2e35"))
+    draw_rect(Rect2(224, 72, 10, 8), Color("#f0b86d"))
     # Village well.
     draw_circle(Vector2(282, 130), 14.0, Color("#6e6262"))
     draw_circle(Vector2(282, 130), 9.0, Color("#293441"))
@@ -405,6 +430,11 @@ func _draw_village_preview() -> void:
         draw_circle(p, 4.0, Color("#8ab45f"))
         draw_line(p, p + Vector2(0, -7), Color("#517a4e"), 2.0)
     draw_string(ui_font, Vector2(60, 57), "GREENHOLLOW VILLAGE", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("#ffe2a7"))
+    # NPCs.
+    draw_circle(Vector2(108, 92), 7.0, Color("#d89b78"))
+    draw_rect(Rect2(103, 99, 10, 12), Color("#6b7894"))
+    draw_circle(Vector2(244, 86), 7.0, Color("#c78b70"))
+    draw_rect(Rect2(239, 93, 10, 12), Color("#8b6a48"))
     draw_circle(village_player + Vector2(0, 7), 6.0, Color(0.08, 0.07, 0.12, 0.45))
     draw_circle(village_player, 7.0, Color("#e7b78f"))
     draw_rect(Rect2(village_player + Vector2(-5, 4), Vector2(10, 10)), Color("#c28b55"))
@@ -412,8 +442,11 @@ func _draw_village_preview() -> void:
     draw_string(ui_font, Vector2(58, 57), "GREENHOLLOW VILLAGE", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("#ffe2a7"))
     draw_string(ui_font, Vector2(58, 172), "WASD / JOYSTICK • E INTERACT • V RETURN", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color("#ddd1e3"))
     if village_message_timer > 0.0:
-        draw_rect(Rect2(92, 88, 176, 28), Color(0.06, 0.05, 0.1, 0.92))
-        draw_string(ui_font, Vector2(104, 106), village_message, HORIZONTAL_ALIGNMENT_LEFT, 156, 8, Color("#ffe7bd"))
+        draw_rect(Rect2(92, 118, 176, 28), Color(0.06, 0.05, 0.1, 0.92))
+        draw_string(ui_font, Vector2(104, 136), village_message, HORIZONTAL_ALIGNMENT_LEFT, 156, 8, Color("#ffe7bd"))
+    if village_npc_timer > 0.0:
+        draw_rect(Rect2(62, 122, 260, 30), Color(0.06, 0.05, 0.1, 0.94))
+        draw_string(ui_font, Vector2(74, 141), village_npc_message, HORIZONTAL_ALIGNMENT_LEFT, 236, 8, Color("#ffe7bd"))
 
 func _draw_kitchen(night: bool) -> void:
     var metal := Color("#403a46") if night else Color("#5b5052")
