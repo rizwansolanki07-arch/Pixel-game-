@@ -300,7 +300,10 @@ func _title():
 func _cafe():
  var night=StarlightGameState.phase=="night"
  draw_rect(Rect2(0,0,384,216),Color("#101522") if night else Color("#2c3140"))
- draw_texture_rect(cafe_night_tex if night else cafe_day_tex,Rect2(0,0,384,216),false)
+ if cafe_day_tex!=null and not night:
+  draw_texture_rect(cafe_day_tex,Rect2(0,0,384,216),false)
+ elif cafe_night_tex!=null and night:
+  draw_texture_rect(cafe_night_tex,Rect2(0,0,384,216),false)
  # _draw_floor_tiles(night)
  # _draw_rugs(night)
  # _draw_back_wall_details(night)
