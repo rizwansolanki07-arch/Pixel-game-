@@ -12,6 +12,7 @@ var moving := false
 var walk_clock := 0.0
 var facing_index := 0
 var sprite_texture: Texture2D
+var idle_clock := 0.0
 
 const DIRS := [
  Vector2(0, 1), Vector2(-0.707, 0.707), Vector2(-1, 0),
@@ -41,6 +42,7 @@ func _nearest_direction(direction: Vector2) -> int:
  return best
 
 func _process(delta: float) -> void:
+ idle_clock += delta
  if moving:
   walk_clock+=delta*WALK_FPS
  else:
@@ -48,8 +50,18 @@ func _process(delta: float) -> void:
  queue_redraw()
 
 func _draw() -> void:
+ # Ground shadow is deliberately tiny and hard-edged so Yui stays anchored to the 2:1 floor.
+ draw_ellipse(Vector2(0,25),Vector2(11,3),Color(0.05,0.04,0.07,0.34))
  if sprite_texture==null:
   return
  var frame:=int(floor(walk_clock))%5 if moving else 0
  var src:=Rect2(frame*FRAME_W,facing_index*FRAME_H,FRAME_W,FRAME_H)
- draw_texture_rect_region(sprite_texture,Rect2(-28,-28,56,56),src)
+ var bob:=0.0 if moving else sin(idle_clock*2.2)*0.5
+ draw_texture_rect_region(sprite_texture,Rect2(-28,-28+bob,56,56),src)
+
+func draw_ellipse(center:Vector2, radius:Vector2, col:Color) -> void:
+ var pts:=PackedVector2Array()
+ for i in range(17):
+  var a:=TAU*float(i)/16.0
+  pts.append(center+Vector2(cos(a)*radius.x,sin(a)*radius.y))
+ draw_colored_polygon(pts,col)
