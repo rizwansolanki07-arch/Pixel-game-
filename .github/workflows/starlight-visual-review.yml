@@ -18,10 +18,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Godot and Xvfb capture tools
+      - name: Install Godot 4.5
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb imagemagick xdotool
+          sudo apt-get install -y xvfb
           curl -L --fail --retry 3 -o godot.zip https://github.com/godotengine/godot/releases/download/4.5-stable/Godot_v4.5-stable_linux.x86_64.zip
           unzip -q godot.zip
           chmod +x Godot_v4.5-stable_linux.x86_64
@@ -30,14 +30,14 @@ jobs:
       - name: Import Godot resources
         working-directory: godot
         run: |
-          godot --headless --editor --quit >/tmp/starlight-import.log 2>&1 || true
+          xvfb-run -a godot --headless --editor --quit >/tmp/starlight-import.log 2>&1 || true
           cat /tmp/starlight-import.log
 
       - name: Capture cafe day
         working-directory: godot
         run: |
           rm -f capture_cafe_day.png
-          timeout 12s xvfb-run -a bash -lc 'set +e; STARLIGHT_CAPTURE=day godot --path . --windowed --resolution 1152x648 >/tmp/starlight-day.log 2>&1 & PID=$!; for i in $(seq 1 25); do WIN=$(xdotool search --onlyvisible --name "Starlight" 2>/dev/null | head -1); [ -n "$WIN" ] && break; sleep 0.2; done; if [ -n "$WIN" ]; then import -window "$WIN" capture_cafe_day.png; fi; kill "$PID" 2>/dev/null || true'
+          timeout 12s xvfb-run -a env STARLIGHT_CAPTURE=day godot --path . --script tools/capture_starlight.gd >/tmp/starlight-day.log 2>&1
           cat /tmp/starlight-day.log
           test -s capture_cafe_day.png
 
@@ -45,7 +45,7 @@ jobs:
         working-directory: godot
         run: |
           rm -f capture_cafe_night.png
-          timeout 12s xvfb-run -a bash -lc 'set +e; STARLIGHT_CAPTURE=night godot --path . --windowed --resolution 1152x648 >/tmp/starlight-night.log 2>&1 & PID=$!; for i in $(seq 1 25); do WIN=$(xdotool search --onlyvisible --name "Starlight" 2>/dev/null | head -1); [ -n "$WIN" ] && break; sleep 0.2; done; if [ -n "$WIN" ]; then import -window "$WIN" capture_cafe_night.png; fi; kill "$PID" 2>/dev/null || true'
+          timeout 12s xvfb-run -a env STARLIGHT_CAPTURE=night godot --path . --script tools/capture_starlight.gd >/tmp/starlight-night.log 2>&1
           cat /tmp/starlight-night.log
           test -s capture_cafe_night.png
 
