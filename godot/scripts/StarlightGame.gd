@@ -2,9 +2,6 @@ extends Node2D
 
 const CAFE := Rect2(76,48,250,128)
 const SPEED := 95.0
-const TABLE_TEX = preload("res://assets/starlight/props/cafe_table.png")
-const CHAIR_TEX = preload("res://assets/starlight/props/cafe_chair.png")
-const COUNTER_TEX = preload("res://assets/starlight/props/cafe_counter.png")
 
 var player := Vector2(190,138)
 var village_player := Vector2(180,158)
@@ -232,9 +229,12 @@ func _cafe():
  draw_rect(Rect2(270,51,28,18),Color("#30263b")); draw_rect(Rect2(273,54,22,12),Color("#554b87") if night else Color("#e6b85e"))
  draw_rect(Rect2(196,49,34,23),Color("#302638")); draw_rect(Rect2(201,53,24,19),Color("#17142a") if door_open else Color("#9a604a"))
  draw_string(font,Vector2(154,46),"STARLIGHT",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#ffe3a5"))
- draw_texture_rect(COUNTER_TEX,Rect2(178,44,86,86),false)
- draw_texture_rect(TABLE_TEX,Rect2(112,77,72,72),false); draw_texture_rect(TABLE_TEX,Rect2(268,94,72,72),false)
- draw_texture_rect(CHAIR_TEX,Rect2(132,112,44,44),false); draw_texture_rect(CHAIR_TEX,Rect2(254,125,44,44),false); draw_texture_rect(CHAIR_TEX,Rect2(293,110,44,44),false)
+ _draw_counter()
+ _draw_table(Vector2(148,113))
+ _draw_table(Vector2(304,130))
+ _draw_chair(Vector2(154,134))
+ _draw_chair(Vector2(276,146))
+ _draw_chair(Vector2(315,131))
  for id in ["moon_mushroom","village_herb","milk","salt","honey","grain"]:
   var p={"moon_mushroom":Vector2(118,155),"village_herb":Vector2(270,150),"milk":Vector2(286,92),"salt":Vector2(112,88),"honey":Vector2(300,115),"grain":Vector2(140,92)}[id]
   draw_circle(p,5,Color("#b8e37d") if not night else Color("#a18bd1"))
@@ -267,6 +267,31 @@ func _village():
  draw_circle(village_player,7,Color("#e7b78f")); draw_rect(Rect2(village_player+Vector2(-5,4),Vector2(10,10)),Color("#c28b55"))
  draw_string(font,Vector2(58,57),"GREENHOLLOW VILLAGE",HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("#ffe2a7"))
  draw_string(font,Vector2(58,172),"WASD / JOYSTICK • E INTERACT • V RETURN",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#ddd1e3"))
+
+
+func _draw_counter() -> void:
+ draw_rect(Rect2(178,44,86,78),Color("#2a202f"))
+ draw_rect(Rect2(174,42,94,10),Color("#7a513f"))
+ draw_rect(Rect2(178,52,86,7),Color("#b8794d"))
+ draw_rect(Rect2(182,59,78,58),Color("#513747"))
+ draw_rect(Rect2(182,59,78,4),Color("#d08b52"))
+ for x in [190,210,230,250]:
+  draw_rect(Rect2(x,78,12,30),Color("#6d4a45"))
+  draw_rect(Rect2(x+2,80,8,26),Color("#392c3a"))
+
+func _draw_table(center: Vector2) -> void:
+ var p=center
+ draw_colored_polygon(PackedVector2Array([p+Vector2(0,-18),p+Vector2(30,-7),p+Vector2(0,5),p+Vector2(-30,-7)]),Color("#9a6547"))
+ draw_colored_polygon(PackedVector2Array([p+Vector2(0,-13),p+Vector2(23,-5),p+Vector2(0,2),p+Vector2(-23,-5)]),Color("#c58a54"))
+ draw_colored_polygon(PackedVector2Array([p+Vector2(-18,-5),p+Vector2(-10,-1),p+Vector2(-10,19),p+Vector2(-16,22)]),Color("#563b37"))
+ draw_colored_polygon(PackedVector2Array([p+Vector2(18,-5),p+Vector2(10,-1),p+Vector2(10,19),p+Vector2(16,22)]),Color("#432f32"))
+ draw_line(p+Vector2(-14,-7),p+Vector2(14,-7),Color("#e1aa64"),2)
+
+func _draw_chair(p: Vector2) -> void:
+ draw_colored_polygon(PackedVector2Array([p+Vector2(-9,-10),p+Vector2(9,-10),p+Vector2(8,8),p+Vector2(-8,8)]),Color("#70483e"))
+ draw_rect(Rect2(p+Vector2(-8,-8),Vector2(16,5)),Color("#b8784c"))
+ draw_line(p+Vector2(-7,8),p+Vector2(-10,17),Color("#3b2b31"),3)
+ draw_line(p+Vector2(7,8),p+Vector2(10,17),Color("#3b2b31"),3)
 
 func _panel(title,lines):
  draw_rect(Rect2(48,45,288,118),Color(0.035,0.025,0.07,0.97)); draw_rect(Rect2(50,47,284,114),Color("#73516f"),false,2)
