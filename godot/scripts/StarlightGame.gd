@@ -3,7 +3,7 @@ extends Node2D
 const CAFE := Rect2(76,48,250,128)
 const SPEED := 95.0
 
-var player := Vector2(204,150)
+var player := Vector2(190,174)
 var village_player := Vector2(180,158)
 var mode := "title"
 var language := "EN"
@@ -278,14 +278,19 @@ func _enter_village():
  if not door_open: _say(_t("Pehle darwaza kholo.","Open the door first."),1.5); return
  mode="village"; village_player=Vector2(180,158)
 
-func _return_cafe(): mode="cafe"; player=Vector2(204,150)
+func _return_cafe(): mode="cafe"; player=Vector2(190,174)
 
 func _save():
  StarlightGameState.cafe_opened=cafe_opened; StarlightGameState.player_position=player
  StarlightGameState.story_flags["quest_stage"]=quest_stage; StarlightGameState.story_flags["language"]=language
  _say(_t("Game save ho gaya.","Game saved."),2) if StarlightSaveManager.save_game() else _say("Save failed.",2)
 
-func _touch_move(v): touch_move=v; StarlightGameState.touch_move=v
+func _touch_move(v):
+ touch_move=v
+ StarlightGameState.touch_move=v
+ if v.length()>0.05:
+  yui.set_motion(v,true)
+
 func _touch_interact(): dialogue.advance() if dialogue.active else _interact()
 func _dialogue_finished(): _quest()
 func _say(s,t=2): msg=s; msg_time=t
