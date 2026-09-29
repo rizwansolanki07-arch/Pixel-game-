@@ -1,30 +1,53 @@
 # Starlight Café — Raat ka Menu
 
-Isometric cooking + story RPG foundation and first playable vertical-slice prototype.
+Isometric cooking + story RPG — first playable vertical-slice foundation.
 
-## Current playable loop
-1. Move Yui around the café with WASD.
-2. Gather mushroom, herbs, milk and salt from marked spots.
-3. Approach the counter and cook Moonlight Mushroom Soup.
-4. Press N to enter night; Aoi appears.
-5. Serve the prepared soup to Aoi to advance her story by one fragment.
-6. Press P to save; relaunching restores day, phase, position, inventory and spirit progress.
+## Playable loop
+
+1. Move Yui around the café with **WASD** or the on-screen mobile joystick.
+2. Gather moon mushroom, village herb, milk and salt.
+3. Approach the counter and press **E** / mobile interact to start cooking.
+4. Wait for the cooking progress bar to finish.
+5. Press **N** for the first night; **Aoi** appears.
+6. Serve the prepared Moonlight Mushroom Soup.
+7. Read Aoi's multi-line dialogue and advance her first memory fragment.
+8. Press **P** to save and relaunch to restore the Starlight state.
 
 ## Controls
-- WASD: move
-- E: interact / gather / cook / serve
-- N: force night
-- D: force day
-- P: save
+
+- **WASD** — move
+- **E** — interact / gather / cook / serve / advance dialogue
+- **N** — force night
+- **D** — force day
+- **P** — save
+- **Mobile** — virtual joystick + E button
+
+## Current architecture
+
+- `StarlightGameState.gd` — persistent gameplay state.
+- `DayNightManager.gd` — day/night cycle.
+- `StarlightSaveManager.gd` — Starlight-specific save file.
+- `StarlightCafe.gd` — vertical-slice gameplay controller.
+- `StarlightDialogue.gd` — reusable dialogue presentation.
+- `StarlightTouchControls.gd` — mobile movement/interact layer.
+- JSON data — recipes and spirits.
 
 ## Locked visual rules
-- Isometric 2:1 floor geometry.
-- Character reference scale: 56 px tall for a 165 cm human.
-- Base floor tile: 64x32 px representing roughly 90x90 cm.
-- 8 facing directions; five frames per facing (idle + four walk).
-- Pixel-perfect nearest filtering.
-- Furniture is modular and placed as separate game objects, not baked into a background.
-- Day/night palette and lighting are gameplay systems.
 
-## Scope note
-The current vertical slice uses code-drawn placeholder art so the gameplay loop can be tested before final PNG furniture, character and environment assets are imported.
+- Isometric 2:1 floor geometry.
+- Character reference scale: **56 px = 165 cm**.
+- Base floor tile: **64x32 px ≈ 90x90 cm**.
+- 8 facing directions.
+- 5 frames per facing (idle + four walk).
+- Pixel-perfect / nearest filtering.
+- Furniture is modular, separate from backgrounds.
+- Day/night palette and lighting are gameplay systems.
+- Café furniture must match the established chunky, handcrafted pixel-art reference style.
+
+## Art pipeline rule
+
+The current slice intentionally uses code-drawn placeholder shapes so gameplay can be validated first. The next production pass replaces each placeholder with modular premium PNG assets without changing the gameplay scale rules.
+
+## Next production milestone
+
+**Premium asset integration:** Yui sprite set → wall/floor modules → table/chair/counter → kitchen props → lamps/window → collision map → dialogue portraits → Android touch polish.
