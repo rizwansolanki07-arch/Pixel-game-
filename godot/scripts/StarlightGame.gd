@@ -154,15 +154,15 @@ func _village_ok(p):
 
 func _nearest():
  var t={
-  "moon_mushroom":Vector2(135,176),
-  "village_herb":Vector2(333,153),
-  "milk":Vector2(214,49),
-  "salt":Vector2(176,47),
-  "honey":Vector2(258,48),
-  "grain":Vector2(198,48),
-  "counter":Vector2(202,70),
-  "door":Vector2(345,171),
-  "spirit":Vector2(235,122),
+  "moon_mushroom":Vector2(115,174),
+  "village_herb":Vector2(331,160),
+  "milk":Vector2(207,62),
+  "salt":Vector2(225,62),
+  "honey":Vector2(243,62),
+  "grain":Vector2(261,62),
+  "counter":Vector2(193,82),
+  "door":Vector2(340,164),
+  "spirit":Vector2(221,143),
   "guest_1":Vector2(260,145),
   "guest_2":Vector2(315,150)
  }
@@ -312,44 +312,27 @@ func _title():
 
 func _cafe():
  var night=StarlightGameState.phase=="night"
- draw_rect(Rect2(0,0,384,216),Color("#101522") if night else Color("#2c3140"))
- _draw_room_shell(night)
- _draw_floor_tiles(night)
- _draw_rugs(night)
- _draw_back_wall_details(night)
- _draw_kitchen_cluster(night)
- _draw_lounge_cluster(night)
- _draw_dining_cluster(night)
- _draw_plants_and_props(night)
- _draw_cafe_characters(night)
- _draw_pet(night)
-
- _draw_pixel_finish(night)
- if night: _draw_night_motes()
  _draw_interaction_hint(night)
- var points={"moon_mushroom":Vector2(135,176),"village_herb":Vector2(333,153),"milk":Vector2(214,49),"salt":Vector2(176,47),"honey":Vector2(258,48),"grain":Vector2(198,48)}
+ var points={"moon_mushroom":Vector2(115,174),"village_herb":Vector2(331,160),"milk":Vector2(207,62),"salt":Vector2(225,62),"honey":Vector2(243,62),"grain":Vector2(261,62)}
  for id in points:
   if not gathered.has(str(StarlightGameState.day)+"_"+id):
    var pp:Vector2=points[id]
    draw_rect(Rect2(pp.x-2,pp.y-4,5,5),Color("#e8d99a") if not night else Color("#c9b9ff"))
- if door_open:
-  draw_rect(Rect2(334,157,20,22),Color("#111522"))
-  draw_line(Vector2(334,157),Vector2(334,179),Color("#b16d4c"),3)
-  draw_string(font,Vector2(346,170),"→",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("#f3c878"))
- draw_rect(Rect2(7,7,370,28),Color(0.04,0.035,0.07,0.91))
- draw_string(font,Vector2(14,25),"Day "+str(StarlightGameState.day)+" • "+("NIGHT" if night else "DAY"),HORIZONTAL_ALIGNMENT_LEFT,-1,11,Color("#f6dfad"))
- draw_string(font,Vector2(142,25),"E Use  I Bag  R Recipes  Q Quest  V Village",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#d8cfe4"))
- draw_string(font,Vector2(14,210),"P Save • F Settings • L Language",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#d8cfe4"))
+ draw_rect(Rect2(8,7,368,25),Color(0.035,0.025,0.06,0.94))
+ draw_string(font,Vector2(15,24),"DAY "+str(StarlightGameState.day)+" • "+("NIGHT" if night else "DAY"),HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("#f6dfad"))
+ draw_string(font,Vector2(126,24),"E USE   I BAG   R RECIPES   Q QUEST   V VILLAGE",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#d8cfe4"))
+ draw_string(font,Vector2(15,210),"P SAVE   F SETTINGS   L LANGUAGE",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#d8cfe4"))
+ if cooking!="":
+  draw_rect(Rect2(110,105,164,17),Color(0.055,0.035,0.075,0.95))
+  draw_rect(Rect2(114,109,156*clampf(cook_time/cook_len,0,1),4),Color("#e0a45e"))
+  draw_string(font,Vector2(118,119),"COOKING "+str(int(clampf(cook_time/cook_len,0,1)*100.0))+"%",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#ffe2aa"))
+ if msg_time>0:
+  draw_rect(Rect2(43,145,298,18),Color(0.045,0.03,0.08,0.94))
+  draw_string(font,Vector2(52,157),msg,HORIZONTAL_ALIGNMENT_LEFT,280,7,Color("#f2e6d0"))
  if panel=="inventory": _panel("INVENTORY",_inventory())
  if panel=="recipes": _panel("RECIPES",_recipes())
  if panel=="quest": _panel("QUEST",[_quest_text(),"","Q / CLOSE"])
  if panel=="settings": _panel("SETTINGS",["L Language: "+language,"N Night • D Day","V Village • P Save","F Close"])
- if cooking!="":
-  draw_rect(Rect2(110,108,164,12),Color("#211a29"))
-  draw_rect(Rect2(112,110,160*clampf(cook_time/cook_len,0,1),4),Color("#e0a45e"))
-  draw_string(font,Vector2(116,119),"COOKING "+str(int(clampf(cook_time/cook_len,0,1)*100.0))+"%",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#ffe2aa"))
- if msg_time>0:
-  draw_rect(Rect2(45,142,294,19),Color(0.06,0.04,0.1,0.92)); draw_string(font,Vector2(55,155),msg,HORIZONTAL_ALIGNMENT_LEFT,274,8,Color("#f2e6d0"))
 
 func _draw_room_shell(night:bool)->void:
  var wall_base=Color("#482d35") if night else Color("#934f4b")
@@ -810,7 +793,7 @@ func _draw_window(p:Vector2,night:bool) -> void:
 func _draw_interaction_hint(night:bool)->void:
  if near_target=="" or panel!="" or dialogue.active: return
  var labels={"counter":"COOK","door":"DOOR","spirit":"SPIRIT","moon_mushroom":"MUSHROOM","village_herb":"HERB","milk":"MILK","salt":"SALT","honey":"HONEY","grain":"GRAIN"}
- var points={"moon_mushroom":Vector2(135,176),"village_herb":Vector2(333,153),"milk":Vector2(214,49),"salt":Vector2(176,47),"honey":Vector2(258,48),"grain":Vector2(198,48),"counter":Vector2(202,70),"door":Vector2(345,171),"spirit":Vector2(235,122)}
+ var points={"moon_mushroom":Vector2(115,174),"village_herb":Vector2(331,160),"milk":Vector2(207,62),"salt":Vector2(225,62),"honey":Vector2(243,62),"grain":Vector2(261,62),"counter":Vector2(193,82),"door":Vector2(340,164),"spirit":Vector2(221,143)}
  var p:Vector2=points[near_target]
  var bob=sin(ui_pulse*4.0)*1.5
  draw_rect(Rect2(p.x-24,p.y-22+bob,48,11),Color(0.06,0.04,0.10,0.88))
