@@ -105,6 +105,8 @@ func _input(e):
 
 func _start():
  mode="cafe"; cafe_opened=true; StarlightGameState.cafe_opened=true
+ if OS.get_environment("STARLIGHT_CAPTURE")!="":
+  return
  _say(_t("Yui: Papa ka café phir se kholna hai.","Yui: I have to reopen Papa's café."),3)
 
 func _move_cafe(d):
