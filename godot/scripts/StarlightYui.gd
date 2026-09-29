@@ -51,7 +51,7 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
  # Ground shadow is deliberately tiny and hard-edged so Yui stays anchored to the 2:1 floor.
- draw_ellipse(Vector2(0,25),Vector2(11,3),Color(0.05,0.04,0.07,0.34))
+ _draw_ground_shadow()
  if sprite_texture==null:
   return
  var frame:=int(floor(walk_clock))%5 if moving else 0
@@ -59,9 +59,9 @@ func _draw() -> void:
  var bob:=0.0 if moving else sin(idle_clock*2.2)*0.5
  draw_texture_rect_region(sprite_texture,Rect2(-28,-28+bob,56,56),src)
 
-func draw_ellipse(center:Vector2, radius:Vector2, col:Color) -> void:
- var pts:=PackedVector2Array()
- for i in range(17):
-  var a:=TAU*float(i)/16.0
-  pts.append(center+Vector2(cos(a)*radius.x,sin(a)*radius.y))
- draw_colored_polygon(pts,col)
+func _draw_ground_shadow() -> void:
+ # Pixel-cluster shadow: no antialiasing and no sub-pixel ellipse.
+ var col:=Color(0.05,0.04,0.07,0.34)
+ draw_rect(Rect2(-8,23,16,5),col)
+ draw_rect(Rect2(-11,24,22,3),col)
+ draw_rect(Rect2(-5,22,10,1),col)
