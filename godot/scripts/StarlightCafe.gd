@@ -361,7 +361,13 @@ func _update_village_player(delta: float) -> void:
         input_vec = touch_move
     if input_vec.length() > 0.01:
         input_vec = input_vec.normalized()
-        village_player += input_vec * MOVE_SPEED * delta
+        var velocity := input_vec * MOVE_SPEED * delta
+        var next_x := village_player + Vector2(velocity.x, 0.0)
+        if _village_walkable(next_x):
+            village_player = next_x
+        var next_y := village_player + Vector2(0.0, velocity.y)
+        if _village_walkable(next_y):
+            village_player = next_y
         village_player.x = clamp(village_player.x, 58.0, 324.0)
         village_player.y = clamp(village_player.y, 58.0, 164.0)
     var spots = {
@@ -386,6 +392,21 @@ func _update_village_player(delta: float) -> void:
                 village_mode = false
                 village_message = "Back to the café."
                 village_message_timer = 1.5
+    var landmark_points = {
+        "inn": Vector2(161, 98),
+        "bazaar": Vector2(108, 98),
+        "shrine": Vector2(221, 136)
+    }
+    for landmark in landmark_points:
+        if village_player.distance_to(landmark_points[landmark]) < 22.0 and Input.is_action_just_pressed("interact"):
+            if landmark == "inn":
+                village_npc_message = "Innkeeper: Raat ko café mein mehmaan aayein to unhe yahan se raasta milega."
+            elif landmark == "bazaar":
+                village_npc_message = "Bazaar: Fresh herbs aur local supplies subah milte hain."
+            else:
+                village_npc_message = "Shrine: A quiet bell rings over Greenhollow."
+            village_npc_timer = 3.0
+
     var npc_points = {
         "Mina": Vector2(108, 92),
         "Bram": Vector2(244, 86)
@@ -397,6 +418,21 @@ func _update_village_player(delta: float) -> void:
             else:
                 village_npc_message = "Bram: Raat ko café ki lamp sabse door se dikhti hai."
             village_npc_timer = 3.0
+
+func _village_walkable(pos: Vector2) -> bool:
+    var blockers := [
+        Rect2(126, 42, 70, 58), # inn
+        Rect2(88, 66, 44, 34), # bazaar
+        Rect2(212, 46, 62, 52), # house
+        Rect2(190, 88, 62, 52), # shrine
+        Rect2(268, 112, 30, 36), # well
+        Rect2(64, 102, 44, 24), # crates/barrels
+        Rect2(270, 140, 44, 22) # market sign/props
+    ]
+    for blocker in blockers:
+        if blocker.grow(5.0).has_point(pos):
+            return false
+    return pos.x >= 58.0 and pos.x <= 324.0 and pos.y >= 58.0 and pos.y <= 164.0
 
 func _draw_village_preview() -> void:
     draw_rect(Rect2(42, 38, 300, 142), Color("#152034"))
