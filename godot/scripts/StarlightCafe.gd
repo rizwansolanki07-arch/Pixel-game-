@@ -20,6 +20,7 @@ var interaction_hint := ""
 var touch_move := Vector2.ZERO
 var dialogue: Node2D
 var touch_controls: Node2D
+var yui_visual: Node2D
 var gathered_today: Dictionary = {}
 var ui_font: Font
 var recipe_book_open := false
@@ -37,6 +38,7 @@ func _ready() -> void:
     DayNightManager.phase_changed.connect(_on_phase_changed)
     ui_font = ThemeDB.fallback_font
     dialogue = get_node("Dialogue")
+    yui_visual = get_node("Yui")
     touch_controls = get_node("TouchControls")
     touch_controls.move_changed.connect(_on_touch_move_changed)
     touch_controls.interact_pressed.connect(_on_touch_interact)
@@ -45,6 +47,8 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
     _move_player(delta)
+    yui_visual.position = player
+    yui_visual.set_motion(touch_move if touch_move.length() > 0.05 else Input.get_vector("move_left", "move_right", "move_up", "move_down"), touch_move.length() > 0.05 or Input.get_vector("move_left", "move_right", "move_up", "move_down").length() > 0.05)
     if cooking:
         cooking_time += delta
         if cooking_time >= cooking_duration:
@@ -351,13 +355,8 @@ func _draw_spirit() -> void:
     draw_string(ui_font, p + Vector2(-10, -18), "Aoi", HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color("#f1ddff"))
 
 func _draw_player() -> void:
-    var p := player
-    draw_ellipse(p + Vector2(0, 18), Vector2(8, 4), Color(0, 0, 0, 0.25))
-    draw_circle(p, 7.0, Color("#f2c19b"))
-    draw_arc(p, 7.0, PI, TAU, 8, Color("#2b2030"), 5.0)
-    draw_rect(Rect2(p + Vector2(-6, 6), Vector2(12, 17)), Color("#d08b56"))
-    draw_line(p + Vector2(-2, 23), p + Vector2(-5, 31), Color("#332936"), 3.0)
-    draw_line(p + Vector2(2, 23), p + Vector2(6, 31), Color("#332936"), 3.0)
+    # Yui is now rendered by the dedicated 56px presentation node.
+    pass
 
 func _draw_ui(night: bool) -> void:
     draw_rect(Rect2(7, 7, 370, 28), Color(0.06, 0.05, 0.10, 0.88))
