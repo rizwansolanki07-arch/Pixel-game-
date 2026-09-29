@@ -3,7 +3,7 @@ extends Node2D
 const CAFE := Rect2(76,48,250,128)
 const SPEED := 95.0
 
-var player := Vector2(190,138)
+var player := Vector2(154,146)
 var village_player := Vector2(180,158)
 var mode := "title"
 var language := "EN"
@@ -224,7 +224,7 @@ func _enter_village():
  if not door_open: _say(_t("Pehle darwaza kholo.","Open the door first."),1.5); return
  mode="village"; village_player=Vector2(180,158)
 
-func _return_cafe(): mode="cafe"; player=Vector2(213,150)
+func _return_cafe(): mode="cafe"; player=Vector2(154,146)
 
 func _save():
  StarlightGameState.cafe_opened=cafe_opened; StarlightGameState.player_position=player
