@@ -12,6 +12,9 @@ var inventory: Dictionary = {}
 var unlocked_recipes: Array[String] = ["moon_mushroom_soup"]
 var spirit_progress: Dictionary = {"spirit_001": 0}
 var cafe_opened := false
+var touch_move := Vector2.ZERO
+var current_recipe: String = ""
+var story_flags: Dictionary = {}
 
 func begin_day() -> void:
     phase = "day"
