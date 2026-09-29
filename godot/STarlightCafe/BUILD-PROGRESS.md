@@ -40,6 +40,7 @@
 - [x] Explorable village movement, return path, and herb interaction
 - [x] Bazaar stall, village house, and NPC interaction prototype
 - [x] Inn, shrine, and warm village lamp pass
+- [x] Village street props: fences, crops, crates, barrels, benches, signs
 - [x] Ingredient gathering route prototype
 - [ ] Café opening/closing state
 - [ ] Multiple recipes
