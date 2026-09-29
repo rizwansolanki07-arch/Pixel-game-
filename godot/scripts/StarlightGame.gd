@@ -143,7 +143,9 @@ func _nearest():
   "grain":Vector2(198,48),
   "counter":Vector2(202,70),
   "door":Vector2(345,171),
-  "spirit":Vector2(235,122)
+  "spirit":Vector2(235,122),
+  "guest_1":Vector2(260,145),
+  "guest_2":Vector2(315,150)
  }
  var best=""; var bd=999.0
  for k in t:
@@ -159,11 +161,27 @@ func _interact():
  if t=="door":
   door_open=!door_open; _say(_t("Darwaza khul gaya.","Door opened.") if door_open else _t("Darwaza band hai.","Door closed."),1.5); return
  if t=="spirit": _spirit(); return
+ if t=="guest_1" or t=="guest_2":
+  _serve_customer(t)
+  return
  var key=str(StarlightGameState.day)+"_"+t
  if gathered.has(key): _say(_t("Aaj yahan se aur kuch nahi mila.","Nothing more here today."),1.5)
  else:
   var n=2 if t=="village_herb" or t=="grain" else 1
   StarlightGameState.add_item(t,n); gathered[key]=true; _say(t.replace("_"," ").capitalize()+" +"+str(n),2)
+ _quest()
+
+func _serve_customer(customer_id:String)->void:
+ if StarlightGameState.phase!="day":
+  _say(_t("Raat ko sirf rooh wale mehmaan aate hain.","Only spirit guests come at night."),2)
+  return
+ if StarlightGameState.current_recipe=="":
+  _say(_t("Mehmaan order ka intezar kar raha hai.","The guest is waiting for an order."),2)
+  return
+ var served:int=int(StarlightGameState.story_flags.get("customers_served",0))+1
+ StarlightGameState.story_flags["customers_served"]=served
+ StarlightGameState.current_recipe=""
+ _say(_t("Mehmaan ko dish serve ki • "+str(served)+" served","Dish served to guest • "+str(served)+" served"),2.2)
  _quest()
 
 func _village_interact():
@@ -525,6 +543,11 @@ func _draw_cafe_characters(night:bool)->void:
  if not night:
   _draw_guest(Vector2(260,145),Color("#cf8b72"),Color("#5b728c"),false)
   _draw_guest(Vector2(315,150),Color("#b87963"),Color("#7a5c46"),true)
+  var bubble=Color("#2e2635")
+  draw_rect(Rect2(244,124,40,10),bubble)
+  draw_rect(Rect2(246,126,36,6),Color("#8b6a7e"))
+  var order_text="READY" if StarlightGameState.current_recipe!="" else "ORDER"
+  draw_string(font,Vector2(249,132),order_text,HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#ffe7b0"))
  else:
   # Aoi / Ren spirit glow at the story table.
   var glow=Color(0.60,0.42,0.95,0.10)
