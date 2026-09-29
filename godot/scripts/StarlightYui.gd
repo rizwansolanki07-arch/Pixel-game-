@@ -57,7 +57,7 @@ func _draw() -> void:
  var frame:=int(floor(walk_clock))%5 if moving else 0
  var src:=Rect2(frame*FRAME_W,facing_index*FRAME_H,FRAME_W,FRAME_H)
  var bob:=0.0 if moving else sin(idle_clock*2.2)*0.5
- draw_texture_rect_region(sprite_texture,Rect2(-28,-28+bob,56,56),src)
+ if sprite_texture!=null: draw_texture_rect_region(sprite_texture,Rect2(-28,-28+bob,56,56),src)
 
 func _draw_ground_shadow() -> void:
  # Pixel-cluster shadow: no antialiasing and no sub-pixel ellipse.
