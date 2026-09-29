@@ -24,6 +24,8 @@ var touch: Node2D
 var yui: Node2D
 var cafe_day_tex: Texture2D
 var cafe_night_tex: Texture2D
+var near_target := ""
+var ui_pulse := 0.0
 
 var recipes := {
  "moon_mushroom_soup":{"name":"Moonlight Mushroom Soup","ingredients":{"moon_mushroom":1,"village_herb":2,"milk":1,"salt":1},"spirit":"spirit_001"},
@@ -51,6 +53,7 @@ func _ready():
 
 func _process(delta):
  msg_time=maxf(0,msg_time-delta)
+ ui_pulse += delta
  if mode=="title": queue_redraw(); return
  if mode=="village": _move_village(delta)
  else:
@@ -59,6 +62,7 @@ func _process(delta):
    cook_time+=delta
    if cook_time>=cook_len: _finish_cooking()
   yui.position=player
+  near_target=_nearest()
   var mv=touch_move if touch_move.length()>0.05 else Input.get_vector("move_left","move_right","move_up","move_down")
   yui.set_motion(mv,mv.length()>0.05)
  queue_redraw()
@@ -259,6 +263,7 @@ func _cafe():
  _draw_plants_and_props(night)
  _draw_pixel_finish(night)
  if night: _draw_night_motes()
+ _draw_interaction_hint(night)
  var points={"moon_mushroom":Vector2(135,176),"village_herb":Vector2(333,153),"milk":Vector2(214,49),"salt":Vector2(176,47),"honey":Vector2(258,48),"grain":Vector2(198,48)}
  for id in points:
   if not gathered.has(str(StarlightGameState.day)+"_"+id):
@@ -277,7 +282,9 @@ func _cafe():
  if panel=="quest": _panel("QUEST",[_quest_text(),"","Q / CLOSE"])
  if panel=="settings": _panel("SETTINGS",["L Language: "+language,"N Night • D Day","V Village • P Save","F Close"])
  if cooking!="":
-  draw_rect(Rect2(110,108,164,8),Color("#2e2536")); draw_rect(Rect2(112,110,160*clampf(cook_time/cook_len,0,1),4),Color("#e0a45e"))
+  draw_rect(Rect2(110,108,164,12),Color("#211a29"))
+  draw_rect(Rect2(112,110,160*clampf(cook_time/cook_len,0,1),4),Color("#e0a45e"))
+  draw_string(font,Vector2(116,119),"COOKING "+str(int(clampf(cook_time/cook_len,0,1)*100.0))+"%",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#ffe2aa"))
  if msg_time>0:
   draw_rect(Rect2(45,142,294,19),Color(0.06,0.04,0.1,0.92)); draw_string(font,Vector2(55,155),msg,HORIZONTAL_ALIGNMENT_LEFT,274,8,Color("#f2e6d0"))
 
@@ -529,6 +536,16 @@ func _draw_window(p:Vector2,night:bool) -> void:
  draw_rect(Rect2(p.x-11,p.y+8,22,4),Color("#4c3947"))
  if night:
   draw_circle(p+Vector2(4,6),8,Color(0.65,0.5,1.0,0.10))
+
+func _draw_interaction_hint(night:bool)->void:
+ if near_target=="" or panel!="" or dialogue.active: return
+ var labels={"counter":"COOK","door":"DOOR","spirit":"SPIRIT","moon_mushroom":"MUSHROOM","village_herb":"HERB","milk":"MILK","salt":"SALT","honey":"HONEY","grain":"GRAIN"}
+ var points={"moon_mushroom":Vector2(135,176),"village_herb":Vector2(333,153),"milk":Vector2(214,49),"salt":Vector2(176,47),"honey":Vector2(258,48),"grain":Vector2(198,48),"counter":Vector2(202,70),"door":Vector2(345,171),"spirit":Vector2(235,122)}
+ var p:Vector2=points[near_target]
+ var bob=sin(ui_pulse*4.0)*1.5
+ draw_rect(Rect2(p.x-24,p.y-22+bob,48,11),Color(0.06,0.04,0.10,0.88))
+ draw_string(font,Vector2(p.x-20,p.y-14+bob),str(labels.get(near_target,near_target)).to_upper(),HORIZONTAL_ALIGNMENT_LEFT,40,6,Color("#f4d99b") if not night else Color("#e8d9ff"))
+
 
 func _draw_lamp(p:Vector2,night:bool) -> void:
  draw_line(p+Vector2(0,-12),p+Vector2(0,-2),Color("#352a35"),2)
