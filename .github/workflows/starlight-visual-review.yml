@@ -32,7 +32,7 @@ jobs:
         run: |
           rm -f capture_cafe_day.png
           set +e
-          timeout 15s xvfb-run -a bash -lc 'godot --path . --windowed --resolution 1152x648 >/tmp/starlight-day.log 2>&1 & PID=$!; WIN=""; for i in $(seq 1 40); do WIN=$(xdotool search --onlyvisible --name "Starlight" 2>/dev/null | head -1); [ -n "$WIN" ] && break; sleep 0.25; done; if [ -n "$WIN" ]; then sleep 1; import -window "$WIN" capture_cafe_day.png; fi; kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true'
+          timeout 15s xvfb-run -a bash -lc 'godot --path . --windowed --resolution 1152x648 >/tmp/starlight-day.log 2>&1 & PID=$!; WIN=""; for i in $(seq 1 40); do WIN=$(xdotool search --onlyvisible --name "Starlight" 2>/dev/null | head -1); [ -n "$WIN" ] && break; sleep 0.25; done; if [ -n "$WIN" ]; then xdotool windowactivate "$WIN"; xdotool key e; sleep 1; import -window "$WIN" capture_cafe_day.png; fi; kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true'
           CODE=$?
           cat /tmp/starlight-day.log
           echo "capture_code=$CODE"
@@ -43,7 +43,7 @@ jobs:
         run: |
           rm -f capture_cafe_night.png
           set +e
-          timeout 15s xvfb-run -a bash -lc 'godot --path . --windowed --resolution 1152x648 >/tmp/starlight-night.log 2>&1 & PID=$!; WIN=""; for i in $(seq 1 40); do WIN=$(xdotool search --onlyvisible --name "Starlight" 2>/dev/null | head -1); [ -n "$WIN" ] && break; sleep 0.25; done; if [ -n "$WIN" ]; then sleep 1; xdotool key n; sleep 0.5; import -window "$WIN" capture_cafe_night.png; fi; kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true'
+          timeout 15s xvfb-run -a bash -lc 'godot --path . --windowed --resolution 1152x648 >/tmp/starlight-night.log 2>&1 & PID=$!; WIN=""; for i in $(seq 1 40); do WIN=$(xdotool search --onlyvisible --name "Starlight" 2>/dev/null | head -1); [ -n "$WIN" ] && break; sleep 0.25; done; if [ -n "$WIN" ]; then xdotool windowactivate "$WIN"; xdotool key e; sleep 1; xdotool key n; sleep 0.8; import -window "$WIN" capture_cafe_night.png; fi; kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true'
           CODE=$?
           cat /tmp/starlight-night.log
           echo "capture_code=$CODE"
