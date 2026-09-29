@@ -144,6 +144,7 @@ func _draw() -> void:
  # Tiny lived-in details and night atmosphere.
  for p in [Vector2(177,128),Vector2(207,132),Vector2(260,132),Vector2(300,121),Vector2(124,142)]:
   draw_rect(Rect2(p.x-2,p.y-2,4,3),gold)
+ _detail_pass(night)
  if night:
   for p in [Vector2(143,53),Vector2(235,53),Vector2(281,84)]:
    draw_circle(p,16,Color(1.0,0.66,0.27,0.07))
@@ -151,6 +152,58 @@ func _draw() -> void:
    var mx=28+(i*47)%330
    var my=43+(i*29)%130
    draw_rect(Rect2(mx,my,2,2),Color(0.75,0.67,1.0,0.42))
+
+func _detail_pass(night:bool)->void:
+ # Dense but readable handcrafted props, aligned to the 2:1 floor perspective.
+ var outline:=Color("#241b27") if not night else Color("#171522")
+ var hi:=Color("#d59a59") if not night else Color("#956b68")
+ var clay:=Color("#8a5945") if not night else Color("#573e49")
+ var leaf:=Color("#5e8c52") if not night else Color("#4e6c58")
+ # Countertop plates, bowls and cups.
+ for p in [Vector2(174,69),Vector2(192,64),Vector2(211,59),Vector2(230,54)]:
+  draw_rect(Rect2(p.x-3,p.y,6,2),Color("#e8d7b0"))
+  draw_rect(Rect2(p.x-2,p.y-2,4,2),clay)
+  draw_rect(Rect2(p.x-1,p.y-1,2,1),hi)
+ # Hanging herbs and copper utensils above the kitchen.
+ for i in range(6):
+  var x:=146.0+i*11.0
+  draw_line(Vector2(x,44),Vector2(x,53),outline,1)
+  draw_rect(Rect2(x-2,52,4,4),leaf)
+  draw_rect(Rect2(x+4,45,2,7),hi)
+ # Shelf labels and small jars.
+ for i in range(6):
+  var x:=166.0+i*15.0
+  draw_rect(Rect2(x,86,9,10),clay)
+  draw_rect(Rect2(x+2,88,5,5),[Color("#d47d58"),Color("#6f9661"),Color("#d3b06a")][i%3])
+  draw_rect(Rect2(x+2,94,5,1),outline)
+ # Chalkboard/menu on the left wall.
+ draw_rect(Rect2(42,73,42,22),outline)
+ draw_rect(Rect2(45,76,36,16),Color("#30483e") if not night else Color("#28363a"))
+ draw_string(font,Vector2(49,83),"MENU",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#f1d28e") if not night else Color("#cbbce9"))
+ draw_line(Vector2(49,86),Vector2(74,86),Color("#d8bf83"),1)
+ draw_line(Vector2(49,89),Vector2(68,89),Color("#d8bf83"),1)
+ # Wall frames and family photo.
+ draw_rect(Rect2(92,78,25,18),outline)
+ draw_rect(Rect2(95,81,19,12),Color("#6b8b7b") if not night else Color("#4d526b"))
+ draw_rect(Rect2(101,83,5,6),Color("#d5a26a"))
+ # Candles on the dining tables.
+ for p in [Vector2(191,136),Vector2(277,139),Vector2(221,167)]:
+  draw_rect(Rect2(p.x-1,p.y-6,2,6),Color("#f2dfb4"))
+  draw_rect(Rect2(p.x-2,p.y-1,4,2),clay)
+  draw_rect(Rect2(p.x-1,p.y-8,2,2),Color("#f3bf63") if not night else Color("#d5a4df"))
+ # Floor scatter: tiny rugs, crumbs and wood knots, kept sparse.
+ for p in [Vector2(132,151),Vector2(154,164),Vector2(246,160),Vector2(302,154),Vector2(198,188)]:
+  draw_rect(Rect2(p.x,p.y,3,1),hi)
+  draw_rect(Rect2(p.x+5,p.y+2,2,1),outline)
+ # Left plant gets a pot rim and leaf highlights.
+ draw_rect(Rect2(46,102,9,2),hi)
+ for p in [Vector2(45,95),Vector2(52,91),Vector2(57,97)]:
+  draw_rect(Rect2(p.x,p.y,3,3),leaf)
+ # Door frame, handle and welcome mat.
+ draw_rect(Rect2(328,102,24,3),hi)
+ draw_rect(Rect2(328,159,24,3),hi)
+ draw_rect(Rect2(340,130,3,3),Color("#e4b76a"))
+ _rug(Vector2(338,169),Vector2(30,14),Color("#74464a") if not night else Color("#493a50"))
 
 func _rug(c:Vector2,size:Vector2,col:Color)->void:
  var hw=size.x*0.5
