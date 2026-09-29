@@ -37,8 +37,8 @@ func load_game() -> bool:
     StarlightGameState.phase = String(parsed.get("phase", "day"))
     var p: Dictionary = parsed.get("player_position", {})
     StarlightGameState.player_position = Vector2(
-        float(p.get("x", 190.0)),
-        float(p.get("y", 138.0))
+        float(p.get("x", 154.0)),
+        float(p.get("y", 146.0))
     )
     StarlightGameState.inventory = parsed.get("inventory", {})
     StarlightGameState.unlocked_recipes = parsed.get("unlocked_recipes", ["moon_mushroom_soup"])
