@@ -18,10 +18,16 @@ permissions:
 jobs:
   godot-validate:
     runs-on: ubuntu-latest
-    container:
-      image: barichello/godot-ci:4.5.0
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install Godot 4.5
+        run: |
+          curl -L --fail --retry 3             -o godot.zip             https://github.com/godotengine/godot/releases/download/4.5-stable/Godot_v4.5-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.5-stable_linux.x86_64
+          sudo mv Godot_v4.5-stable_linux.x86_64 /usr/local/bin/godot
+
       - name: Validate Godot project
         working-directory: godot
         run: godot --headless --editor --quit
