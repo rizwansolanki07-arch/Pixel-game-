@@ -106,6 +106,29 @@ func _draw() -> void:
  _table(Vector2(221,171),Vector2(48,24),night,false)
  for p in [Vector2(150,145),Vector2(216,132),Vector2(255,153),Vector2(299,137),Vector2(221,183)]:
   _chair(p,night)
+ # Living room layer: daytime customers, nighttime spirit.
+ if not night:
+  _guest(Vector2(260,145),Color("#cf8b72"),Color("#5b728c"),false)
+  _guest(Vector2(315,150),Color("#b87963"),Color("#7a5c46"),true)
+  draw_rect(Rect2(244,124,40,10),Color("#2e2635"))
+  draw_string(font,Vector2(249,132),"READY" if StarlightGameState.current_recipe!="" else "ORDER",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#ffe7b0"))
+ else:
+  draw_circle(Vector2(221,143),18,Color(0.60,0.42,0.95,0.10))
+  draw_circle(Vector2(221,143),10,Color(0.47,0.35,0.75,0.65))
+  draw_circle(Vector2(218,141),2,Color("#e8dcff"))
+  draw_circle(Vector2(224,141),2,Color("#e8dcff"))
+  draw_rect(Rect2(216,145,10,5),Color("#73579a"))
+  for sp in [Vector2(211,133),Vector2(231,136),Vector2(228,154)]: draw_rect(Rect2(sp.x,sp.y,2,2),Color("#d7c6ff"))
+ # Small companion follows Yui through the room.
+ var root=get_parent()
+ if root and root.mode=="cafe":
+  var cp:Vector2=root.player+Vector2(18,10)
+  draw_circle(cp+Vector2(0,2),7,Color("#2e2732"))
+  draw_circle(cp+Vector2(-4,-2),5,Color("#f4efe7"))
+  draw_circle(cp+Vector2(4,-3),5,Color("#efe8de"))
+  draw_circle(cp+Vector2(0,-6),5,Color("#fff8ef"))
+  draw_rect(Rect2(cp.x-5,cp.y+1,2,2),Color("#2b2430"))
+  draw_rect(Rect2(cp.x+3,cp.y+1,2,2),Color("#2b2430"))
 
  # Foreground props / entrance.
  for p in [Vector2(319,172),Vector2(338,178)]:
@@ -198,3 +221,12 @@ func _chair(p:Vector2,night:bool)->void:
  draw_colored_polygon(PackedVector2Array([p+Vector2(-8,-5),p+Vector2(8,-5),p+Vector2(7,4),p+Vector2(-7,4)]),hi)
  draw_line(p+Vector2(-5,4),p+Vector2(-7,15),sh,2)
  draw_line(p+Vector2(5,4),p+Vector2(7,15),sh,2)
+
+func _guest(p:Vector2,skin:Color,cloth:Color,hat:bool)->void:
+ draw_circle(p+Vector2(0,-6),5,skin)
+ if hat:
+  draw_rect(Rect2(p.x-6,p.y-12,12,4),Color("#4c4d63"))
+  draw_rect(Rect2(p.x-4,p.y-15,8,3),Color("#5d6579"))
+ draw_colored_polygon(PackedVector2Array([p+Vector2(-5,-1),p+Vector2(5,-1),p+Vector2(7,9),p+Vector2(-7,9)]),cloth)
+ draw_rect(Rect2(p.x-5,p.y+9,4,5),Color("#2f2931"))
+ draw_rect(Rect2(p.x+1,p.y+9,4,5),Color("#2f2931"))
