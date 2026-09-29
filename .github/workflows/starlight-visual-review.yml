@@ -18,8 +18,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Godot 4.5
+      - name: Install Godot and Xvfb capture tools
         run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb imagemagick xdotool
           curl -L --fail --retry 3 -o godot.zip https://github.com/godotengine/godot/releases/download/4.5-stable/Godot_v4.5-stable_linux.x86_64.zip
           unzip -q godot.zip
           chmod +x Godot_v4.5-stable_linux.x86_64
@@ -35,7 +37,7 @@ jobs:
         working-directory: godot
         run: |
           rm -f capture_cafe_day.png
-          STARLIGHT_CAPTURE=day timeout 4s godot --headless --path . >/tmp/starlight-day.log 2>&1 || true
+          timeout 12s xvfb-run -a bash -lc 'STARLIGHT_CAPTURE=day godot --path . --windowed --resolution 1152x648 >/tmp/starlight-day.log 2>&1 & PID=$!; sleep 3; WIN=$(xdotool search --onlyvisible --name "Starlight" 2>/dev/null | head -1); test -n "$WIN"; import -window "$WIN" capture_cafe_day.png; kill "$PID" 2>/dev/null || true'
           cat /tmp/starlight-day.log
           test -s capture_cafe_day.png
 
@@ -43,11 +45,11 @@ jobs:
         working-directory: godot
         run: |
           rm -f capture_cafe_night.png
-          STARLIGHT_CAPTURE=night timeout 4s godot --headless --path . >/tmp/starlight-night.log 2>&1 || true
+          timeout 12s xvfb-run -a bash -lc 'STARLIGHT_CAPTURE=night godot --path . --windowed --resolution 1152x648 >/tmp/starlight-night.log 2>&1 & PID=$!; sleep 3; WIN=$(xdotool search --onlyvisible --name "Starlight" 2>/dev/null | head -1); test -n "$WIN"; import -window "$WIN" capture_cafe_night.png; kill "$PID" 2>/dev/null || true'
           cat /tmp/starlight-night.log
           test -s capture_cafe_night.png
 
-      - name: Upload visual review captures and log
+      - name: Upload visual review captures and logs
         uses: actions/upload-artifact@v4
         with:
           name: starlight-visual-review
