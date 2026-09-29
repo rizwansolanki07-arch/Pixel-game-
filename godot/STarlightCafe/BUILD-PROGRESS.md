@@ -38,6 +38,7 @@
 ## Phase 3 — Vertical slice expansion
 - [x] Village exterior prototype connection
 - [x] Explorable village movement, return path, and herb interaction
+- [x] Bazaar stall, village house, and NPC interaction prototype
 - [x] Ingredient gathering route prototype
 - [ ] Café opening/closing state
 - [ ] Multiple recipes
