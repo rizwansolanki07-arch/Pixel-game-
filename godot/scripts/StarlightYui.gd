@@ -80,7 +80,7 @@ func _draw() -> void:
   # Red skirt with two readable folds.
   draw_rect(Rect2(-14,4,28,13),skirt)
   draw_rect(Rect2(-10,5,5,11),skirt_hi)
-  draw_rect(Rect2(5,5,5,11, ),Color("#8b353f"))
+  draw_rect(Rect2(5,5,5,11),Color("#8b353f"))
   draw_rect(Rect2(-14,16,28,4),skirt)
   # Arms and hands.
   draw_rect(Rect2(-15,-4,4,11),skin_hi)
