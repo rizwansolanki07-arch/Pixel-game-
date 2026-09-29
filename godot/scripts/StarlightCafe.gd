@@ -4,6 +4,10 @@ const TILE := Vector2(64, 32)
 const CAFE_RECT := Rect2(76, 48, 250, 128)
 const MOVE_SPEED := 95.0
 
+const TABLE_TEX = preload("res://assets/starlight/props/cafe_table.png")
+const CHAIR_TEX = preload("res://assets/starlight/props/cafe_chair.png")
+const COUNTER_TEX = preload("res://assets/starlight/props/cafe_counter.png")
+
 var player := Vector2(190, 138)
 var message := "Yui: Café band hai... aaj se phir kholna hai."
 var message_timer := 4.0
@@ -251,25 +255,25 @@ func _draw_shell(night: bool) -> void:
     draw_line(Vector2(92, 164), Vector2(308, 164), Color("#5b3e3f"), 5.0)
 
 func _draw_props(night: bool) -> void:
-    # Counter
-    draw_rect(Rect2(198, 67, 58, 20), Color("#8f5f3e"))
-    draw_rect(Rect2(202, 63, 50, 7), Color("#d09a54"))
-    # Tables and chairs
-    for p in [Vector2(150, 105), Vector2(285, 124)]:
-        _draw_table(p)
-    # Stove
-    draw_rect(Rect2(110, 68, 38, 18), Color("#37313d"))
-    draw_circle(Vector2(129, 77), 5.0, Color("#d56b4b") if night else Color("#b35c43"))
-    # Window glow
-    draw_rect(Rect2(270, 74, 28, 24), Color("#6f5a8e") if night else Color("#e9c36a"))
-    if night:
-        draw_circle(Vector2(284, 86), 16.0, Color(0.55, 0.40, 0.85, 0.12))
+    # Premium modular props — intentionally separate from the room shell.
+    draw_texture_rect(COUNTER_TEX, Rect2(178, 44, 86, 86), false)
+    draw_texture_rect(TABLE_TEX, Rect2(112, 77, 72, 72), false)
+    draw_texture_rect(TABLE_TEX, Rect2(268, 94, 72, 72), false)
 
-func _draw_table(p: Vector2) -> void:
-    _diamond(p, 25.0, 13.0, Color("#b77c35"))
-    draw_line(p + Vector2(-22, 3), p + Vector2(-15, 25), Color("#3d3442"), 5.0)
-    draw_line(p + Vector2(20, 3), p + Vector2(14, 25), Color("#3d3442"), 5.0)
-    draw_line(p + Vector2(0, 7), p + Vector2(-2, 27), Color("#3d3442"), 5.0)
+    # Chairs around the dining tables.
+    draw_texture_rect(CHAIR_TEX, Rect2(132, 112, 44, 44), false)
+    draw_texture_rect(CHAIR_TEX, Rect2(254, 125, 44, 44), false)
+    draw_texture_rect(CHAIR_TEX, Rect2(293, 110, 44, 44), false)
+
+    # Kitchen stove / warm fire.
+    draw_rect(Rect2(98, 66, 44, 22), Color("#37313d"))
+    draw_rect(Rect2(102, 70, 36, 14), Color("#26222c"))
+    draw_circle(Vector2(120, 77), 5.0, Color("#d56b4b") if night else Color("#b35c43"))
+
+    # Window glow becomes magical at night.
+    draw_rect(Rect2(274, 60, 30, 28), Color("#6f5a8e") if night else Color("#e9c36a"))
+    if night:
+        draw_circle(Vector2(289, 74), 18.0, Color(0.55, 0.40, 0.85, 0.12))
 
 func _draw_gather_spots(night: bool) -> void:
     for id in spots:
