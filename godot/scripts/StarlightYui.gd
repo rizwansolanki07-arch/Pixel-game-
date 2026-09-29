@@ -53,7 +53,7 @@ func _draw() -> void:
  # Ground shadow is deliberately tiny and hard-edged so Yui stays anchored to the 2:1 floor.
  _draw_ground_shadow()
  if sprite_texture==null:
-  # Detailed 56px fallback Yui: readable hair, face, blouse, apron, skirt and boots.
+  # Detailed 56px fallback Yui: readable hair, face, blouse, skirt and boots.
   var outline:=Color("#292230")
   var hair:=Color("#302531")
   var skin:=Color("#e7a47f")
@@ -62,6 +62,12 @@ func _draw() -> void:
   var skirt:=Color("#9d3f44")
   var skirt_hi:=Color("#b94e48")
   var boot:=Color("#4a3031")
+  var step:=int(floor(walk_clock))%5 if moving else 0
+  var leg_shift:=0
+  var arm_shift:=0
+  if moving:
+   leg_shift = [-2,-1,0,1,2][step]
+   arm_shift = [2,1,0,-1,-2][step]
   # Hair silhouette and tied ponytail.
   draw_rect(Rect2(-13,-28,26,8),outline)
   draw_rect(Rect2(-11,-26,22,10),hair)
@@ -83,15 +89,16 @@ func _draw() -> void:
   draw_rect(Rect2(5,5,5,11),Color("#8b353f"))
   draw_rect(Rect2(-14,16,28,4),skirt)
   # Arms and hands.
-  draw_rect(Rect2(-15,-4,4,11),skin_hi)
-  draw_rect(Rect2(11,-4,4,11),skin_hi)
-  draw_rect(Rect2(-16,6,5,4),skin)
-  draw_rect(Rect2(11,6,5,4),skin)
-  # Legs and boots.
-  draw_rect(Rect2(-7,20,6,7),boot)
-  draw_rect(Rect2(2,20,6,7),boot)
-  draw_rect(Rect2(-10,26,9,3),outline)
-  draw_rect(Rect2(1,26,9,3),outline)
+  draw_rect(Rect2(-15+arm_shift,-4,4,11),skin_hi)
+  draw_rect(Rect2(11-arm_shift,-4,4,11),skin_hi)
+  draw_rect(Rect2(-16+arm_shift,6,5,4),skin)
+  draw_rect(Rect2(11-arm_shift,6,5,4),skin)
+  # Legs/boots visibly alternate so movement is obvious even without an external sprite sheet.
+  draw_rect(Rect2(-7+leg_shift,20,6,7),boot)
+  draw_rect(Rect2(2-leg_shift,20,6,7),boot)
+  draw_rect(Rect2(-10+leg_shift,26,9,3),outline)
+  draw_rect(Rect2(1-leg_shift,26,9,3),outline)
+  draw_rect(Rect2(-8,29,16,2),Color(0.04,0.03,0.04,0.28))
  var frame:=int(floor(walk_clock))%5 if moving else 0
  var src:=Rect2(frame*FRAME_W,facing_index*FRAME_H,FRAME_W,FRAME_H)
  var bob:=0.0 if moving else sin(idle_clock*2.2)*0.5
