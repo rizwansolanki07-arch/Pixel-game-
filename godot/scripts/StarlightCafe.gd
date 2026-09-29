@@ -9,7 +9,12 @@ var message := "Yui: Café band hai... aaj se phir kholna hai."
 var message_timer := 4.0
 var spirit_visible := false
 var cooking := false
+var cooking_time := 0.0
+var cooking_duration := 2.5
 var interaction_hint := ""
+var touch_move := Vector2.ZERO
+var dialogue: Node2D
+var touch_controls: Node2D
 var gathered_today: Dictionary = {}
 var ui_font: Font
 
@@ -24,16 +29,27 @@ func _ready() -> void:
     player = StarlightGameState.player_position
     DayNightManager.phase_changed.connect(_on_phase_changed)
     ui_font = ThemeDB.fallback_font
+    dialogue = get_node("Dialogue")
+    touch_controls = get_node("TouchControls")
+    touch_controls.move_changed.connect(_on_touch_move_changed)
+    touch_controls.interact_pressed.connect(_on_touch_interact)
+    dialogue.finished.connect(_on_dialogue_finished)
     queue_redraw()
 
 func _process(delta: float) -> void:
     _move_player(delta)
+    if cooking:
+        cooking_time += delta
+        if cooking_time >= cooking_duration:
+            _finish_cooking()
     _update_interaction()
     message_timer = maxf(0.0, message_timer - delta)
     queue_redraw()
 
 func _move_player(delta: float) -> void:
     var input_dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+    if touch_move.length() > input_dir.length():
+        input_dir = touch_move
     if input_dir.length() > 0.0:
         player += input_dir.normalized() * MOVE_SPEED * delta
         player.x = clampf(player.x, CAFE_RECT.position.x + 10.0, CAFE_RECT.end.x - 10.0)
@@ -41,6 +57,8 @@ func _move_player(delta: float) -> void:
         StarlightGameState.player_position = player
 
 func _input(event: InputEvent) -> void:
+    if dialogue != null and dialogue.active:
+        return
     if event.is_action_pressed("interact"):
         _interact()
     if event.is_action_pressed("save_game"):
@@ -106,6 +124,10 @@ func _interact() -> void:
     message_timer = 2.0
 
 func _cook() -> void:
+    if cooking:
+        message = "Yui: Soup abhi cook ho rahi hai..."
+        message_timer = 1.5
+        return
     var recipe := {
         "id": "moon_mushroom_soup",
         "name": "Moonlight Mushroom Soup",
@@ -116,10 +138,12 @@ func _cook() -> void:
             {"id": "salt", "amount": 1}
         ]
     }
-    if StarlightGameState.cook(recipe):
+    if StarlightGameState.can_cook(recipe):
+        StarlightGameState.current_recipe = ""
         cooking = true
-        message = "Yui: Moonlight Mushroom Soup ready!"
-        message_timer = 3.0
+        cooking_time = 0.0
+        message = "Yui: Soup simmer ho rahi hai..."
+        message_timer = 1.8
     else:
         message = "Yui: Ingredients kam hain."
         message_timer = 2.5
@@ -129,17 +153,57 @@ func _serve_spirit() -> void:
         return
     var progress := int(StarlightGameState.spirit_progress.get("spirit_001", 0))
     if cooking:
-        cooking = false
+        return
+    if StarlightGameState.current_recipe == "moon_mushroom_soup":
+        StarlightGameState.current_recipe = ""
         progress += 1
         StarlightGameState.spirit_progress["spirit_001"] = progress
-        message = "Aoi: ...yeh wahi taste hai. Meri ek yaad laut aayi."
-        message_timer = 4.0
+        dialogue.begin("Aoi", [
+            "...yeh khushboo mujhe yaad hai.",
+            "Tumhare café mein kuch ghar jaisa lagta hai.",
+            "Aaj meri ek bhooli hui yaad wapas aayi."
+        ])
         return
     if progress >= 1:
-        message = "Aoi: Kal raat phir milungi."
+        dialogue.begin("Aoi", ["Kal raat phir milungi, Yui."])
     else:
-        message = "Aoi: Mujhe Moonlight Mushroom Soup chahiye..."
-    message_timer = 3.0
+        dialogue.begin("Aoi", [
+            "Mujhe Moonlight Mushroom Soup chahiye...",
+            "Uski khushboo mujhe ek purani raat yaad dilati hai."
+        ])
+
+func _finish_cooking() -> void:
+    cooking = false
+    cooking_time = 0.0
+    var recipe := {
+        "ingredients": [
+            {"id": "moon_mushroom", "amount": 1},
+            {"id": "village_herb", "amount": 2},
+            {"id": "milk", "amount": 1},
+            {"id": "salt", "amount": 1}
+        ]
+    }
+    if StarlightGameState.cook(recipe):
+        StarlightGameState.current_recipe = "moon_mushroom_soup"
+        message = "Moonlight Mushroom Soup ready!"
+        message_timer = 3.0
+    else:
+        message = "Yui: Ingredients change ho gaye. Cooking fail."
+        message_timer = 2.5
+
+func _on_touch_move_changed(direction: Vector2) -> void:
+    touch_move = direction
+    StarlightGameState.touch_move = direction
+
+func _on_touch_interact() -> void:
+    if dialogue != null and dialogue.active:
+        dialogue.advance()
+    else:
+        _interact()
+
+func _on_dialogue_finished() -> void:
+    message = "Aoi ki story progress: " + str(StarlightGameState.spirit_progress.get("spirit_001", 0))
+    message_timer = 2.5
 
 func _on_phase_changed(phase: String) -> void:
     spirit_visible = phase == "night"
@@ -239,7 +303,7 @@ func _draw_ui(night: bool) -> void:
     draw_string(ui_font, Vector2(16, 25), "Day " + str(StarlightGameState.day) + "  •  " + phase_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("#f6dfad"))
     draw_string(ui_font, Vector2(150, 25), "WASD Move   E Interact   N/D Day-Night   P Save", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color("#d8cfe4"))
 
-    var inv := "Soup: " + ("READY" if cooking else "—")
+    var inv := "Soup: " + ("COOKING" if cooking else ("READY" if StarlightGameState.current_recipe == "moon_mushroom_soup" else "—"))
     inv += "   Herbs " + str(int(StarlightGameState.inventory.get("village_herb", 0)))
     inv += "   Milk " + str(int(StarlightGameState.inventory.get("milk", 0)))
     inv += "   Mushroom " + str(int(StarlightGameState.inventory.get("moon_mushroom", 0)))
@@ -250,6 +314,10 @@ func _draw_ui(night: bool) -> void:
     if interaction_hint != "":
         draw_rect(Rect2(115, 164, 154, 17), Color(0.08, 0.06, 0.13, 0.9))
         draw_string(ui_font, Vector2(124, 176), interaction_hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color("#fff0bd"))
+    if cooking:
+        draw_rect(Rect2(110, 110, 164, 7), Color("#2e2536"))
+        draw_rect(Rect2(112, 112, 160 * clampf(cooking_time / cooking_duration, 0.0, 1.0), 3), Color("#e0a45e"))
+
     if message_timer > 0.0:
         draw_rect(Rect2(52, 142, 280, 18), Color(0.07, 0.05, 0.10, 0.92))
         draw_string(ui_font, Vector2(60, 155), message, HORIZONTAL_ALIGNMENT_LEFT, 265, 8, Color("#f2e6d0"))
