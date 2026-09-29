@@ -22,6 +22,8 @@ var dialogue: Node2D
 var touch_controls: Node2D
 var gathered_today: Dictionary = {}
 var ui_font: Font
+var recipe_book_open := false
+var atmosphere_time := 0.0
 
 var spots := {
     "moon_mushroom": Vector2(118, 155),
@@ -48,6 +50,7 @@ func _process(delta: float) -> void:
         if cooking_time >= cooking_duration:
             _finish_cooking()
     _update_interaction()
+    atmosphere_time += delta
     message_timer = maxf(0.0, message_timer - delta)
     queue_redraw()
 
@@ -100,6 +103,8 @@ func _input(event: InputEvent) -> void:
             DayNightManager.set_phase("day")
         elif event.keycode == KEY_C:
             _cook()
+        elif event.keycode == KEY_I:
+            recipe_book_open = not recipe_book_open
 
 func _update_interaction() -> void:
     interaction_hint = ""
@@ -257,6 +262,7 @@ func _draw() -> void:
     draw_rect(Rect2(0, 0, 384, 216), bg)
 
     _draw_floor(night)
+    _draw_atmosphere(night)
     _draw_shell(night)
     _draw_props(night)
     _draw_gather_spots(night)
@@ -266,6 +272,32 @@ func _draw() -> void:
 
     _draw_player()
     _draw_ui(night)
+    if recipe_book_open:
+        _draw_recipe_book()
+
+func _draw_atmosphere(night: bool) -> void:
+    if not night:
+        return
+    # Small, deterministic magical motes instead of a heavy particle system.
+    for i in range(14):
+        var phase := float(i) * 0.83
+        var x := 82.0 + fmod(float(i) * 61.0 + sin(atmosphere_time * 0.7 + phase) * 8.0, 220.0)
+        var y := 52.0 + fmod(float(i) * 37.0 + cos(atmosphere_time * 0.45 + phase) * 6.0, 110.0)
+        var alpha := 0.25 + 0.12 * sin(atmosphere_time + phase)
+        draw_circle(Vector2(x, y), 1.2, Color(0.76, 0.66, 1.0, alpha))
+
+func _draw_recipe_book() -> void:
+    draw_rect(Rect2(46, 42, 292, 128), Color(0.035, 0.025, 0.07, 0.97))
+    draw_rect(Rect2(48, 44, 288, 124), Color("#73516f"), false, 2.0)
+    draw_string(ui_font, Vector2(64, 63), "YUI'S RECIPE BOOK", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("#ffe8ae"))
+    draw_string(ui_font, Vector2(64, 80), "Moonlight Mushroom Soup", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("#f4e5d3"))
+    draw_string(ui_font, Vector2(64, 97), "Moon Mushroom       " + str(int(StarlightGameState.inventory.get("moon_mushroom", 0))) + " / 1", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color("#d9cfe0"))
+    draw_string(ui_font, Vector2(64, 110), "Village Herb        " + str(int(StarlightGameState.inventory.get("village_herb", 0))) + " / 2", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color("#d9cfe0"))
+    draw_string(ui_font, Vector2(64, 123), "Milk                " + str(int(StarlightGameState.inventory.get("milk", 0))) + " / 1", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color("#d9cfe0"))
+    draw_string(ui_font, Vector2(64, 136), "Salt                " + str(int(StarlightGameState.inventory.get("salt", 0))) + " / 1", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color("#d9cfe0"))
+    var ready := StarlightGameState.current_recipe == "moon_mushroom_soup"
+    draw_string(ui_font, Vector2(64, 153), "Status: " + ("READY TO SERVE" if ready else "COLLECT INGREDIENTS"), HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color("#f2c87e"))
+    draw_string(ui_font, Vector2(260, 153), "I / CLOSE", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color("#cfc4d8"))
 
 func _draw_floor(night: bool) -> void:
     var floor_color := Color("#493e58") if night else Color("#355246")
@@ -331,7 +363,7 @@ func _draw_ui(night: bool) -> void:
     draw_rect(Rect2(7, 7, 370, 28), Color(0.06, 0.05, 0.10, 0.88))
     var phase_text := "NIGHT" if night else "DAY"
     draw_string(ui_font, Vector2(16, 25), "Day " + str(StarlightGameState.day) + "  •  " + phase_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("#f6dfad"))
-    draw_string(ui_font, Vector2(150, 25), "WASD Move   E Interact   N/D Day-Night   P Save", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color("#d8cfe4"))
+    draw_string(ui_font, Vector2(150, 25), "WASD Move   E Use   I Recipes   N/D Day-Night   P Save", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color("#d8cfe4"))
 
     var inv := "Soup: " + ("COOKING" if cooking else ("READY" if StarlightGameState.current_recipe == "moon_mushroom_soup" else "—"))
     inv += "   Herbs " + str(int(StarlightGameState.inventory.get("village_herb", 0)))
