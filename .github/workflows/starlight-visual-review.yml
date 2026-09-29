@@ -40,3 +40,5 @@ jobs:
             godot/capture_cafe_day.png
             godot/capture_cafe_night.png
           if-no-files-found: error
+
+# Visual benchmark workflow enabled.
