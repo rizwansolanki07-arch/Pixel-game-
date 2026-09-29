@@ -429,22 +429,69 @@ func _draw_night_motes()->void:
  for i in range(18):
   var x=25+(i*47)%335; var y=43+(i*31)%130; draw_rect(Rect2(x,y,2,2),Color(0.75,0.67,1.0,0.42))
 
-
- draw_rect(Rect2(0,0,384,216),Color("#182536")); draw_rect(Rect2(42,38,300,142),Color("#334b4a"))
- draw_colored_polygon(PackedVector2Array([Vector2(180,160),Vector2(204,160),Vector2(248,54),Vector2(224,54)]),Color("#b88a62"))
- for p in [Vector2(78,65),Vector2(302,65),Vector2(64,140),Vector2(318,140)]: draw_circle(p,15,Color("#284c42")); draw_circle(p+Vector2(-5,-4),8,Color("#3f6b50"))
- draw_rect(Rect2(132,58,58,40),Color("#745247")); draw_colored_polygon(PackedVector2Array([Vector2(126,60),Vector2(196,60),Vector2(161,42)]),Color("#4d4050")); draw_string(font,Vector2(143,55),"INN",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#f2c98b"))
- draw_rect(Rect2(94,76,32,22),Color("#704b3f")); draw_string(font,Vector2(92,63),"BAZAAR",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#f2c98b"))
- draw_rect(Rect2(220,62,48,34),Color("#76564c")); draw_colored_polygon(PackedVector2Array([Vector2(214,64),Vector2(274,64),Vector2(244,48)]),Color("#493d52"))
- draw_rect(Rect2(198,106,46,30),Color("#80634e")); draw_colored_polygon(PackedVector2Array([Vector2(192,108),Vector2(250,108),Vector2(221,90)]),Color("#5c4650")); draw_string(font,Vector2(204,145),"SHRINE",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#f2c98b"))
- draw_circle(Vector2(282,130),14,Color("#6e6262")); draw_circle(Vector2(282,130),9,Color("#293441"))
- for p in [Vector2(130,116),Vector2(142,112),Vector2(154,116),Vector2(136,126)]: draw_circle(p,4,Color("#8ab45f"))
- draw_circle(Vector2(108,92),7,Color("#d89b78")); draw_rect(Rect2(103,99,10,12),Color("#6b7894"))
- draw_circle(Vector2(244,86),7,Color("#c78b70")); draw_rect(Rect2(239,93,10,12),Color("#8b6a48"))
- draw_circle(village_player,7,Color("#e7b78f")); draw_rect(Rect2(village_player+Vector2(-5,4),Vector2(10,10)),Color("#c28b55"))
- draw_string(font,Vector2(58,57),"GREENHOLLOW VILLAGE",HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("#ffe2a7"))
- draw_string(font,Vector2(58,172),"WASD / JOYSTICK • E INTERACT • V RETURN",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#ddd1e3"))
-
+func _village()->void:
+ draw_rect(Rect2(0,0,384,216),Color("#182536"))
+ # Main village ground: broad isometric street with warm earth border.
+ draw_colored_polygon(PackedVector2Array([
+  Vector2(28,70),Vector2(190,26),Vector2(356,70),Vector2(356,171),Vector2(190,205),Vector2(28,171)
+ ]),Color("#334b4a"))
+ draw_colored_polygon(PackedVector2Array([
+  Vector2(45,83),Vector2(190,44),Vector2(340,83),Vector2(340,157),Vector2(190,190),Vector2(45,157)
+ ]),Color("#5a5b48"))
+ # 2:1 cobble/earth path.
+ for y in range(0,8):
+  for x in range(0,7):
+   var p=Vector2(190,118)+Vector2((x-y)*28,(x+y)*14)
+   var cc=Color("#75624c") if (x+y)%2==0 else Color("#685745")
+   draw_colored_polygon(PackedVector2Array([p+Vector2(0,-7),p+Vector2(14,0),p+Vector2(0,7),p+Vector2(-14,0)]),cc)
+   draw_rect(Rect2(p.x-2,p.y-1,4,2),Color("#8a7257"))
+ # Greenhollow title plaque.
+ draw_rect(Rect2(52,48,124,17),Color("#272332"))
+ draw_rect(Rect2(55,50,118,12),Color("#67464b"))
+ draw_string(font,Vector2(64,59),"GREENHOLLOW",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("#ffe1a4"))
+ # Inn.
+ draw_colored_polygon(PackedVector2Array([Vector2(126,60),Vector2(194,60),Vector2(194,101),Vector2(126,101)]),Color("#755147"))
+ draw_colored_polygon(PackedVector2Array([Vector2(120,60),Vector2(200,60),Vector2(160,41)]),Color("#4c3b4b"))
+ draw_rect(Rect2(151,74,18,27),Color("#3a3035"))
+ draw_rect(Rect2(134,69,10,10),Color("#8aa1a2")); draw_rect(Rect2(176,69,10,10),Color("#8aa1a2"))
+ draw_string(font,Vector2(144,57),"INN",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#ffd88d"))
+ # Bazaar.
+ draw_colored_polygon(PackedVector2Array([Vector2(72,79),Vector2(122,79),Vector2(122,106),Vector2(72,106)]),Color("#71483f"))
+ draw_colored_polygon(PackedVector2Array([Vector2(67,79),Vector2(127,79),Vector2(97,64)]),Color("#584049"))
+ draw_rect(Rect2(82,88,12,11),Color("#9b6745")); draw_rect(Rect2(99,88,12,11),Color("#6d8b63"))
+ draw_string(font,Vector2(76,75),"BAZAAR",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#f5cb88"))
+ # Shrine.
+ draw_rect(Rect2(200,108,46,30),Color("#81614e"))
+ draw_colored_polygon(PackedVector2Array([Vector2(194,108),Vector2(252,108),Vector2(223,89)]),Color("#55445a"))
+ draw_rect(Rect2(218,116,10,22),Color("#49373e"))
+ draw_string(font,Vector2(205,147),"SHRINE",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#f2c98b"))
+ # Well.
+ draw_colored_polygon(PackedVector2Array([Vector2(269,118),Vector2(283,111),Vector2(298,118),Vector2(284,125)]),Color("#8a8272"))
+ draw_rect(Rect2(274,118,20,15),Color("#655d57"))
+ draw_colored_polygon(PackedVector2Array([Vector2(272,118),Vector2(284,109),Vector2(298,118),Vector2(284,126)]),Color("#4b4b56"))
+ draw_circle(Vector2(284,118),7,Color("#273744"))
+ # Trees.
+ for p in [Vector2(58,114),Vector2(326,103),Vector2(74,146),Vector2(307,145)]:
+  draw_rect(Rect2(p.x-4,p.y+8,8,10),Color("#75533e"))
+  draw_circle(p+Vector2(-5,0),9,Color("#315b46")); draw_circle(p+Vector2(4,-2),10,Color("#3d704e")); draw_circle(p+Vector2(0,-8),9,Color("#4a7c55"))
+  draw_rect(Rect2(p.x-2,p.y-11,4,4),Color("#84a05d"))
+ # Fences and crops.
+ for x in range(116,151,9):
+  draw_rect(Rect2(x,120,4,18),Color("#684633"))
+  draw_rect(Rect2(x-2,124,9,3),Color("#8c6040"))
+ for p in [Vector2(127,115),Vector2(139,110),Vector2(151,116),Vector2(135,126)]:
+  draw_rect(Rect2(p.x-3,p.y,6,5),Color("#5e934f")); draw_rect(Rect2(p.x-1,p.y-2,3,2),Color("#85b25e"))
+ # Street lamps.
+ for p in [Vector2(106,108),Vector2(315,118)]:
+  draw_line(p+Vector2(0,-13),p+Vector2(0,4),Color("#2d2730"),2)
+  draw_rect(Rect2(p.x-4,p.y-14,8,7),Color("#8e5d42"))
+  draw_rect(Rect2(p.x-2,p.y-13,4,5),Color("#efbd62"))
+ # NPCs with readable silhouettes.
+ draw_circle(Vector2(108,92),7,Color("#d89b78")); draw_rect(Rect2(103,99,10,12),Color("#6b7894")); draw_rect(Rect2(101,106,14,4),Color("#4a5567"))
+ draw_circle(Vector2(244,86),7,Color("#c78b70")); draw_rect(Rect2(239,93,10,12),Color("#8b6a48")); draw_rect(Rect2(237,104,14,4),Color("#5c473e"))
+ # Yui anchor shadow + sprite drawn by StarlightYui node.
+ draw_rect(Rect2(village_player.x-8,village_player.y+22,16,4),Color(0.06,0.04,0.07,0.32))
+ draw_string(font,Vector2(58,176),"JOYSTICK / WASD  •  E INTERACT  •  V RETURN",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#ddd1e3"))
 
 func _draw_counter() -> void:
  draw_rect(Rect2(178,44,86,78),Color("#2a202f"))
