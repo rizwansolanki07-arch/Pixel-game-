@@ -274,7 +274,7 @@ func _village_interact():
     else:
      _say(_t("Paudha badh raha hai. Agle din phir aana.","The crop is growing. Return after the next day."),2)
    return
- if p.distance_to(Vector2(142,116))<16:
+ if p.distance_to(Vector2(126,131))<14:
   StarlightGameState.add_item("village_herb",1)
   _say("Village Herb +1",2)
   return
@@ -928,10 +928,10 @@ func _village_npc_target(npc_id: String) -> Vector2:
  match location:
   "market": return Vector2(108,92)
   "garden": return Vector2(142,116)
-  "well": return Vector2(282,130)
+  "well": return Vector2(305,130)
   "home": return Vector2(161,98) + (Vector2(-10,8) if npc_id=="bram" else Vector2(10,8))
-  "shrine": return Vector2(221,128)
-  "orchard": return Vector2(307,145)
+  "shrine": return Vector2(259,126)
+  "orchard": return Vector2(317,130)
   "spirit_realm", "cafe": return Vector2(-100,-100)
   _: return Vector2(-100,-100)
 
