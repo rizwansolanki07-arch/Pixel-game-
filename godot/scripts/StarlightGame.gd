@@ -419,7 +419,7 @@ func _cafe():
    draw_rect(Rect2(pp.x-2,pp.y-4,5,5),Color("#e8d99a") if not night else Color("#c9b9ff"))
  draw_rect(Rect2(8,7,368,25),Color(0.035,0.025,0.06,0.94))
  draw_string(font,Vector2(15,24),"DAY "+str(StarlightGameState.day)+" • "+("NIGHT" if night else "DAY"),HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("#f6dfad"))
- draw_string(font,Vector2(126,24),"E USE   I BAG   R RECIPES   Q QUEST   V VILLAGE",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#d8cfe4"))
+ draw_string(font,Vector2(126,24),"E USE   I BAG   R RECIPES   Q QUEST   B FURNITURE",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#d8cfe4"))
  draw_string(font,Vector2(15,210),"P SAVE   F SETTINGS   L LANGUAGE",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#d8cfe4"))
  if cooking!="":
   draw_rect(Rect2(110,105,164,17),Color(0.055,0.035,0.075,0.95))
