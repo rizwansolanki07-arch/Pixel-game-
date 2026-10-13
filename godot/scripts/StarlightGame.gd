@@ -97,6 +97,14 @@ func _input(e):
  if mode=="title":
   if e.is_action_pressed("interact") or (e is InputEventScreenTouch and e.pressed): _start()
   return
+ if panel=="furniture" and e is InputEventScreenTouch and e.pressed:
+  var tap:Vector2=e.position
+  if tap.y>=65 and tap.y<145:
+   selected_furniture_index=clampi(int((tap.y-65.0)/13.0),0,StarlightWorldDirector.FURNITURE.size()-1)
+  elif tap.y>=145:
+   if tap.x<192: _furniture_interact()
+   else: panel=""
+  return
  if dialogue.active: return
  if e.is_action_pressed("interact"): _interact()
  if e.is_action_pressed("save_game"): _save()
@@ -432,7 +440,7 @@ func _cafe():
  if panel=="recipes": _panel("RECIPES",_recipes())
  if panel=="quest": _panel("QUEST",[_quest_text(),"","Q / CLOSE"])
  if panel=="settings": _panel("SETTINGS",["L Language: "+language,"N Night • D Day","V Village • P Save","F Close"])
- if panel=="furniture": _panel("FURNITURE SHOP",_furniture_lines())
+ if panel=="furniture": _draw_furniture_panel()
 
 func _draw_room_shell(night:bool)->void:
  var wall_base=Color("#482d35") if night else Color("#934f4b")
@@ -909,6 +917,29 @@ func _draw_chair(p: Vector2) -> void:
  draw_rect(Rect2(p+Vector2(-8,-8),Vector2(16,5)),Color("#b8784c"))
  draw_line(p+Vector2(-7,8),p+Vector2(-10,17),Color("#3b2b31"),3)
  draw_line(p+Vector2(7,8),p+Vector2(10,17),Color("#3b2b31"),3)
+
+
+func _draw_furniture_panel() -> void:
+ draw_rect(Rect2(42,25,300,166),Color(0.035,0.025,0.07,0.98))
+ draw_rect(Rect2(44,27,296,162),Color("#73516f"),false,2)
+ draw_string(font,Vector2(57,44),"FURNITURE SHOP  •  COINS "+str(StarlightWorldDirector.coins),HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("#ffe8ae"))
+ var ids:Array=StarlightWorldDirector.FURNITURE.keys()
+ for i in range(ids.size()):
+  var furniture_id:=String(ids[i])
+  var item:Dictionary=StarlightWorldDirector.FURNITURE[furniture_id]
+  var y:=64+i*13
+  if i==selected_furniture_index:
+   draw_rect(Rect2(52,y-9,280,12),Color("#634b6a"))
+  var owned:bool=furniture_id in StarlightWorldDirector.owned_furniture
+  var label: String=("> " if i==selected_furniture_index else "  ")+String(item.get("name",furniture_id))
+  var status: String="OWNED" if owned else str(item.get("cost",0))+"c"
+  draw_string(font,Vector2(58,y),label,HORIZONTAL_ALIGNMENT_LEFT,218,7,Color("#fff0ce") if i==selected_furniture_index else Color("#e8dce8"))
+  draw_string(font,Vector2(290,y),status,HORIZONTAL_ALIGNMENT_RIGHT,35,7,Color("#aee0a0") if owned else Color("#f2c47d"))
+ draw_rect(Rect2(52,148,135,25),Color("#4d714f"))
+ draw_rect(Rect2(194,148,138,25),Color("#533d5b"))
+ draw_string(font,Vector2(63,164),"TAP: BUY / PLACE",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#f4f0d2"))
+ draw_string(font,Vector2(218,164),"TAP: CLOSE",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#f4e6f4"))
+
 
 func _panel(title,lines):
  draw_rect(Rect2(48,45,288,118),Color(0.035,0.025,0.07,0.97)); draw_rect(Rect2(50,47,284,114),Color("#73516f"),false,2)
