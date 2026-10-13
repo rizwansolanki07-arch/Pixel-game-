@@ -204,10 +204,14 @@ func _nearest():
   "grain":Vector2(261,62),
   "counter":Vector2(193,82),
   "door":Vector2(340,164),
-  "spirit":Vector2(221,143),
   "guest_1":Vector2(260,145),
   "guest_2":Vector2(315,150)
  }
+ # Spirits are real, separately addressable guests and only appear at night.
+ if StarlightGameState.phase=="night":
+  t["spirit_aoi"]=Vector2(218,145)
+  if StarlightGameState.day>=2 and int(StarlightGameState.spirit_progress.get("spirit_001",0))>0:
+   t["spirit_ren"]=Vector2(286,153)
  var best=""; var bd=999.0
  for k in t:
   var dd=player.distance_to(t[k])
@@ -223,7 +227,8 @@ func _interact():
  if t=="counter": _cook_best(); return
  if t=="door":
   door_open=!door_open; _say(_t("Darwaza khul gaya.","Door opened.") if door_open else _t("Darwaza band hai.","Door closed."),1.5); return
- if t=="spirit": _spirit(); return
+ if t=="spirit_aoi": _spirit("spirit_001"); return
+ if t=="spirit_ren": _spirit("spirit_002"); return
  if t=="guest_1" or t=="guest_2":
   _serve_customer(t)
   return
@@ -339,21 +344,46 @@ func _finish_cooking():
  for k in recipes[id].ingredients: StarlightGameState.consume_item(k,int(recipes[id].ingredients[k]))
  StarlightGameState.current_recipe=id; _say(recipes[id].name+" ready!",3); _quest()
 
-func _spirit():
- if StarlightGameState.phase!="night": _say(_t("Raat ko mehmaan aayega.","A guest arrives at night."),2); return
- var sid="spirit_001" if StarlightGameState.day<2 else "spirit_002"
- var s=spirits[sid]
+func _spirit(sid: String = "spirit_001") -> void:
+ if StarlightGameState.phase!="night":
+  _say(_t("Raat ko mehmaan aayega.","A guest arrives at night."),2)
+  return
+ if not spirits.has(sid):
+  return
+ if sid=="spirit_002" and (StarlightGameState.day<2 or int(StarlightGameState.spirit_progress.get("spirit_001",0))<1):
+  dialogue.begin("Ren",[_t("Abhi meri yaadein dhundhli hain.","My memories are still too faint."),_t("Pehle Aoi ki kahani ko roshni do.","First help Aoi recover her memory.")])
+  return
+ var s: Dictionary = spirits[sid]
  if int(StarlightGameState.spirit_progress.get(sid,0))>=1:
-  dialogue.begin(s.name,[_t("Meri kahani ka ek tukda roshan ho gaya.","A piece of my story is lit again."),_t("Kal phir milenge.","See you tomorrow.")]); return
- if StarlightGameState.current_recipe==s.recipe:
-  StarlightGameState.current_recipe=""; StarlightGameState.spirit_progress[sid]=1
+  dialogue.begin(String(s.name),[_t("Meri kahani ka ek tukda roshan ho gaya.","A piece of my story is lit again."),_t("Is café ki roshni mujhe ghar jaisi lagti hai.","This café's light feels like home.")])
+  return
+ if StarlightGameState.current_recipe==String(s.recipe):
+  StarlightGameState.current_recipe=""
+  StarlightGameState.spirit_progress[sid]=1
+  StarlightWorldDirector.talk_to_npc("aoi" if sid=="spirit_001" else "ren")
   if sid=="spirit_001":
-   dialogue.begin("Aoi",[_t("Yeh soup bilkul ghar jaisi hai.","This soup tastes like home."),_t("Mujhe yaad aa gaya main yahan kyun aati thi.","I remember why I came here.")])
-   if "starlight_tea" not in StarlightGameState.unlocked_recipes: StarlightGameState.unlocked_recipes.append("starlight_tea")
+   dialogue.begin("Aoi",[_t("Yeh soup bilkul ghar jaisi hai.","This soup tastes just like home."),_t("Mujhe yaad aa gaya main yahan kyun aati thi.","I remember why I used to come here."),_t("Papa ke café mein ek aur rooh intezaar kar rahi hai.","Another spirit is waiting in Papa's café.")])
+   if "starlight_tea" not in StarlightGameState.unlocked_recipes:
+    StarlightGameState.unlocked_recipes.append("starlight_tea")
+   if "dawn_porridge" not in StarlightGameState.unlocked_recipes:
+    StarlightGameState.unlocked_recipes.append("dawn_porridge")
+   StarlightWorldDirector.story_flags["father_letter_found"]=true
+   _quest()
+   if String(StarlightWorldDirector.quest_status.get("q_aoi_memory",""))=="active":
+    StarlightWorldDirector.complete_quest("q_aoi_memory")
   else:
-   dialogue.begin("Ren",[_t("Dawn porridge meri maa banati thi.","My mother made dawn porridge."),_t("Tumne meri subah wapas kar di.","You gave me my morning back.")])
-  _quest()
- else: dialogue.begin(s.name,[_t("Mujhe meri favorite dish chahiye.","I need my favorite dish."),_t("Kya tum banaogi?","Will you make it?")])
+   dialogue.begin("Ren",[_t("Dawn porridge meri maa banati thi.","My mother used to make dawn porridge."),_t("Uski khushboo se mujhe apna ghar yaad aa gaya.","Its scent brought my home back to me."),_t("Subah ka intezaar ab itna tanha nahi lagega.","Waiting for morning won't feel so lonely now.")])
+   StarlightWorldDirector.story_flags["all_spirit_memories"]=true
+   _quest()
+   if String(StarlightWorldDirector.quest_status.get("q_ren_dawn",""))=="active":
+    StarlightWorldDirector.complete_quest("q_ren_dawn")
+ else:
+  var request_line := _t("Mujhe meri favorite dish chahiye.","I am hoping for my favorite dish.")
+  var recipe_line := _t("Kya tum banaogi?","Could you make it for me?")
+  if sid=="spirit_001":
+   dialogue.begin("Aoi",[request_line,_t("Moonlight Mushroom Soup ki khushboo mujhe ghar yaad dilati hai.","The smell of Moonlight Mushroom Soup reminds me of home."),recipe_line])
+  else:
+   dialogue.begin("Ren",[request_line,_t("Dawn Porridge ki ek bowl se shayad mujhe woh subah yaad aa jaye.","A bowl of Dawn Porridge might help me remember that morning."),recipe_line])
 
 func _quest():
  if quest_stage==0 and int(StarlightGameState.inventory.get("moon_mushroom",0))>0: quest_stage=1
@@ -429,10 +459,61 @@ func _title():
 
 
 
+func _draw_spirit_character(spirit_id: String, anchor: Vector2) -> void:
+ # Crisp, hand-drawn pixel silhouettes: no camera zooms or generated close-ups.
+ var bob := sin(ui_pulse*2.1+(0.8 if spirit_id=="ren" else 0.0))*1.0
+ var p := anchor+Vector2(0,bob)
+ var aoi := spirit_id=="aoi"
+ var aura := Color("#9adce0") if aoi else Color("#c5a4f5")
+ var robe := Color("#a7d8d1") if aoi else Color("#aaa0e4")
+ var shade := Color("#426779") if aoi else Color("#574b83")
+ var hair := Color("#263449") if aoi else Color("#382d4d")
+ # Stepped square motes and a soft pixel halo establish the supernatural look.
+ draw_rect(Rect2(p.x-10,p.y-22,20,27),Color(aura.r,aura.g,aura.b,0.07))
+ draw_rect(Rect2(p.x-7,p.y-19,14,21),Color(aura.r,aura.g,aura.b,0.10))
+ for i in range(4):
+  var mx := p.x+float(((i*7+int(ui_pulse*3.0))%17)-8)
+  var my := p.y-23.0-float((i*5)%9)
+  draw_rect(Rect2(mx,my,2,2),Color(aura.r,aura.g,aura.b,0.55))
+ # Hair silhouette, face, and two-pixel eyes.
+ draw_rect(Rect2(p.x-6,p.y-20,12,8),hair)
+ draw_rect(Rect2(p.x-7,p.y-17,14,5),hair)
+ draw_rect(Rect2(p.x-5,p.y-15,10,8),Color("#f0d3bd") if aoi else Color("#d9c8d8"))
+ draw_rect(Rect2(p.x-3,p.y-12,2,1),Color("#293044"))
+ draw_rect(Rect2(p.x+2,p.y-12,2,1),Color("#293044"))
+ if aoi:
+  draw_rect(Rect2(p.x-7,p.y-16,3,9),hair)
+  draw_rect(Rect2(p.x+4,p.y-16,3,10),hair)
+  draw_rect(Rect2(p.x-8,p.y-8,4,3),Color("#6aa6b0"))
+  draw_rect(Rect2(p.x+4,p.y-8,4,3),Color("#6aa6b0"))
+ else:
+  draw_rect(Rect2(p.x-8,p.y-18,3,7),hair)
+  draw_rect(Rect2(p.x+5,p.y-18,3,7),hair)
+  draw_rect(Rect2(p.x-7,p.y-21,5,3),Color("#e6d9f6"))
+  draw_rect(Rect2(p.x+3,p.y-21,5,3),Color("#e6d9f6"))
+ # Floating robe and sleeves.
+ draw_colored_polygon(PackedVector2Array([
+  p+Vector2(-5,-7),p+Vector2(5,-7),p+Vector2(8,5),p+Vector2(0,9),p+Vector2(-8,5)
+ ]),robe)
+ draw_rect(Rect2(p.x-8,p.y-5,4,7),shade)
+ draw_rect(Rect2(p.x+4,p.y-5,4,7),shade)
+ draw_rect(Rect2(p.x-3,p.y-4,6,2),aura)
+ draw_rect(Rect2(p.x-5,p.y+6,10,2),shade)
+ draw_rect(Rect2(p.x-2,p.y+9,4,2),Color(aura.r,aura.g,aura.b,0.75))
+ var label := "AOI • MEMORY" if aoi else "REN • LOST MORNING"
+ var label_width := 58 if aoi else 75
+ draw_rect(Rect2(p.x-label_width*0.5-2,p.y+12,label_width+4,9),Color(0.035,0.025,0.07,0.88))
+ draw_string(font,Vector2(p.x-label_width*0.5,p.y+19),label,HORIZONTAL_ALIGNMENT_LEFT,label_width,5,Color("#c9f2ed") if aoi else Color("#e2d4ff"))
+
+
 func _cafe():
  var night=StarlightGameState.phase=="night"
  # Render the actual café world first. HUD and touch controls sit above this layer.
  # CafeVisual owns the world art. This node draws gameplay/HUD only.
+ if night:
+  _draw_spirit_character("aoi",Vector2(218,145))
+  if StarlightGameState.day>=2 and int(StarlightGameState.spirit_progress.get("spirit_001",0))>0:
+   _draw_spirit_character("ren",Vector2(286,153))
  _draw_interaction_hint(night)
  var points={"moon_mushroom":Vector2(115,174),"village_herb":Vector2(331,160),"milk":Vector2(207,62),"salt":Vector2(225,62),"honey":Vector2(243,62),"grain":Vector2(261,62)}
  for id in points:
