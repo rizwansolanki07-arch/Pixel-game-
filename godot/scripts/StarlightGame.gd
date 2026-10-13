@@ -305,12 +305,37 @@ func _furniture_interact() -> void:
   else:
    _say(_t("Coins kam hain ya item pehle se hai.", "Not enough coins or item already owned."),2)
  elif mode=="cafe":
-  if StarlightWorldDirector.place_furniture(furniture_id,player+Vector2(14,8)):
-   _say(_t("Furniture café mein place ho gaya.", "Furniture placed in the café."),2)
+  var snapped_position := Vector2(roundf((player.x + 14.0) / 16.0) * 16.0, roundf((player.y + 8.0) / 8.0) * 8.0)
+  if not _furniture_spot_ok(furniture_id, snapped_position):
+   _say(_t("Yeh jagah blocked hai. Khuli jagah par try karo.", "That spot is blocked. Try an open area."),2)
+  elif StarlightWorldDirector.place_furniture(furniture_id,snapped_position):
+   _say(_t("Furniture grid par place ho gaya.", "Furniture placed on the grid."),2)
   else:
-   _say(_t("Yahan ye furniture pehle se hai.", "This furniture is already placed here."),2)
+   _say(_t("Furniture kisi placed item se takra raha hai.", "Furniture overlaps another placed item."),2)
  else:
   _say(_t("Furniture place karne ke liye café mein jao.", "Return to the café to place furniture."),2)
+
+func _furniture_spot_ok(furniture_id: String, p: Vector2) -> bool:
+ var item: Dictionary = StarlightWorldDirector.FURNITURE.get(furniture_id, {})
+ var footprint: Array = item.get("footprint", [1, 1])
+ var size := Vector2(float(footprint[0]) * 16.0, float(footprint[1]) * 8.0)
+ var area := Rect2(p - size * 0.5, size)
+ var floor_poly := PackedVector2Array([
+  Vector2(12,112),Vector2(190,22),Vector2(373,111),Vector2(190,202)
+ ])
+ for corner in [area.position, area.position + Vector2(area.size.x,0), area.position + area.size, area.position + Vector2(0,area.size.y)]:
+  if not Geometry2D.is_point_in_polygon(corner, floor_poly):
+   return false
+ # Fixed kitchen, lounge, wall fixtures and built-in dining props cannot be covered.
+ for blocked in [
+  Rect2(146,48,112,48), Rect2(54,128,72,30), Rect2(160,103,64,28),
+  Rect2(274,125,54,30), Rect2(258,86,42,48), Rect2(42,91,48,60),
+  Rect2(296,100,44,55), Rect2(78,43,244,28), Rect2(178,44,86,78),
+  Rect2(44,115,78,44)
+ ]:
+  if area.intersects(blocked):
+   return false
+ return true
 
 func _furniture_lines() -> Array:
  var lines: Array = []
