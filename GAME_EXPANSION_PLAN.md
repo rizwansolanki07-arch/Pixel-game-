@@ -37,9 +37,12 @@ A cozy, story-first 2D pixel RPG for Android and PC. Yui reopens her late father
 
 ### 4. NPC schedules and relationships
 - [x] Add persistent NPC, schedule and relationship data foundation for Yui, Mina, Bram, Aoi, Ren and Hana.
-- [ ] Render NPCs as real sprite actors and move them between authored schedule points.
-- [ ] Add talk/quest/shop affordances and unique daily dialogue; no meaningless NPCs.
-- [ ] Relationship milestones unlock recipes, memories, furniture or side quests.
+- [x] Add distinct procedural pixel-art actors for village residents and the Aoi/Ren night spirits.
+- [x] Move Mina, Bram and Hana between schedule landmarks while respecting village building collision bounds.
+- [x] Add character-specific conversations and relationship progress for village residents and spirit memories.
+- [ ] Replace procedural actors with authored 4-direction sprite sheets and walk/idle animations.
+- [ ] Add dedicated shop affordances and richer daily dialogue variants; no meaningless NPCs.
+- [ ] Relationship milestones unlock additional recipes, memories, furniture or side quests.
 
 ### 5. Farming and gathering
 - [x] Add persistent crop plot state, crop catalog, planting/watering/harvest API.
@@ -76,11 +79,12 @@ A cozy, story-first 2D pixel RPG for Android and PC. Yui reopens her late father
 - [x] Save schema extended to include world-director state while preserving old-save defaults.
 - [ ] Test fresh save, legacy save, reload, quest completion, crops, relationships, furniture and currency.
 - [ ] Run Godot headless parse/import checks and capture day/night screenshots.
+- [ ] Verify Aoi/Ren night interactions and NPC collision/pathing in a running Godot build; code changes are not runtime-verified yet.
 - [ ] Export APK, install on physical Android, test joystick/interactions/rotation/performance.
 - [ ] Merge only after review and passing checks; attach build metadata and test notes.
 
 ## Current implementation wave
-This branch adds a modular world director for story flags, NPC schedules/relationships, farming state, furniture ownership/placement, quest data and currency; connects it to the existing autoload/save pipeline; and connects village conversations/customer serving to relationship/reward progression. It now also includes a touch-friendly furniture catalog/shop, buy/place interactions and separate pixel-art furniture rendering. Furniture placement is persisted in saves. Remaining work includes placement snapping/overlap checks, real character sprite actors and schedules, richer maps/story scenes, in-engine tests and Android QA. This is still a work in progress, not a claim that the full game is finished.
+This branch adds a modular world director for story flags, NPC schedules/relationships, farming state, furniture ownership/placement, quest data and currency; connects it to the existing autoload/save pipeline; and connects village conversations/customer serving to relationship/reward progression. It includes a touch-friendly furniture catalog/shop, buy/place interactions, separate pixel-art furniture rendering, distinct Aoi/Ren night-spirit interactions, and collision-aware village resident movement. Furniture placement is persisted in saves. Remaining work includes placement snapping/overlap checks, authored sprite sheets and animations, richer maps/story scenes, in-engine tests and Android QA. This is still a work in progress, not a claim that the full game is finished.
 
 ## Definition of done
 A player can start a new save, reopen the café, move between connected locations, meet scheduled NPCs, gather and grow ingredients, cook and serve dishes, experience a spirit memory, upgrade/place furniture, progress story quests, and save/load without losing progress. Both day and night are visually checked at native pixel scale and on a real Android device.
