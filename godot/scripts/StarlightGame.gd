@@ -29,9 +29,10 @@ var ui_pulse := 0.0
 var capture_clock := 0.0
 var selected_furniture_index := 0
 var village_npc_positions: Dictionary = {
- "mina": Vector2(108, 92),
+ # Spawn on walkable ground, outside the bazaar and orchard collision footprints.
+ "mina": Vector2(112, 108),
  "bram": Vector2(142, 116),
- "hana": Vector2(307, 145)
+ "hana": Vector2(317, 130)
 }
 var village_npc_walk_clock := 0.0
 
@@ -304,12 +305,37 @@ func _furniture_interact() -> void:
   else:
    _say(_t("Coins kam hain ya item pehle se hai.", "Not enough coins or item already owned."),2)
  elif mode=="cafe":
-  if StarlightWorldDirector.place_furniture(furniture_id,player+Vector2(14,8)):
-   _say(_t("Furniture café mein place ho gaya.", "Furniture placed in the café."),2)
+  var snapped_position := Vector2(roundf((player.x + 14.0) / 16.0) * 16.0, roundf((player.y + 8.0) / 8.0) * 8.0)
+  if not _furniture_spot_ok(furniture_id, snapped_position):
+   _say(_t("Yeh jagah blocked hai. Khuli jagah par try karo.", "That spot is blocked. Try an open area."),2)
+  elif StarlightWorldDirector.place_furniture(furniture_id,snapped_position):
+   _say(_t("Furniture grid par place ho gaya.", "Furniture placed on the grid."),2)
   else:
-   _say(_t("Yahan ye furniture pehle se hai.", "This furniture is already placed here."),2)
+   _say(_t("Furniture kisi placed item se takra raha hai.", "Furniture overlaps another placed item."),2)
  else:
   _say(_t("Furniture place karne ke liye café mein jao.", "Return to the café to place furniture."),2)
+
+func _furniture_spot_ok(furniture_id: String, p: Vector2) -> bool:
+ var item: Dictionary = StarlightWorldDirector.FURNITURE.get(furniture_id, {})
+ var footprint: Array = item.get("footprint", [1, 1])
+ var size := Vector2(float(footprint[0]) * 16.0, float(footprint[1]) * 8.0)
+ var area := Rect2(p - size * 0.5, size)
+ var floor_poly := PackedVector2Array([
+  Vector2(12,112),Vector2(190,22),Vector2(373,111),Vector2(190,202)
+ ])
+ for corner in [area.position, area.position + Vector2(area.size.x,0), area.position + area.size, area.position + Vector2(0,area.size.y)]:
+  if not Geometry2D.is_point_in_polygon(corner, floor_poly):
+   return false
+ # Fixed kitchen, lounge, wall fixtures and built-in dining props cannot be covered.
+ for blocked in [
+  Rect2(146,48,112,48), Rect2(54,128,72,30), Rect2(160,103,64,28),
+  Rect2(274,125,54,30), Rect2(258,86,42,48), Rect2(42,91,48,60),
+  Rect2(296,100,44,55), Rect2(78,43,244,28), Rect2(178,44,86,78),
+  Rect2(44,115,78,44)
+ ]:
+  if area.intersects(blocked):
+   return false
+ return true
 
 func _furniture_lines() -> Array:
  var lines: Array = []
@@ -845,20 +871,6 @@ func _draw_guest(p:Vector2,skin:Color,cloth:Color,hat:bool)->void:
  draw_rect(Rect2(p.x-5,p.y+9,4,5),Color("#2f2931"))
  draw_rect(Rect2(p.x+1,p.y+9,4,5),Color("#2f2931"))
 
-func _draw_pet(night:bool)->void:
- var p=Vector2(player.x+18,player.y+10) if mode=="cafe" else Vector2(0,0)
- if mode!="cafe": return
- # Tiny fluffy white companion, kept separate from Yui's sprite.
- draw_circle(p+Vector2(0,2),7,Color("#2e2732"))
- draw_circle(p+Vector2(-4,-2),5,Color("#f4efe7"))
- draw_circle(p+Vector2(4,-3),5,Color("#efe8de"))
- draw_circle(p+Vector2(0,-6),5,Color("#fff8ef"))
- draw_rect(Rect2(p.x-2,p.y+5,4,3),Color("#b5a39a"))
- draw_rect(Rect2(p.x-5,p.y+1,2,2),Color("#2b2430"))
- draw_rect(Rect2(p.x+3,p.y+1,2,2),Color("#2b2430"))
- if night:
-  draw_rect(Rect2(p.x-1,p.y-9,2,2),Color("#d9c7ff"))
-
 func _draw_pixel_finish(night:bool)->void:
  # Hand-authored pixel clusters: hard edges, limited palette, consistent upper-left light.
  var outline=Color("#241c28") if not night else Color("#171522")
@@ -997,20 +1009,57 @@ func _village()->void:
  draw_string(font,Vector2(58,176),"JOYSTICK / WASD  •  E INTERACT  •  V RETURN",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#ddd1e3"))
 
 func _update_village_npcs(delta: float) -> void:
- # Smooth, schedule-driven movement between village landmarks.
+ # Schedule-driven NPCs use the same blocked footprint as the player. This prevents
+ # actors from cutting through the inn, bazaar, shrine, well or café return building.
  for npc_id in ["mina","bram","hana"]:
   var target := _village_npc_target(npc_id)
+  if target.x < 0.0:
+   continue
   var current:Vector2 = village_npc_positions.get(npc_id,target)
   var speed := 23.0 if npc_id=="bram" else 19.0
-  village_npc_positions[npc_id] = current.move_toward(target,speed*delta)
+  var remaining := speed*delta
+  while remaining > 0.0 and current.distance_to(target) > 0.5:
+   var step := minf(remaining,current.distance_to(target))
+   var toward := (target-current).normalized()*step
+   var moved := false
+   # Try the axis with the larger remaining gap first, then the other axis.
+   var x_first := absf(target.x-current.x) >= absf(target.y-current.y)
+   var first := Vector2(current.x+toward.x,current.y) if x_first else Vector2(current.x,current.y+toward.y)
+   var second := Vector2(current.x,current.y+toward.y) if x_first else Vector2(current.x+toward.x,current.y)
+   if _village_npc_ok(first):
+    current=first
+    moved=true
+   elif _village_npc_ok(second):
+    current=second
+    moved=true
+   else:
+    # If a corner blocks both direct steps, sidestep around it instead of phasing through.
+    var side := -1.0 if npc_id=="mina" or npc_id=="hana" else 1.0
+    var detour := Vector2(current.x,current.y+side*step)
+    if _village_npc_ok(detour):
+     current=detour
+     moved=true
+   if not moved:
+    break
+   remaining -= step
+  village_npc_positions[npc_id] = current
+
+func _village_npc_ok(p: Vector2) -> bool:
+ if p.x<58 or p.x>326 or p.y<58 or p.y>166:
+  return false
+ for b in [Rect2(126,42,70,58),Rect2(88,66,44,34),Rect2(212,46,62,52),Rect2(190,88,62,52),Rect2(268,112,30,36),Rect2(64,102,44,24),Rect2(270,140,44,22)]:
+  if b.grow(5).has_point(p):
+   return false
+ return true
 
 func _village_npc_target(npc_id: String) -> Vector2:
  var location := StarlightWorldDirector.npc_location(npc_id)
  match location:
-  "market": return Vector2(108,92)
+  # Keep residents on the walkable edge of each landmark, not inside its collision box.
+  "market": return Vector2(112,108)
   "garden": return Vector2(142,116)
   "well": return Vector2(305,130)
-  "home": return Vector2(161,98) + (Vector2(-10,8) if npc_id=="bram" else Vector2(10,8))
+  "home": return Vector2(171,106) + (Vector2(-10,8) if npc_id=="bram" else Vector2(10,8))
   "shrine": return Vector2(259,126)
   "orchard": return Vector2(317,130)
   "spirit_realm", "cafe": return Vector2(-100,-100)
