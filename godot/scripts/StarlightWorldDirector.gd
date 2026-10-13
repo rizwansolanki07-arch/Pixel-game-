@@ -132,7 +132,9 @@ func place_furniture(furniture_id: String, world_position: Vector2) -> bool:
     if not furniture_id in owned_furniture:
         return false
     for placed in placed_furniture:
-        if String(placed.get("id", "")) == furniture_id and Vector2(placed.get("position", Vector2.ZERO)).distance_to(world_position) < 12.0:
+        var stored_position: Array = placed.get("position", [0.0, 0.0])
+        var existing_position := Vector2(float(stored_position[0]), float(stored_position[1]))
+        if String(placed.get("id", "")) == furniture_id and existing_position.distance_to(world_position) < 12.0:
             return false
     placed_furniture.append({"id": furniture_id, "position": [world_position.x, world_position.y]})
     return true
