@@ -52,6 +52,16 @@ var story_flags: Dictionary = {"father_letter_found": false, "garden_restored": 
 var day_part: String = "day"
 var season: String = "spring"
 
+func _ready() -> void:
+    if not DayNightManager.phase_changed.is_connected(_on_phase_changed):
+        DayNightManager.phase_changed.connect(_on_phase_changed)
+    sync_phase(StarlightGameState.phase)
+
+func _on_phase_changed(next_phase: String) -> void:
+    sync_phase(next_phase)
+    if next_phase == "day":
+        advance_farm_day()
+
 func npc_location(npc_id: String, part: String = "") -> String:
     if not NPCS.has(npc_id):
         return ""
