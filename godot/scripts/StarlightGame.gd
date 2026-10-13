@@ -29,9 +29,10 @@ var ui_pulse := 0.0
 var capture_clock := 0.0
 var selected_furniture_index := 0
 var village_npc_positions: Dictionary = {
- "mina": Vector2(108, 92),
+ # Spawn on walkable ground, outside the bazaar and orchard collision footprints.
+ "mina": Vector2(112, 108),
  "bram": Vector2(142, 116),
- "hana": Vector2(307, 145)
+ "hana": Vector2(317, 130)
 }
 var village_npc_walk_clock := 0.0
 
