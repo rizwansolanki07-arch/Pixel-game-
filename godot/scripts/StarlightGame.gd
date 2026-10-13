@@ -428,9 +428,11 @@ func _cafe():
   if not gathered.has(str(StarlightGameState.day)+"_"+id):
    var pp:Vector2=points[id]
    draw_rect(Rect2(pp.x-2,pp.y-4,5,5),Color("#e8d99a") if not night else Color("#c9b9ff"))
- draw_rect(Rect2(8,7,368,25),Color(0.035,0.025,0.06,0.94))
- draw_string(font,Vector2(15,24),"DAY "+str(StarlightGameState.day)+" • "+("NIGHT" if night else "DAY"),HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("#f6dfad"))
- draw_string(font,Vector2(126,24),"E USE   I BAG   R RECIPES   Q QUEST   B FURNITURE   V VILLAGE",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#d8cfe4"))
+ # Two clean HUD rows keep status and controls readable at the 384x216 logical resolution.
+ draw_rect(Rect2(8,7,368,30),Color(0.035,0.025,0.06,0.94))
+ draw_string(font,Vector2(15,19),"DAY "+str(StarlightGameState.day)+" • "+("NIGHT" if night else "DAY"),HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("#f6dfad"))
+ draw_string(font,Vector2(215,19),"COINS "+str(StarlightWorldDirector.coins),HORIZONTAL_ALIGNMENT_LEFT,80,8,Color("#f2c77d"))
+ draw_string(font,Vector2(15,31),"E USE  I BAG  R RECIPES  Q QUEST  B FURNITURE  V VILLAGE",HORIZONTAL_ALIGNMENT_LEFT,-1,5,Color("#d8cfe4"))
  draw_rect(Rect2(345,8,31,18),Color("#624963"))
  draw_rect(Rect2(347,10,27,14),Color("#d0a765"),false,1)
  draw_string(font,Vector2(351,20),"SHOP",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#fff0c8"))
