@@ -97,6 +97,9 @@ func _input(e):
  if mode=="title":
   if e.is_action_pressed("interact") or (e is InputEventScreenTouch and e.pressed): _start()
   return
+ if e is InputEventScreenTouch and e.pressed and mode=="cafe" and panel!="furniture" and e.position.x>=344 and e.position.y<34:
+  panel="furniture"
+  return
  if panel=="furniture" and e is InputEventScreenTouch and e.pressed:
   var tap:Vector2=e.position
   if tap.y>=65 and tap.y<145:
@@ -428,6 +431,9 @@ func _cafe():
  draw_rect(Rect2(8,7,368,25),Color(0.035,0.025,0.06,0.94))
  draw_string(font,Vector2(15,24),"DAY "+str(StarlightGameState.day)+" • "+("NIGHT" if night else "DAY"),HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("#f6dfad"))
  draw_string(font,Vector2(126,24),"E USE   I BAG   R RECIPES   Q QUEST   B FURNITURE   V VILLAGE",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#d8cfe4"))
+ draw_rect(Rect2(345,8,31,18),Color("#624963"))
+ draw_rect(Rect2(347,10,27,14),Color("#d0a765"),false,1)
+ draw_string(font,Vector2(351,20),"SHOP",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#fff0c8"))
  draw_string(font,Vector2(15,210),"P SAVE   F SETTINGS   L LANGUAGE",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#d8cfe4"))
  if cooking!="":
   draw_rect(Rect2(110,105,164,17),Color(0.055,0.035,0.075,0.95))
