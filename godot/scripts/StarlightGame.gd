@@ -28,6 +28,12 @@ var near_target := ""
 var ui_pulse := 0.0
 var capture_clock := 0.0
 var selected_furniture_index := 0
+var village_npc_positions: Dictionary = {
+ "mina": Vector2(108, 92),
+ "bram": Vector2(142, 116),
+ "hana": Vector2(307, 145)
+}
+var village_npc_walk_clock := 0.0
 
 var recipes := {
  "moon_mushroom_soup":{"name":"Moonlight Mushroom Soup","ingredients":{"moon_mushroom":1,"village_herb":2,"milk":1,"salt":1},"spirit":"spirit_001"},
@@ -63,6 +69,9 @@ func _process(delta):
  msg_time=maxf(0,msg_time-delta)
  ui_pulse += delta
  StarlightWorldDirector.sync_phase(StarlightGameState.phase)
+ village_npc_walk_clock += delta
+ if mode=="village":
+  _update_village_npcs(delta)
  var cap:=OS.get_environment("STARLIGHT_CAPTURE")
  if cap!="":
   capture_clock += delta
@@ -265,13 +274,15 @@ func _village_interact():
     else:
      _say(_t("Paudha badh raha hai. Agle din phir aana.","The crop is growing. Return after the next day."),2)
    return
- if p.distance_to(Vector2(142,116))<22: StarlightGameState.add_item("village_herb",1); _say("Village Herb +1",2); return
- if p.distance_to(Vector2(108,92))<22:
-  StarlightWorldDirector.talk_to_npc("mina")
-  dialogue.begin("Mina",[_t("Bazaar mein fresh herbs aur honey milega.","Fresh herbs and honey are sold here."),_t("Raat se pehle café lautna.","Return before night.")]); return
- if p.distance_to(Vector2(244,86))<22:
-  StarlightWorldDirector.talk_to_npc("bram")
-  dialogue.begin("Bram",[_t("Aaj raat phir roshni dikhegi.","The light will return tonight."),_t("Kuch mehmaan sirf raat ko aate hain.","Some guests only visit at night.")]); return
+ if p.distance_to(Vector2(142,116))<16:
+  StarlightGameState.add_item("village_herb",1)
+  _say("Village Herb +1",2)
+  return
+ for npc_id in ["mina","bram","hana"]:
+  var npc_pos:Vector2 = village_npc_positions.get(npc_id,Vector2(-100,-100))
+  if npc_pos.x>=0 and p.distance_to(npc_pos)<19:
+   _talk_to_village_npc(npc_id)
+   return
  if p.distance_to(Vector2(161,98))<25: dialogue.begin("Innkeeper",[_t("Greenhollow tumhare saath hai.","Greenhollow is with you." )]); return
  if p.distance_to(Vector2(221,136))<25: _say(_t("Mandir ki ghanti bajti hai.","The shrine bell rings softly."),2); return
  if p.distance_to(Vector2(282,130))<22: _say(_t("Kuen mein chaand ka aks hai.","The old well reflects the moon."),2); return
@@ -895,12 +906,92 @@ func _village()->void:
     draw_rect(Rect2(sx-2,plot_pos.y-8-stage,4,3),crop_color)
    if bool(plot.get("watered",false)):
     draw_rect(Rect2(plot_pos.x-6,plot_pos.y+1,3,1),Color("#8fb9cf"))
- # NPCs with readable silhouettes.
- draw_circle(Vector2(108,92),7,Color("#d89b78")); draw_rect(Rect2(103,99,10,12),Color("#6b7894")); draw_rect(Rect2(101,106,14,4),Color("#4a5567"))
- draw_circle(Vector2(244,86),7,Color("#c78b70")); draw_rect(Rect2(239,93,10,12),Color("#8b6a48")); draw_rect(Rect2(237,104,14,4),Color("#5c473e"))
+ # Scheduled residents use distinct pixel silhouettes and nameplates.
+ for npc_id in ["mina","bram","hana"]:
+  var npc_pos:Vector2 = village_npc_positions.get(npc_id,Vector2(-100,-100))
+  if npc_pos.x>=0:
+   _draw_village_npc(npc_id,npc_pos)
  # Yui anchor shadow + sprite drawn by StarlightYui node.
  draw_rect(Rect2(village_player.x-8,village_player.y+22,16,4),Color(0.06,0.04,0.07,0.32))
  draw_string(font,Vector2(58,176),"JOYSTICK / WASD  •  E INTERACT  •  V RETURN",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#ddd1e3"))
+
+func _update_village_npcs(delta: float) -> void:
+ # Smooth, schedule-driven movement between village landmarks.
+ for npc_id in ["mina","bram","hana"]:
+  var target := _village_npc_target(npc_id)
+  var current:Vector2 = village_npc_positions.get(npc_id,target)
+  var speed := 23.0 if npc_id=="bram" else 19.0
+  village_npc_positions[npc_id] = current.move_toward(target,speed*delta)
+
+func _village_npc_target(npc_id: String) -> Vector2:
+ var location := StarlightWorldDirector.npc_location(npc_id)
+ match location:
+  "market": return Vector2(108,92)
+  "garden": return Vector2(142,116)
+  "well": return Vector2(282,130)
+  "home": return Vector2(161,98) + (Vector2(-10,8) if npc_id=="bram" else Vector2(10,8))
+  "shrine": return Vector2(221,128)
+  "orchard": return Vector2(307,145)
+  "spirit_realm", "cafe": return Vector2(-100,-100)
+  _: return Vector2(-100,-100)
+
+func _talk_to_village_npc(npc_id: String) -> void:
+ StarlightWorldDirector.talk_to_npc(npc_id)
+ match npc_id:
+  "mina":
+   dialogue.begin("Mina",[
+    _t("Bazaar mein fresh herbs aur honey milega.","Fresh herbs and honey are sold here."),
+    _t("Mere stall par roz kuch naya milta hai.","There is something new at my stall every day.")
+   ])
+  "bram":
+   dialogue.begin("Bram",[
+    _t("Paudhon ko paani dena mat bhoolna.","Remember to water your crops."),
+    _t("Kuch mehmaan sirf raat ko aate hain.","Some guests only visit at night.")
+   ])
+  "hana":
+   dialogue.begin("Hana",[
+    _t("Is bagiche mein purani yaadein basi hain.","Old memories live in this garden."),
+    _t("Raat ko phoolon ki roshni ko dekho.","Watch the flowers glow at night.")
+   ])
+
+func _draw_village_npc(npc_id: String, p: Vector2) -> void:
+ var outline := Color("#292331")
+ var skin := Color("#d99b79")
+ var hair := Color("#3b2931")
+ var shirt := Color("#6b7894")
+ var accent := Color("#d6b16b")
+ match npc_id:
+  "bram":
+   skin = Color("#c78b70")
+   hair = Color("#574039")
+   shirt = Color("#8b6a48")
+   accent = Color("#5c473e")
+  "hana":
+   skin = Color("#e7b28e")
+   hair = Color("#51406a")
+   shirt = Color("#64835a") if StarlightGameState.phase=="day" else Color("#526b68")
+   accent = Color("#d9b8ee")
+ draw_rect(Rect2(p.x-7,p.y+12,14,3),Color(0.04,0.03,0.05,0.32))
+ draw_rect(Rect2(p.x-5,p.y+8,4,6),outline)
+ draw_rect(Rect2(p.x+1,p.y+8,4,6),outline)
+ draw_rect(Rect2(p.x-6,p.y-1,12,11),outline)
+ draw_rect(Rect2(p.x-5,p.y,10,9),shirt)
+ draw_rect(Rect2(p.x-3,p.y+2,6,7),accent)
+ draw_rect(Rect2(p.x-8,p.y+1,3,7),shirt)
+ draw_rect(Rect2(p.x+5,p.y+1,3,7),shirt)
+ draw_rect(Rect2(p.x-5,p.y-10,10,9),outline)
+ draw_rect(Rect2(p.x-4,p.y-9,8,7),skin)
+ draw_rect(Rect2(p.x-5,p.y-11,10,3),hair)
+ draw_rect(Rect2(p.x-6,p.y-8,3,7),hair)
+ draw_rect(Rect2(p.x-3,p.y-6,2,2),outline)
+ draw_rect(Rect2(p.x+2,p.y-6,2,2),outline)
+ var label := String(StarlightWorldDirector.NPCS.get(npc_id,{}).get("name",npc_id.capitalize()))
+ draw_rect(Rect2(p.x-17,p.y-24,34,8),Color(0.055,0.04,0.08,0.88))
+ draw_string(font,Vector2(p.x-15,p.y-18),label,HORIZONTAL_ALIGNMENT_LEFT,30,6,Color("#fff0c7"))
+ if npc_id=="hana":
+  draw_rect(Rect2(p.x+5,p.y-12,3,3),accent)
+ if npc_id=="mina":
+  draw_rect(Rect2(p.x+5,p.y-2,3,5),Color("#e6c46e"))
 
 func _draw_counter() -> void:
  draw_rect(Rect2(178,44,86,78),Color("#2a202f"))
