@@ -18,19 +18,8 @@ func _ready() -> void:
     queue_redraw()
 
 func _process(_delta: float) -> void:
-    # Polling is a second, reliable path for Android devices where ScreenDrag
-    # events can be swallowed by the stretched viewport.
-    var count := Input.get_touch_count()
-    if count > 0:
-        var p := _game_pos(Input.get_touch_position(0))
-        if active_touch == -1 and p.distance_to(JOY_CENTER) <= JOY_RADIUS * 1.55:
-            active_touch = 0
-        if active_touch == 0:
-            _update_joystick(p)
-    elif active_touch != -1:
-        active_touch = -1
-        knob = JOY_CENTER
-        move_changed.emit(Vector2.ZERO)
+    # Touch input is handled through InputEventScreenTouch and InputEventScreenDrag.
+    # Input has no get_touch_count/get_touch_position static methods in Godot 4.
     queue_redraw()
 
 func _input(event: InputEvent) -> void:
