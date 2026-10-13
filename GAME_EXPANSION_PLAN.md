@@ -54,7 +54,8 @@ A cozy, story-first 2D pixel RPG for Android and PC. Yui reopens her late father
 - [x] Add a reusable furniture catalog and ownership/placement state foundation.
 - [x] Add a touch-friendly furniture catalog/shop with coin costs, selection and buy/place actions.
 - [x] Render placed furniture as standalone pixel-art props and persist placement in world saves.
-- [ ] Add grid snapping, cross-item collision/overlap validation, placement preview, rotate/undo and upgrade effects.
+- [x] Add 16×8 projected-grid snapping, footprint-based overlap checks across different furniture types, and validation against the café floor/static props.
+- [ ] Add placement preview, rotate/undo and upgrade effects.
 - [ ] Upgrades change customer capacity, comfort, spirit affinity or recipe access—not just decoration.
 - [ ] Furniture remains standalone, license-safe assets and must not be merged into terrain tiles.
 
@@ -84,7 +85,7 @@ A cozy, story-first 2D pixel RPG for Android and PC. Yui reopens her late father
 - [ ] Merge only after review and passing checks; attach build metadata and test notes.
 
 ## Current implementation wave
-This branch adds a modular world director for story flags, NPC schedules/relationships, farming state, furniture ownership/placement, quest data and currency; connects it to the existing autoload/save pipeline; and connects village conversations/customer serving to relationship/reward progression. It includes a touch-friendly furniture catalog/shop, buy/place interactions, separate pixel-art furniture rendering, distinct Aoi/Ren night-spirit interactions, and collision-aware village resident movement. Furniture placement is persisted in saves. Remaining work includes placement snapping/overlap checks, authored sprite sheets and animations, richer maps/story scenes, in-engine tests and Android QA. This is still a work in progress, not a claim that the full game is finished.
+This branch adds a modular world director for story flags, NPC schedules/relationships, farming state, furniture ownership/placement, quest data and currency; connects it to the existing autoload/save pipeline; and connects village conversations/customer serving to relationship/reward progression. It includes a touch-friendly furniture catalog/shop, buy/place interactions, separate pixel-art furniture rendering, distinct Aoi/Ren night-spirit interactions, and collision-aware village resident movement. Furniture placement is persisted in saves. Remaining work includes placement preview/rotate/undo, authored sprite sheets and animations, richer maps/story scenes, in-engine tests and Android QA. This is still a work in progress, not a claim that the full game is finished.
 
 ## Definition of done
 A player can start a new save, reopen the café, move between connected locations, meet scheduled NPCs, gather and grow ingredients, cook and serve dishes, experience a spirit memory, upgrade/place furniture, progress story quests, and save/load without losing progress. Both day and night are visually checked at native pixel scale and on a real Android device.
