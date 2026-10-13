@@ -197,13 +197,22 @@ func load_snapshot(data: Dictionary) -> void:
     if data.is_empty():
         return
     coins = int(data.get("coins", STARTING_COINS))
-    relationships = data.get("relationships", relationships).duplicate(true)
+    # Merge saved values over defaults so older/partial saves retain newly added NPC IDs.
+    relationships = _merge_defaults({"yui": 0, "mina": 0, "bram": 0, "aoi": 0, "ren": 0, "hana": 0}, data.get("relationships", {}))
     farm_plots = data.get("farm_plots", {}).duplicate(true)
     owned_furniture.assign(data.get("owned_furniture", ["oak_cafe_table", "cushioned_stool"]))
     placed_furniture = data.get("placed_furniture", []).duplicate(true)
     quest_status = data.get("quest_status", {"q_reopen_cafe": "active"}).duplicate(true)
     active_quest = String(data.get("active_quest", "q_reopen_cafe"))
     story_chapter = int(data.get("story_chapter", 1))
-    story_flags = data.get("story_flags", story_flags).duplicate(true)
+    # Preserve new story flags when loading a save made before those flags existed.
+    story_flags = _merge_defaults({"father_letter_found": false, "garden_restored": false, "all_spirit_memories": false}, data.get("story_flags", {}))
     day_part = String(data.get("day_part", "day"))
     season = String(data.get("season", "spring"))
+
+func _merge_defaults(defaults: Dictionary, saved: Variant) -> Dictionary:
+    var merged := defaults.duplicate(true)
+    if saved is Dictionary:
+        for key in saved:
+            merged[key] = saved[key]
+    return merged
