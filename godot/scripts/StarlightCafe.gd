@@ -678,7 +678,7 @@ func _diamond(center: Vector2, half_w: float, half_h: float, color: Color) -> vo
     ])
     draw_colored_polygon(pts, color)
 
-func draw_ellipse(center: Vector2, radius: Vector2, color: Color) -> void:
+func _draw_ellipse(center: Vector2, radius: Vector2, color: Color) -> void:
     var points := PackedVector2Array()
     for i in range(24):
         var a := TAU * float(i) / 24.0
