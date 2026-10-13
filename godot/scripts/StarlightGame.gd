@@ -83,7 +83,7 @@ func _process(delta):
   )
   yui.set_motion(vm, vm.length()>.05)
  else:
-  _move_cafe(delta)
+  if panel!="furniture": _move_cafe(delta)
   if cooking!="":
    cook_time+=delta
    if cook_time>=cook_len: _finish_cooking()
@@ -285,7 +285,7 @@ func _furniture_interact() -> void:
   else:
    _say(_t("Coins kam hain ya item pehle se hai.", "Not enough coins or item already owned."),2)
  elif mode=="cafe":
-  if StarlightWorldDirector.place_furniture(furniture_id,player):
+  if StarlightWorldDirector.place_furniture(furniture_id,player+Vector2(14,8)):
    _say(_t("Furniture café mein place ho gaya.", "Furniture placed in the café."),2)
   else:
    _say(_t("Yahan ye furniture pehle se hai.", "This furniture is already placed here."),2)
@@ -427,7 +427,7 @@ func _cafe():
    draw_rect(Rect2(pp.x-2,pp.y-4,5,5),Color("#e8d99a") if not night else Color("#c9b9ff"))
  draw_rect(Rect2(8,7,368,25),Color(0.035,0.025,0.06,0.94))
  draw_string(font,Vector2(15,24),"DAY "+str(StarlightGameState.day)+" • "+("NIGHT" if night else "DAY"),HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("#f6dfad"))
- draw_string(font,Vector2(126,24),"E USE   I BAG   R RECIPES   Q QUEST   B FURNITURE",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#d8cfe4"))
+ draw_string(font,Vector2(126,24),"E USE   I BAG   R RECIPES   Q QUEST   B FURNITURE   V VILLAGE",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#d8cfe4"))
  draw_string(font,Vector2(15,210),"P SAVE   F SETTINGS   L LANGUAGE",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#d8cfe4"))
  if cooking!="":
   draw_rect(Rect2(110,105,164,17),Color(0.055,0.035,0.075,0.95))
