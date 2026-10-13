@@ -26,6 +26,7 @@ renderer/rendering_method.mobile="gl_compatibility"
 StarlightGameState="*res://scripts/StarlightGameState.gd"
 DayNightManager="*res://scripts/DayNightManager.gd"
 StarlightSaveManager="*res://scripts/StarlightSaveManager.gd"
+StarlightWorldDirector="*res://scripts/StarlightWorldDirector.gd"
 
 [input]
 move_up={

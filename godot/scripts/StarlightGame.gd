@@ -27,6 +27,13 @@ var cafe_night_tex: Texture2D
 var near_target := ""
 var ui_pulse := 0.0
 var capture_clock := 0.0
+var selected_furniture_index := 0
+var village_npc_positions: Dictionary = {
+ "mina": Vector2(108, 92),
+ "bram": Vector2(142, 116),
+ "hana": Vector2(307, 145)
+}
+var village_npc_walk_clock := 0.0
 
 var recipes := {
  "moon_mushroom_soup":{"name":"Moonlight Mushroom Soup","ingredients":{"moon_mushroom":1,"village_herb":2,"milk":1,"salt":1},"spirit":"spirit_001"},
@@ -61,6 +68,10 @@ func _ready():
 func _process(delta):
  msg_time=maxf(0,msg_time-delta)
  ui_pulse += delta
+ StarlightWorldDirector.sync_phase(StarlightGameState.phase)
+ village_npc_walk_clock += delta
+ if mode=="village":
+  _update_village_npcs(delta)
  var cap:=OS.get_environment("STARLIGHT_CAPTURE")
  if cap!="":
   capture_clock += delta
@@ -81,7 +92,7 @@ func _process(delta):
   )
   yui.set_motion(vm, vm.length()>.05)
  else:
-  _move_cafe(delta)
+  if panel!="furniture": _move_cafe(delta)
   if cooking!="":
    cook_time+=delta
    if cook_time>=cook_len: _finish_cooking()
@@ -95,6 +106,17 @@ func _input(e):
  if mode=="title":
   if e.is_action_pressed("interact") or (e is InputEventScreenTouch and e.pressed): _start()
   return
+ if e is InputEventScreenTouch and e.pressed and mode=="cafe" and panel!="furniture" and e.position.x>=344 and e.position.y<34:
+  panel="furniture"
+  return
+ if panel=="furniture" and e is InputEventScreenTouch and e.pressed:
+  var tap:Vector2=e.position
+  if tap.y>=65 and tap.y<145:
+   selected_furniture_index=clampi(int((tap.y-65.0)/13.0),0,StarlightWorldDirector.FURNITURE.size()-1)
+  elif tap.y>=145:
+   if tap.x<192: _furniture_interact()
+   else: panel=""
+  return
  if dialogue.active: return
  if e.is_action_pressed("interact"): _interact()
  if e.is_action_pressed("save_game"): _save()
@@ -104,6 +126,9 @@ func _input(e):
    KEY_R: panel="" if panel=="recipes" else "recipes"
    KEY_Q: panel="" if panel=="quest" else "quest"
    KEY_F: panel="" if panel=="settings" else "settings"
+   KEY_B: panel="" if panel=="furniture" else "furniture"
+   KEY_UP: selected_furniture_index=maxi(0,selected_furniture_index-1) if panel=="furniture" else selected_furniture_index
+   KEY_DOWN: selected_furniture_index=mini(StarlightWorldDirector.FURNITURE.size()-1,selected_furniture_index+1) if panel=="furniture" else selected_furniture_index
    KEY_L: language="HI" if language=="EN" else "EN"
    KEY_N: DayNightManager.set_phase("night")
    KEY_D: DayNightManager.set_phase("day")
@@ -179,10 +204,14 @@ func _nearest():
   "grain":Vector2(261,62),
   "counter":Vector2(193,82),
   "door":Vector2(340,164),
-  "spirit":Vector2(221,143),
   "guest_1":Vector2(260,145),
   "guest_2":Vector2(315,150)
  }
+ # Spirits are real, separately addressable guests and only appear at night.
+ if StarlightGameState.phase=="night":
+  t["spirit_aoi"]=Vector2(218,145)
+  if StarlightGameState.day>=2 and int(StarlightGameState.spirit_progress.get("spirit_001",0))>0:
+   t["spirit_ren"]=Vector2(286,153)
  var best=""; var bd=999.0
  for k in t:
   var dd=player.distance_to(t[k])
@@ -190,13 +219,16 @@ func _nearest():
  return best
 
 func _interact():
+ if panel=="furniture": _furniture_interact(); return
+ if panel!="": panel=""; return
  if mode=="village": _village_interact(); return
  var t=_nearest()
  if t=="": _say(_t("Kisi cheez ke paas jao.","Move closer to something."),1.5); return
  if t=="counter": _cook_best(); return
  if t=="door":
   door_open=!door_open; _say(_t("Darwaza khul gaya.","Door opened.") if door_open else _t("Darwaza band hai.","Door closed."),1.5); return
- if t=="spirit": _spirit(); return
+ if t=="spirit_aoi": _spirit("spirit_001"); return
+ if t=="spirit_ren": _spirit("spirit_002"); return
  if t=="guest_1" or t=="guest_2":
   _serve_customer(t)
   return
@@ -216,19 +248,84 @@ func _serve_customer(customer_id:String)->void:
   return
  var served:int=int(StarlightGameState.story_flags.get("customers_served",0))+1
  StarlightGameState.story_flags["customers_served"]=served
+ StarlightWorldDirector.add_coins(12)
+ StarlightWorldDirector.talk_to_npc("mina" if customer_id=="guest_1" else "bram")
  StarlightGameState.current_recipe=""
  _say(_t("Mehmaan ko dish serve ki • "+str(served)+" served","Dish served to guest • "+str(served)+" served"),2.2)
  _quest()
 
 func _village_interact():
  var p=village_player
- if p.distance_to(Vector2(142,116))<22: StarlightGameState.add_item("village_herb",1); _say("Village Herb +1",2); return
- if p.distance_to(Vector2(108,92))<22: dialogue.begin("Mina",[_t("Bazaar mein fresh herbs aur honey milega.","Fresh herbs and honey are sold here."),_t("Raat se pehle café lautna.","Return before night.")]); return
- if p.distance_to(Vector2(244,86))<22: dialogue.begin("Bram",[_t("Aaj raat phir roshni dikhegi.","The light will return tonight."),_t("Kuch mehmaan sirf raat ko aate hain.","Some guests only visit at night.")]); return
+ # Small story-first garden: interact repeatedly to plant, water and harvest.
+ for plot_id in ["garden_plot_1", "garden_plot_2"]:
+  var plot_pos:Vector2 = Vector2(147,139) if plot_id=="garden_plot_1" else Vector2(166,145)
+  if p.distance_to(plot_pos)<19:
+   if not StarlightWorldDirector.farm_plots.has(plot_id):
+    if StarlightWorldDirector.plant_crop(plot_id,"moon_mint"):
+     _say(_t("Moon Mint ke beej laga diye.","Moon Mint seeds planted."),2)
+    else:
+     _say(_t("Beej ke liye 8 coins chahiye.","You need 8 coins for seeds."),2)
+   else:
+    var plot:Dictionary = StarlightWorldDirector.farm_plots[plot_id]
+    var crop_id:=String(plot.get("crop_id","moon_mint"))
+    var mature_stage:=int(StarlightWorldDirector.CROPS.get(crop_id,{}).get("days_to_grow",2))
+    if int(plot.get("stage",0))>=mature_stage:
+     var harvest:Dictionary = StarlightWorldDirector.harvest_crop(plot_id)
+     if not harvest.is_empty():
+      _say(String(harvest["crop_id"]).replace("_"," ").capitalize()+" +"+str(harvest["amount"]),2)
+    elif not bool(plot.get("watered",false)):
+     StarlightWorldDirector.water_crop(plot_id)
+     _say(_t("Paudhe ko paani diya.","Crop watered."),1.5)
+    else:
+     _say(_t("Paudha badh raha hai. Agle din phir aana.","The crop is growing. Return after the next day."),2)
+   return
+ if p.distance_to(Vector2(126,131))<14:
+  StarlightGameState.add_item("village_herb",1)
+  _say("Village Herb +1",2)
+  return
+ for npc_id in ["mina","bram","hana"]:
+  var npc_pos:Vector2 = village_npc_positions.get(npc_id,Vector2(-100,-100))
+  if npc_pos.x>=0 and p.distance_to(npc_pos)<19:
+   _talk_to_village_npc(npc_id)
+   return
  if p.distance_to(Vector2(161,98))<25: dialogue.begin("Innkeeper",[_t("Greenhollow tumhare saath hai.","Greenhollow is with you." )]); return
  if p.distance_to(Vector2(221,136))<25: _say(_t("Mandir ki ghanti bajti hai.","The shrine bell rings softly."),2); return
  if p.distance_to(Vector2(282,130))<22: _say(_t("Kuen mein chaand ka aks hai.","The old well reflects the moon."),2); return
  if p.distance_to(Vector2(213,160))<22: _return_cafe()
+
+func _furniture_interact() -> void:
+ var ids: Array = StarlightWorldDirector.FURNITURE.keys()
+ if ids.is_empty(): return
+ selected_furniture_index=clampi(selected_furniture_index,0,ids.size()-1)
+ var furniture_id:=String(ids[selected_furniture_index])
+ if not furniture_id in StarlightWorldDirector.owned_furniture:
+  if StarlightWorldDirector.buy_furniture(furniture_id):
+   _say(_t("Furniture khareed liya: ", "Furniture purchased: ")+String(StarlightWorldDirector.FURNITURE[furniture_id].name),2)
+  else:
+   _say(_t("Coins kam hain ya item pehle se hai.", "Not enough coins or item already owned."),2)
+ elif mode=="cafe":
+  if StarlightWorldDirector.place_furniture(furniture_id,player+Vector2(14,8)):
+   _say(_t("Furniture café mein place ho gaya.", "Furniture placed in the café."),2)
+  else:
+   _say(_t("Yahan ye furniture pehle se hai.", "This furniture is already placed here."),2)
+ else:
+  _say(_t("Furniture place karne ke liye café mein jao.", "Return to the café to place furniture."),2)
+
+func _furniture_lines() -> Array:
+ var lines: Array = []
+ var ids: Array = StarlightWorldDirector.FURNITURE.keys()
+ for i in range(ids.size()):
+  var furniture_id:=String(ids[i])
+  var item: Dictionary = StarlightWorldDirector.FURNITURE[furniture_id]
+  var owned: bool = furniture_id in StarlightWorldDirector.owned_furniture
+  var selected: bool = i==selected_furniture_index
+  var prefix: String = "> " if selected else "  "
+  var status: String = "OWNED" if owned else str(item.get("cost",0))+" coins"
+  lines.append(prefix+String(item.get("name",furniture_id))+" - "+status)
+ lines.append("")
+ lines.append("UP/DOWN SELECT • E BUY/PLACE • B CLOSE")
+ lines.append("Placed items save with your world.")
+ return lines
 
 func _can(id):
  for k in recipes[id].ingredients:
@@ -247,21 +344,46 @@ func _finish_cooking():
  for k in recipes[id].ingredients: StarlightGameState.consume_item(k,int(recipes[id].ingredients[k]))
  StarlightGameState.current_recipe=id; _say(recipes[id].name+" ready!",3); _quest()
 
-func _spirit():
- if StarlightGameState.phase!="night": _say(_t("Raat ko mehmaan aayega.","A guest arrives at night."),2); return
- var sid="spirit_001" if StarlightGameState.day<2 else "spirit_002"
- var s=spirits[sid]
+func _spirit(sid: String = "spirit_001") -> void:
+ if StarlightGameState.phase!="night":
+  _say(_t("Raat ko mehmaan aayega.","A guest arrives at night."),2)
+  return
+ if not spirits.has(sid):
+  return
+ if sid=="spirit_002" and (StarlightGameState.day<2 or int(StarlightGameState.spirit_progress.get("spirit_001",0))<1):
+  dialogue.begin("Ren",[_t("Abhi meri yaadein dhundhli hain.","My memories are still too faint."),_t("Pehle Aoi ki kahani ko roshni do.","First help Aoi recover her memory.")])
+  return
+ var s: Dictionary = spirits[sid]
  if int(StarlightGameState.spirit_progress.get(sid,0))>=1:
-  dialogue.begin(s.name,[_t("Meri kahani ka ek tukda roshan ho gaya.","A piece of my story is lit again."),_t("Kal phir milenge.","See you tomorrow.")]); return
- if StarlightGameState.current_recipe==s.recipe:
-  StarlightGameState.current_recipe=""; StarlightGameState.spirit_progress[sid]=1
+  dialogue.begin(String(s.name),[_t("Meri kahani ka ek tukda roshan ho gaya.","A piece of my story is lit again."),_t("Is café ki roshni mujhe ghar jaisi lagti hai.","This café's light feels like home.")])
+  return
+ if StarlightGameState.current_recipe==String(s.recipe):
+  StarlightGameState.current_recipe=""
+  StarlightGameState.spirit_progress[sid]=1
+  StarlightWorldDirector.talk_to_npc("aoi" if sid=="spirit_001" else "ren")
   if sid=="spirit_001":
-   dialogue.begin("Aoi",[_t("Yeh soup bilkul ghar jaisi hai.","This soup tastes like home."),_t("Mujhe yaad aa gaya main yahan kyun aati thi.","I remember why I came here.")])
-   if "starlight_tea" not in StarlightGameState.unlocked_recipes: StarlightGameState.unlocked_recipes.append("starlight_tea")
+   dialogue.begin("Aoi",[_t("Yeh soup bilkul ghar jaisi hai.","This soup tastes just like home."),_t("Mujhe yaad aa gaya main yahan kyun aati thi.","I remember why I used to come here."),_t("Papa ke café mein ek aur rooh intezaar kar rahi hai.","Another spirit is waiting in Papa's café.")])
+   if "starlight_tea" not in StarlightGameState.unlocked_recipes:
+    StarlightGameState.unlocked_recipes.append("starlight_tea")
+   if "dawn_porridge" not in StarlightGameState.unlocked_recipes:
+    StarlightGameState.unlocked_recipes.append("dawn_porridge")
+   StarlightWorldDirector.story_flags["father_letter_found"]=true
+   _quest()
+   if String(StarlightWorldDirector.quest_status.get("q_aoi_memory",""))=="active":
+    StarlightWorldDirector.complete_quest("q_aoi_memory")
   else:
-   dialogue.begin("Ren",[_t("Dawn porridge meri maa banati thi.","My mother made dawn porridge."),_t("Tumne meri subah wapas kar di.","You gave me my morning back.")])
-  _quest()
- else: dialogue.begin(s.name,[_t("Mujhe meri favorite dish chahiye.","I need my favorite dish."),_t("Kya tum banaogi?","Will you make it?")])
+   dialogue.begin("Ren",[_t("Dawn porridge meri maa banati thi.","My mother used to make dawn porridge."),_t("Uski khushboo se mujhe apna ghar yaad aa gaya.","Its scent brought my home back to me."),_t("Subah ka intezaar ab itna tanha nahi lagega.","Waiting for morning won't feel so lonely now.")])
+   StarlightWorldDirector.story_flags["all_spirit_memories"]=true
+   _quest()
+   if String(StarlightWorldDirector.quest_status.get("q_ren_dawn",""))=="active":
+    StarlightWorldDirector.complete_quest("q_ren_dawn")
+ else:
+  var request_line := _t("Mujhe meri favorite dish chahiye.","I am hoping for my favorite dish.")
+  var recipe_line := _t("Kya tum banaogi?","Could you make it for me?")
+  if sid=="spirit_001":
+   dialogue.begin("Aoi",[request_line,_t("Moonlight Mushroom Soup ki khushboo mujhe ghar yaad dilati hai.","The smell of Moonlight Mushroom Soup reminds me of home."),recipe_line])
+  else:
+   dialogue.begin("Ren",[request_line,_t("Dawn Porridge ki ek bowl se shayad mujhe woh subah yaad aa jaye.","A bowl of Dawn Porridge might help me remember that morning."),recipe_line])
 
 func _quest():
  if quest_stage==0 and int(StarlightGameState.inventory.get("moon_mushroom",0))>0: quest_stage=1
@@ -270,6 +392,11 @@ func _quest():
  if quest_stage==3 and "starlight_tea" in StarlightGameState.unlocked_recipes: quest_stage=4
  if quest_stage==4 and StarlightGameState.day>=2: quest_stage=5
  StarlightGameState.story_flags["quest_stage"]=quest_stage
+ StarlightWorldDirector.story_chapter=2 if quest_stage>=4 else 1
+ if quest_stage>=2: StarlightWorldDirector.unlock_quest("q_aoi_memory")
+ if quest_stage>=3: StarlightWorldDirector.unlock_quest("q_village_garden")
+ if quest_stage>=4: StarlightWorldDirector.unlock_quest("q_hana_garden")
+ if quest_stage>=5: StarlightWorldDirector.unlock_quest("q_ren_dawn")
 
 func _quest_text():
  return [_t("Quest: Moon mushroom dhoondo.","Quest: Find a moon mushroom."),_t("Quest: Moonlight Mushroom Soup banao.","Quest: Cook Moonlight Mushroom Soup."),_t("Quest: Aoi ko soup serve karo.","Quest: Serve soup to Aoi."),_t("Chapter 1 complete — Starlight Tea unlock.","Chapter 1 complete — Starlight Tea unlocked."),_t("Chapter 2: Dawn Porridge ke ingredients dhoondo.","Chapter 2: Find Dawn Porridge ingredients."),_t("Chapter 2 complete — Ren ki kahani roshan hui.","Chapter 2 complete — Ren's story is lit.")][min(quest_stage,5)]
@@ -332,19 +459,75 @@ func _title():
 
 
 
+func _draw_spirit_character(spirit_id: String, anchor: Vector2) -> void:
+ # Crisp, hand-drawn pixel silhouettes: no camera zooms or generated close-ups.
+ var bob := sin(ui_pulse*2.1+(0.8 if spirit_id=="ren" else 0.0))*1.0
+ var p := anchor+Vector2(0,bob)
+ var aoi := spirit_id=="aoi"
+ var aura := Color("#9adce0") if aoi else Color("#c5a4f5")
+ var robe := Color("#a7d8d1") if aoi else Color("#aaa0e4")
+ var shade := Color("#426779") if aoi else Color("#574b83")
+ var hair := Color("#263449") if aoi else Color("#382d4d")
+ # Stepped square motes and a soft pixel halo establish the supernatural look.
+ draw_rect(Rect2(p.x-10,p.y-22,20,27),Color(aura.r,aura.g,aura.b,0.07))
+ draw_rect(Rect2(p.x-7,p.y-19,14,21),Color(aura.r,aura.g,aura.b,0.10))
+ for i in range(4):
+  var mx := p.x+float(((i*7+int(ui_pulse*3.0))%17)-8)
+  var my := p.y-23.0-float((i*5)%9)
+  draw_rect(Rect2(mx,my,2,2),Color(aura.r,aura.g,aura.b,0.55))
+ # Hair silhouette, face, and two-pixel eyes.
+ draw_rect(Rect2(p.x-6,p.y-20,12,8),hair)
+ draw_rect(Rect2(p.x-7,p.y-17,14,5),hair)
+ draw_rect(Rect2(p.x-5,p.y-15,10,8),Color("#f0d3bd") if aoi else Color("#d9c8d8"))
+ draw_rect(Rect2(p.x-3,p.y-12,2,1),Color("#293044"))
+ draw_rect(Rect2(p.x+2,p.y-12,2,1),Color("#293044"))
+ if aoi:
+  draw_rect(Rect2(p.x-7,p.y-16,3,9),hair)
+  draw_rect(Rect2(p.x+4,p.y-16,3,10),hair)
+  draw_rect(Rect2(p.x-8,p.y-8,4,3),Color("#6aa6b0"))
+  draw_rect(Rect2(p.x+4,p.y-8,4,3),Color("#6aa6b0"))
+ else:
+  draw_rect(Rect2(p.x-8,p.y-18,3,7),hair)
+  draw_rect(Rect2(p.x+5,p.y-18,3,7),hair)
+  draw_rect(Rect2(p.x-7,p.y-21,5,3),Color("#e6d9f6"))
+  draw_rect(Rect2(p.x+3,p.y-21,5,3),Color("#e6d9f6"))
+ # Floating robe and sleeves.
+ draw_colored_polygon(PackedVector2Array([
+  p+Vector2(-5,-7),p+Vector2(5,-7),p+Vector2(8,5),p+Vector2(0,9),p+Vector2(-8,5)
+ ]),robe)
+ draw_rect(Rect2(p.x-8,p.y-5,4,7),shade)
+ draw_rect(Rect2(p.x+4,p.y-5,4,7),shade)
+ draw_rect(Rect2(p.x-3,p.y-4,6,2),aura)
+ draw_rect(Rect2(p.x-5,p.y+6,10,2),shade)
+ draw_rect(Rect2(p.x-2,p.y+9,4,2),Color(aura.r,aura.g,aura.b,0.75))
+ var label := "AOI • MEMORY" if aoi else "REN • LOST MORNING"
+ var label_width := 58 if aoi else 75
+ draw_rect(Rect2(p.x-label_width*0.5-2,p.y+12,label_width+4,9),Color(0.035,0.025,0.07,0.88))
+ draw_string(font,Vector2(p.x-label_width*0.5,p.y+19),label,HORIZONTAL_ALIGNMENT_LEFT,label_width,5,Color("#c9f2ed") if aoi else Color("#e2d4ff"))
+
+
 func _cafe():
  var night=StarlightGameState.phase=="night"
  # Render the actual café world first. HUD and touch controls sit above this layer.
  # CafeVisual owns the world art. This node draws gameplay/HUD only.
+ if night:
+  _draw_spirit_character("aoi",Vector2(218,145))
+  if StarlightGameState.day>=2 and int(StarlightGameState.spirit_progress.get("spirit_001",0))>0:
+   _draw_spirit_character("ren",Vector2(286,153))
  _draw_interaction_hint(night)
  var points={"moon_mushroom":Vector2(115,174),"village_herb":Vector2(331,160),"milk":Vector2(207,62),"salt":Vector2(225,62),"honey":Vector2(243,62),"grain":Vector2(261,62)}
  for id in points:
   if not gathered.has(str(StarlightGameState.day)+"_"+id):
    var pp:Vector2=points[id]
    draw_rect(Rect2(pp.x-2,pp.y-4,5,5),Color("#e8d99a") if not night else Color("#c9b9ff"))
- draw_rect(Rect2(8,7,368,25),Color(0.035,0.025,0.06,0.94))
- draw_string(font,Vector2(15,24),"DAY "+str(StarlightGameState.day)+" • "+("NIGHT" if night else "DAY"),HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("#f6dfad"))
- draw_string(font,Vector2(126,24),"E USE   I BAG   R RECIPES   Q QUEST   V VILLAGE",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#d8cfe4"))
+ # Two clean HUD rows keep status and controls readable at the 384x216 logical resolution.
+ draw_rect(Rect2(8,7,368,30),Color(0.035,0.025,0.06,0.94))
+ draw_string(font,Vector2(15,19),"DAY "+str(StarlightGameState.day)+" • "+("NIGHT" if night else "DAY"),HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("#f6dfad"))
+ draw_string(font,Vector2(215,19),"COINS "+str(StarlightWorldDirector.coins),HORIZONTAL_ALIGNMENT_LEFT,80,8,Color("#f2c77d"))
+ draw_string(font,Vector2(15,31),"E USE  I BAG  R RECIPES  Q QUEST  B FURNITURE  V VILLAGE",HORIZONTAL_ALIGNMENT_LEFT,-1,5,Color("#d8cfe4"))
+ draw_rect(Rect2(345,8,31,18),Color("#624963"))
+ draw_rect(Rect2(347,10,27,14),Color("#d0a765"),false,1)
+ draw_string(font,Vector2(351,20),"SHOP",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#fff0c8"))
  draw_string(font,Vector2(15,210),"P SAVE   F SETTINGS   L LANGUAGE",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("#d8cfe4"))
  if cooking!="":
   draw_rect(Rect2(110,105,164,17),Color(0.055,0.035,0.075,0.95))
@@ -357,6 +540,7 @@ func _cafe():
  if panel=="recipes": _panel("RECIPES",_recipes())
  if panel=="quest": _panel("QUEST",[_quest_text(),"","Q / CLOSE"])
  if panel=="settings": _panel("SETTINGS",["L Language: "+language,"N Night • D Day","V Village • P Save","F Close"])
+ if panel=="furniture": _draw_furniture_panel()
 
 func _draw_room_shell(night:bool)->void:
  var wall_base=Color("#482d35") if night else Color("#934f4b")
@@ -786,12 +970,109 @@ func _village()->void:
   draw_line(p+Vector2(0,-13),p+Vector2(0,4),Color("#2d2730"),2)
   draw_rect(Rect2(p.x-4,p.y-14,8,7),Color("#8e5d42"))
   draw_rect(Rect2(p.x-2,p.y-13,4,5),Color("#efbd62"))
- # NPCs with readable silhouettes.
- draw_circle(Vector2(108,92),7,Color("#d89b78")); draw_rect(Rect2(103,99,10,12),Color("#6b7894")); draw_rect(Rect2(101,106,14,4),Color("#4a5567"))
- draw_circle(Vector2(244,86),7,Color("#c78b70")); draw_rect(Rect2(239,93,10,12),Color("#8b6a48")); draw_rect(Rect2(237,104,14,4),Color("#5c473e"))
+ # Player-owned garden plots reflect persistent growth state.
+ for plot_entry in [{"id":"garden_plot_1","pos":Vector2(147,139)},{"id":"garden_plot_2","pos":Vector2(166,145)}]:
+  var plot_id:String = plot_entry["id"]
+  var plot_pos:Vector2 = plot_entry["pos"]
+  draw_colored_polygon(PackedVector2Array([plot_pos+Vector2(-9,-4),plot_pos+Vector2(0,-8),plot_pos+Vector2(9,-4),plot_pos+Vector2(0,0)]),Color("#493b32"))
+  draw_colored_polygon(PackedVector2Array([plot_pos+Vector2(-9,-4),plot_pos+Vector2(0,0),plot_pos+Vector2(0,4),plot_pos+Vector2(-9,0)]),Color("#5b4032"))
+  draw_colored_polygon(PackedVector2Array([plot_pos+Vector2(0,0),plot_pos+Vector2(9,-4),plot_pos+Vector2(9,0),plot_pos+Vector2(0,4)]),Color("#49352e"))
+  if StarlightWorldDirector.farm_plots.has(plot_id):
+   var plot:Dictionary = StarlightWorldDirector.farm_plots[plot_id]
+   var stage:int = int(plot.get("stage",0))
+   var crop_color:Color = Color("#8ab45b") if stage>0 else Color("#d2bd78")
+   for sprout in range(stage+1):
+    var sx:float = plot_pos.x-4.0+float(sprout%3)*4.0
+    draw_line(Vector2(sx,plot_pos.y-2),Vector2(sx-1,plot_pos.y-7-stage),Color("#477448"),1)
+    draw_rect(Rect2(sx-2,plot_pos.y-8-stage,4,3),crop_color)
+   if bool(plot.get("watered",false)):
+    draw_rect(Rect2(plot_pos.x-6,plot_pos.y+1,3,1),Color("#8fb9cf"))
+ # Scheduled residents use distinct pixel silhouettes and nameplates.
+ for npc_id in ["mina","bram","hana"]:
+  var npc_pos:Vector2 = village_npc_positions.get(npc_id,Vector2(-100,-100))
+  if npc_pos.x>=0:
+   _draw_village_npc(npc_id,npc_pos)
  # Yui anchor shadow + sprite drawn by StarlightYui node.
  draw_rect(Rect2(village_player.x-8,village_player.y+22,16,4),Color(0.06,0.04,0.07,0.32))
  draw_string(font,Vector2(58,176),"JOYSTICK / WASD  •  E INTERACT  •  V RETURN",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#ddd1e3"))
+
+func _update_village_npcs(delta: float) -> void:
+ # Smooth, schedule-driven movement between village landmarks.
+ for npc_id in ["mina","bram","hana"]:
+  var target := _village_npc_target(npc_id)
+  var current:Vector2 = village_npc_positions.get(npc_id,target)
+  var speed := 23.0 if npc_id=="bram" else 19.0
+  village_npc_positions[npc_id] = current.move_toward(target,speed*delta)
+
+func _village_npc_target(npc_id: String) -> Vector2:
+ var location := StarlightWorldDirector.npc_location(npc_id)
+ match location:
+  "market": return Vector2(108,92)
+  "garden": return Vector2(142,116)
+  "well": return Vector2(305,130)
+  "home": return Vector2(161,98) + (Vector2(-10,8) if npc_id=="bram" else Vector2(10,8))
+  "shrine": return Vector2(259,126)
+  "orchard": return Vector2(317,130)
+  "spirit_realm", "cafe": return Vector2(-100,-100)
+  _: return Vector2(-100,-100)
+
+func _talk_to_village_npc(npc_id: String) -> void:
+ StarlightWorldDirector.talk_to_npc(npc_id)
+ match npc_id:
+  "mina":
+   dialogue.begin("Mina",[
+    _t("Bazaar mein fresh herbs aur honey milega.","Fresh herbs and honey are sold here."),
+    _t("Mere stall par roz kuch naya milta hai.","There is something new at my stall every day.")
+   ])
+  "bram":
+   dialogue.begin("Bram",[
+    _t("Paudhon ko paani dena mat bhoolna.","Remember to water your crops."),
+    _t("Kuch mehmaan sirf raat ko aate hain.","Some guests only visit at night.")
+   ])
+  "hana":
+   dialogue.begin("Hana",[
+    _t("Is bagiche mein purani yaadein basi hain.","Old memories live in this garden."),
+    _t("Raat ko phoolon ki roshni ko dekho.","Watch the flowers glow at night.")
+   ])
+
+func _draw_village_npc(npc_id: String, p: Vector2) -> void:
+ var outline := Color("#292331")
+ var skin := Color("#d99b79")
+ var hair := Color("#3b2931")
+ var shirt := Color("#6b7894")
+ var accent := Color("#d6b16b")
+ match npc_id:
+  "bram":
+   skin = Color("#c78b70")
+   hair = Color("#574039")
+   shirt = Color("#8b6a48")
+   accent = Color("#5c473e")
+  "hana":
+   skin = Color("#e7b28e")
+   hair = Color("#51406a")
+   shirt = Color("#64835a") if StarlightGameState.phase=="day" else Color("#526b68")
+   accent = Color("#d9b8ee")
+ draw_rect(Rect2(p.x-7,p.y+12,14,3),Color(0.04,0.03,0.05,0.32))
+ draw_rect(Rect2(p.x-5,p.y+8,4,6),outline)
+ draw_rect(Rect2(p.x+1,p.y+8,4,6),outline)
+ draw_rect(Rect2(p.x-6,p.y-1,12,11),outline)
+ draw_rect(Rect2(p.x-5,p.y,10,9),shirt)
+ draw_rect(Rect2(p.x-3,p.y+2,6,7),accent)
+ draw_rect(Rect2(p.x-8,p.y+1,3,7),shirt)
+ draw_rect(Rect2(p.x+5,p.y+1,3,7),shirt)
+ draw_rect(Rect2(p.x-5,p.y-10,10,9),outline)
+ draw_rect(Rect2(p.x-4,p.y-9,8,7),skin)
+ draw_rect(Rect2(p.x-5,p.y-11,10,3),hair)
+ draw_rect(Rect2(p.x-6,p.y-8,3,7),hair)
+ draw_rect(Rect2(p.x-3,p.y-6,2,2),outline)
+ draw_rect(Rect2(p.x+2,p.y-6,2,2),outline)
+ var label := String(StarlightWorldDirector.NPCS.get(npc_id,{}).get("name",npc_id.capitalize()))
+ draw_rect(Rect2(p.x-17,p.y-24,34,8),Color(0.055,0.04,0.08,0.88))
+ draw_string(font,Vector2(p.x-15,p.y-18),label,HORIZONTAL_ALIGNMENT_LEFT,30,6,Color("#fff0c7"))
+ if npc_id=="hana":
+  draw_rect(Rect2(p.x+5,p.y-12,3,3),accent)
+ if npc_id=="mina":
+  draw_rect(Rect2(p.x+5,p.y-2,3,5),Color("#e6c46e"))
 
 func _draw_counter() -> void:
  draw_rect(Rect2(178,44,86,78),Color("#2a202f"))
@@ -816,6 +1097,29 @@ func _draw_chair(p: Vector2) -> void:
  draw_rect(Rect2(p+Vector2(-8,-8),Vector2(16,5)),Color("#b8784c"))
  draw_line(p+Vector2(-7,8),p+Vector2(-10,17),Color("#3b2b31"),3)
  draw_line(p+Vector2(7,8),p+Vector2(10,17),Color("#3b2b31"),3)
+
+
+func _draw_furniture_panel() -> void:
+ draw_rect(Rect2(42,25,300,166),Color(0.035,0.025,0.07,0.98))
+ draw_rect(Rect2(44,27,296,162),Color("#73516f"),false,2)
+ draw_string(font,Vector2(57,44),"FURNITURE SHOP  •  COINS "+str(StarlightWorldDirector.coins),HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("#ffe8ae"))
+ var ids:Array=StarlightWorldDirector.FURNITURE.keys()
+ for i in range(ids.size()):
+  var furniture_id:=String(ids[i])
+  var item:Dictionary=StarlightWorldDirector.FURNITURE[furniture_id]
+  var y:=64+i*13
+  if i==selected_furniture_index:
+   draw_rect(Rect2(52,y-9,280,12),Color("#634b6a"))
+  var owned:bool=furniture_id in StarlightWorldDirector.owned_furniture
+  var label: String=("> " if i==selected_furniture_index else "  ")+String(item.get("name",furniture_id))
+  var status: String="OWNED" if owned else str(item.get("cost",0))+"c"
+  draw_string(font,Vector2(58,y),label,HORIZONTAL_ALIGNMENT_LEFT,218,7,Color("#fff0ce") if i==selected_furniture_index else Color("#e8dce8"))
+  draw_string(font,Vector2(290,y),status,HORIZONTAL_ALIGNMENT_RIGHT,35,7,Color("#aee0a0") if owned else Color("#f2c47d"))
+ draw_rect(Rect2(52,148,135,25),Color("#4d714f"))
+ draw_rect(Rect2(194,148,138,25),Color("#533d5b"))
+ draw_string(font,Vector2(63,164),"TAP: BUY / PLACE",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#f4f0d2"))
+ draw_string(font,Vector2(218,164),"TAP: CLOSE",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("#f4e6f4"))
+
 
 func _panel(title,lines):
  draw_rect(Rect2(48,45,288,118),Color(0.035,0.025,0.07,0.97)); draw_rect(Rect2(50,47,284,114),Color("#73516f"),false,2)

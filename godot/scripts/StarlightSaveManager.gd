@@ -15,7 +15,8 @@ func save_game() -> bool:
         "spirit_progress": StarlightGameState.spirit_progress,
         "cafe_opened": StarlightGameState.cafe_opened,
         "current_recipe": StarlightGameState.current_recipe,
-        "story_flags": StarlightGameState.story_flags
+        "story_flags": StarlightGameState.story_flags,
+        "world_director": StarlightWorldDirector.get_snapshot()
     }
     var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
     if file == null:
@@ -46,4 +47,5 @@ func load_game() -> bool:
     StarlightGameState.cafe_opened = bool(parsed.get("cafe_opened", false))
     StarlightGameState.current_recipe = str(parsed.get("current_recipe", ""))
     StarlightGameState.story_flags = parsed.get("story_flags", {})
+    StarlightWorldDirector.load_snapshot(parsed.get("world_director", {}))
     return true

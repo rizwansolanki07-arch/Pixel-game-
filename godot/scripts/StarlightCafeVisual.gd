@@ -146,6 +146,8 @@ func _draw() -> void:
   draw_rect(Rect2(p.x-2,p.y-2,4,3),gold)
  _detail_pass(night)
  _reference_detail_pass(night)
+ _draw_visual_polish(night)
+ _draw_placed_furniture(night)
  if night:
   for p in [Vector2(143,53),Vector2(235,53),Vector2(281,84)]:
    draw_circle(p,16,Color(1.0,0.66,0.27,0.07))
@@ -153,6 +155,57 @@ func _draw() -> void:
    var mx=28+(i*47)%330
    var my=43+(i*29)%130
    draw_rect(Rect2(mx,my,2,2),Color(0.75,0.67,1.0,0.42))
+
+
+func _draw_placed_furniture(night: bool) -> void:
+ # Furniture is rendered as independent props, never baked into the floor tiles.
+ var outline := Color("#241b27") if not night else Color("#171522")
+ var wood := Color("#8b563b") if not night else Color("#56383d")
+ var highlight := Color("#d49a58") if not night else Color("#95616d")
+ for placed in StarlightWorldDirector.placed_furniture:
+  var furniture_id := String(placed.get("id", ""))
+  var saved_position: Array = placed.get("position", [190.0, 150.0])
+  if saved_position.size() < 2:
+   continue
+  var p := Vector2(float(saved_position[0]), float(saved_position[1]))
+  match furniture_id:
+   "oak_cafe_table":
+    draw_colored_polygon(PackedVector2Array([p+Vector2(0,-7),p+Vector2(13,0),p+Vector2(0,7),p+Vector2(-13,0)]),outline)
+    draw_colored_polygon(PackedVector2Array([p+Vector2(0,-6),p+Vector2(11,0),p+Vector2(0,5),p+Vector2(-11,0)]),wood)
+    draw_line(p+Vector2(-7,0),p+Vector2(0,3),highlight,1)
+    draw_line(p+Vector2(-5,4),p+Vector2(-6,11),outline,2)
+    draw_line(p+Vector2(5,4),p+Vector2(6,11),outline,2)
+   "cushioned_stool":
+    draw_rect(Rect2(p.x-5,p.y-3,10,6),outline)
+    draw_rect(Rect2(p.x-4,p.y-3,8,4),Color("#9d5357") if not night else Color("#69405a"))
+    draw_line(p+Vector2(-3,2),p+Vector2(-4,8),wood,2)
+    draw_line(p+Vector2(3,2),p+Vector2(4,8),wood,2)
+   "moon_lantern":
+    draw_rect(Rect2(p.x-4,p.y-7,8,10),outline)
+    draw_rect(Rect2(p.x-2,p.y-5,4,6),Color("#ffe19a") if not night else Color("#d9c2ff"))
+    draw_line(p+Vector2(-3,-8),p+Vector2(3,-8),highlight,1)
+    draw_circle(p+Vector2(0,-1),8,Color(1.0,0.72,0.35,0.10) if not night else Color(0.72,0.58,1.0,0.12))
+   "herb_planter":
+    draw_rect(Rect2(p.x-6,p.y-2,12,7),outline)
+    draw_rect(Rect2(p.x-5,p.y-1,10,5),wood)
+    for offset in [Vector2(-4,-4),Vector2(0,-7),Vector2(4,-4)]:
+     draw_rect(Rect2(p+offset,Vector2(4,4)),Color("#5c8c52") if not night else Color("#456b59"))
+    draw_rect(Rect2(p.x-1,p.y-5,2,2),highlight)
+   "memory_shelf":
+    draw_rect(Rect2(p.x-8,p.y-11,16,17),outline)
+    draw_rect(Rect2(p.x-6,p.y-9,12,13),wood)
+    draw_rect(Rect2(p.x-6,p.y-3,12,2),highlight)
+    for i in range(3):
+     draw_rect(Rect2(p.x-5+i*4,p.y-7,3,3),[Color("#c97c58"),Color("#78966b"),Color("#d9b86c")][i])
+     draw_rect(Rect2(p.x-5+i*4,p.y-1,3,3),[Color("#d7b66b"),Color("#8c7da9"),Color("#6e9a87")][i])
+   "starry_rug":
+    draw_colored_polygon(PackedVector2Array([p+Vector2(0,-7),p+Vector2(13,0),p+Vector2(0,7),p+Vector2(-13,0)]),Color("#5e426e") if not night else Color("#3f345c"))
+    draw_polyline(PackedVector2Array([p+Vector2(0,-5),p+Vector2(10,0),p+Vector2(0,5),p+Vector2(-10,0),p+Vector2(0,-5)]),highlight,1)
+    draw_rect(Rect2(p.x-1,p.y-1,2,2),Color("#ffe4a1") if not night else Color("#e5d8ff"))
+   _:
+    draw_rect(Rect2(p.x-4,p.y-4,8,8),outline)
+    draw_rect(Rect2(p.x-2,p.y-2,4,4),highlight)
+
 
 func _detail_pass(night:bool)->void:
  # Dense but readable handcrafted props, aligned to the 2:1 floor perspective.
@@ -382,3 +435,52 @@ func _guest(p:Vector2,skin:Color,cloth:Color,hat:bool)->void:
  draw_colored_polygon(PackedVector2Array([p+Vector2(-5,-1),p+Vector2(5,-1),p+Vector2(7,9),p+Vector2(-7,9)]),cloth)
  draw_rect(Rect2(p.x-5,p.y+9,4,5),Color("#2f2931"))
  draw_rect(Rect2(p.x+1,p.y+9,4,5),Color("#2f2931"))
+
+
+func _draw_visual_polish(night: bool) -> void:
+ # Final pixel-art polish pass: layered lantern light, crisp window reflections,
+ # warm wood highlights and tiny readable café-life details. No external assets.
+ var ink := Color("#241b27") if not night else Color("#171522")
+ var warm := Color("#f4c16f") if not night else Color("#ffd18a")
+ var glass := Color("#b6c8a0") if not night else Color("#e6b777")
+ var wood := Color("#d69a5b") if not night else Color("#92666a")
+
+ # Layered square lantern halos keep the lighting pixel-art friendly.
+ for p in [Vector2(143, 53), Vector2(235, 53), Vector2(281, 84)]:
+  draw_rect(Rect2(p.x - 7, p.y - 7, 14, 14), Color(warm.r, warm.g, warm.b, 0.035))
+  draw_rect(Rect2(p.x - 4, p.y - 4, 8, 8), Color(warm.r, warm.g, warm.b, 0.075))
+  draw_rect(Rect2(p.x - 2, p.y - 3, 4, 5), warm)
+  draw_rect(Rect2(p.x - 1, p.y - 5, 2, 2), Color("#fff0bf"))
+
+ # Window panes get a distinct frame, sill and two pixel glints.
+ for p in [Vector2(84, 61), Vector2(298, 61)]:
+  draw_rect(Rect2(p.x - 13, p.y - 13, 26, 24), ink)
+  draw_rect(Rect2(p.x - 10, p.y - 10, 20, 18), Color("#4c665d") if not night else Color("#35354e"))
+  draw_rect(Rect2(p.x - 8, p.y - 8, 7, 6), glass)
+  draw_rect(Rect2(p.x + 2, p.y - 7, 5, 2), Color("#d7e4bd") if not night else Color("#f2d6a0"))
+  draw_rect(Rect2(p.x - 1, p.y - 10, 2, 18), wood)
+  draw_rect(Rect2(p.x - 12, p.y + 9, 24, 3), wood)
+
+ # Fine wood-grain highlights make the tables feel hand-crafted, not flat.
+ for p in [Vector2(191, 136), Vector2(278, 143), Vector2(220, 170)]:
+  draw_line(p + Vector2(-9, 0), p + Vector2(-2, 2), wood, 1)
+  draw_line(p + Vector2(3, -1), p + Vector2(8, 1), ink, 1)
+  draw_rect(Rect2(p.x - 1, p.y - 4, 3, 2), warm)
+
+ # Small tea cups with a visible rim and handle on the service counter.
+ for p in [Vector2(179, 65), Vector2(215, 57), Vector2(232, 53)]:
+  draw_rect(Rect2(p.x - 3, p.y - 2, 6, 4), Color("#ead9b5"))
+  draw_rect(Rect2(p.x - 2, p.y - 3, 4, 2), Color("#9c6650") if not night else Color("#6b4a58"))
+  draw_rect(Rect2(p.x + 3, p.y - 1, 2, 2), wood)
+  draw_rect(Rect2(p.x - 2, p.y + 2, 4, 1), ink)
+
+ # A few sharp floor highlights define the walkable path without visual clutter.
+ for p in [Vector2(112, 178), Vector2(146, 185), Vector2(258, 183), Vector2(302, 174)]:
+  draw_rect(Rect2(p.x, p.y, 5, 1), Color(wood.r, wood.g, wood.b, 0.55))
+  draw_rect(Rect2(p.x + 6, p.y + 2, 2, 1), Color(ink.r, ink.g, ink.b, 0.55))
+
+ # Door threshold and brass handle receive a stronger silhouette for readability.
+ draw_rect(Rect2(328, 102, 24, 3), ink)
+ draw_rect(Rect2(330, 103, 20, 1), wood)
+ draw_rect(Rect2(340, 130, 3, 4), Color("#f5d17f") if not night else Color("#d7b3e5"))
+ draw_rect(Rect2(331, 162, 18, 2), Color("#b9825d") if not night else Color("#72536e"))
