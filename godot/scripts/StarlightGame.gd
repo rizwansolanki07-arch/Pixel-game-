@@ -27,6 +27,7 @@ var cafe_night_tex: Texture2D
 var near_target := ""
 var ui_pulse := 0.0
 var capture_clock := 0.0
+var selected_furniture_index := 0
 
 var recipes := {
  "moon_mushroom_soup":{"name":"Moonlight Mushroom Soup","ingredients":{"moon_mushroom":1,"village_herb":2,"milk":1,"salt":1},"spirit":"spirit_001"},
@@ -105,6 +106,9 @@ func _input(e):
    KEY_R: panel="" if panel=="recipes" else "recipes"
    KEY_Q: panel="" if panel=="quest" else "quest"
    KEY_F: panel="" if panel=="settings" else "settings"
+   KEY_B: panel="" if panel=="furniture" else "furniture"
+   KEY_UP: selected_furniture_index=maxi(0,selected_furniture_index-1) if panel=="furniture" else selected_furniture_index
+   KEY_DOWN: selected_furniture_index=mini(StarlightWorldDirector.FURNITURE.size()-1,selected_furniture_index+1) if panel=="furniture" else selected_furniture_index
    KEY_L: language="HI" if language=="EN" else "EN"
    KEY_N: DayNightManager.set_phase("night")
    KEY_D: DayNightManager.set_phase("day")
@@ -191,6 +195,8 @@ func _nearest():
  return best
 
 func _interact():
+ if panel=="furniture": _furniture_interact(); return
+ if panel!="": panel=""; return
  if mode=="village": _village_interact(); return
  var t=_nearest()
  if t=="": _say(_t("Kisi cheez ke paas jao.","Move closer to something."),1.5); return
@@ -259,6 +265,40 @@ func _village_interact():
  if p.distance_to(Vector2(221,136))<25: _say(_t("Mandir ki ghanti bajti hai.","The shrine bell rings softly."),2); return
  if p.distance_to(Vector2(282,130))<22: _say(_t("Kuen mein chaand ka aks hai.","The old well reflects the moon."),2); return
  if p.distance_to(Vector2(213,160))<22: _return_cafe()
+
+func _furniture_interact() -> void:
+ var ids: Array = StarlightWorldDirector.FURNITURE.keys()
+ if ids.is_empty(): return
+ selected_furniture_index=clampi(selected_furniture_index,0,ids.size()-1)
+ var furniture_id:=String(ids[selected_furniture_index])
+ if not furniture_id in StarlightWorldDirector.owned_furniture:
+  if StarlightWorldDirector.buy_furniture(furniture_id):
+   _say(_t("Furniture khareed liya: ", "Furniture purchased: ")+String(StarlightWorldDirector.FURNITURE[furniture_id].name),2)
+  else:
+   _say(_t("Coins kam hain ya item pehle se hai.", "Not enough coins or item already owned."),2)
+ elif mode=="cafe":
+  if StarlightWorldDirector.place_furniture(furniture_id,player):
+   _say(_t("Furniture café mein place ho gaya.", "Furniture placed in the café."),2)
+  else:
+   _say(_t("Yahan ye furniture pehle se hai.", "This furniture is already placed here."),2)
+ else:
+  _say(_t("Furniture place karne ke liye café mein jao.", "Return to the café to place furniture."),2)
+
+func _furniture_lines() -> Array:
+ var lines: Array = []
+ var ids: Array = StarlightWorldDirector.FURNITURE.keys()
+ for i in range(ids.size()):
+  var furniture_id:=String(ids[i])
+  var item: Dictionary = StarlightWorldDirector.FURNITURE[furniture_id]
+  var owned: bool = furniture_id in StarlightWorldDirector.owned_furniture
+  var selected: bool = i==selected_furniture_index
+  var prefix: String = "> " if selected else "  "
+  var status: String = "OWNED" if owned else str(item.get("cost",0))+" coins"
+  lines.append(prefix+String(item.get("name",furniture_id))+" - "+status)
+ lines.append("")
+ lines.append("UP/DOWN SELECT • E BUY/PLACE • B CLOSE")
+ lines.append("Placed items save with your world.")
+ return lines
 
 func _can(id):
  for k in recipes[id].ingredients:
@@ -392,6 +432,7 @@ func _cafe():
  if panel=="recipes": _panel("RECIPES",_recipes())
  if panel=="quest": _panel("QUEST",[_quest_text(),"","Q / CLOSE"])
  if panel=="settings": _panel("SETTINGS",["L Language: "+language,"N Night • D Day","V Village • P Save","F Close"])
+ if panel=="furniture": _panel("FURNITURE SHOP",_furniture_lines())
 
 func _draw_room_shell(night:bool)->void:
  var wall_base=Color("#482d35") if night else Color("#934f4b")
