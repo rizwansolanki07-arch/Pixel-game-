@@ -225,6 +225,29 @@ func _serve_customer(customer_id:String)->void:
 
 func _village_interact():
  var p=village_player
+ # Small story-first garden: interact repeatedly to plant, water and harvest.
+ for plot_id in ["garden_plot_1", "garden_plot_2"]:
+  var plot_pos:Vector2 = Vector2(147,139) if plot_id=="garden_plot_1" else Vector2(166,145)
+  if p.distance_to(plot_pos)<19:
+   if not StarlightWorldDirector.farm_plots.has(plot_id):
+    if StarlightWorldDirector.plant_crop(plot_id,"moon_mint"):
+     _say(_t("Moon Mint ke beej laga diye.","Moon Mint seeds planted."),2)
+    else:
+     _say(_t("Beej ke liye 8 coins chahiye.","You need 8 coins for seeds."),2)
+   else:
+    var plot:Dictionary = StarlightWorldDirector.farm_plots[plot_id]
+    var crop_id:=String(plot.get("crop_id","moon_mint"))
+    var mature_stage:=int(StarlightWorldDirector.CROPS.get(crop_id,{}).get("days_to_grow",2))
+    if int(plot.get("stage",0))>=mature_stage:
+     var harvest:Dictionary = StarlightWorldDirector.harvest_crop(plot_id)
+     if not harvest.is_empty():
+      _say(String(harvest["crop_id"]).replace("_"," ").capitalize()+" +"+str(harvest["amount"]),2)
+    elif not bool(plot.get("watered",false)):
+     StarlightWorldDirector.water_crop(plot_id)
+     _say(_t("Paudhe ko paani diya.","Crop watered."),1.5)
+    else:
+     _say(_t("Paudha badh raha hai. Agle din phir aana.","The crop is growing. Return after the next day."),2)
+   return
  if p.distance_to(Vector2(142,116))<22: StarlightGameState.add_item("village_herb",1); _say("Village Herb +1",2); return
  if p.distance_to(Vector2(108,92))<22:
   StarlightWorldDirector.talk_to_npc("mina")
@@ -798,6 +821,23 @@ func _village()->void:
   draw_line(p+Vector2(0,-13),p+Vector2(0,4),Color("#2d2730"),2)
   draw_rect(Rect2(p.x-4,p.y-14,8,7),Color("#8e5d42"))
   draw_rect(Rect2(p.x-2,p.y-13,4,5),Color("#efbd62"))
+ # Player-owned garden plots reflect persistent growth state.
+ for plot_entry in [{"id":"garden_plot_1","pos":Vector2(147,139)},{"id":"garden_plot_2","pos":Vector2(166,145)}]:
+  var plot_id:String = plot_entry["id"]
+  var plot_pos:Vector2 = plot_entry["pos"]
+  draw_colored_polygon(PackedVector2Array([plot_pos+Vector2(-9,-4),plot_pos+Vector2(0,-8),plot_pos+Vector2(9,-4),plot_pos+Vector2(0,0)]),Color("#493b32"))
+  draw_colored_polygon(PackedVector2Array([plot_pos+Vector2(-9,-4),plot_pos+Vector2(0,0),plot_pos+Vector2(0,4),plot_pos+Vector2(-9,0)]),Color("#5b4032"))
+  draw_colored_polygon(PackedVector2Array([plot_pos+Vector2(0,0),plot_pos+Vector2(9,-4),plot_pos+Vector2(9,0),plot_pos+Vector2(0,4)]),Color("#49352e"))
+  if StarlightWorldDirector.farm_plots.has(plot_id):
+   var plot:Dictionary = StarlightWorldDirector.farm_plots[plot_id]
+   var stage:int = int(plot.get("stage",0))
+   var crop_color:Color = Color("#8ab45b") if stage>0 else Color("#d2bd78")
+   for sprout in range(stage+1):
+    var sx:float = plot_pos.x-4.0+float(sprout%3)*4.0
+    draw_line(Vector2(sx,plot_pos.y-2),Vector2(sx-1,plot_pos.y-7-stage),Color("#477448"),1)
+    draw_rect(Rect2(sx-2,plot_pos.y-8-stage,4,3),crop_color)
+   if bool(plot.get("watered",false)):
+    draw_rect(Rect2(plot_pos.x-6,plot_pos.y+1,3,1),Color("#8fb9cf"))
  # NPCs with readable silhouettes.
  draw_circle(Vector2(108,92),7,Color("#d89b78")); draw_rect(Rect2(103,99,10,12),Color("#6b7894")); draw_rect(Rect2(101,106,14,4),Color("#4a5567"))
  draw_circle(Vector2(244,86),7,Color("#c78b70")); draw_rect(Rect2(239,93,10,12),Color("#8b6a48")); draw_rect(Rect2(237,104,14,4),Color("#5c473e"))
