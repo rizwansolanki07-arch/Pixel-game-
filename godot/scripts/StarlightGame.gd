@@ -61,6 +61,7 @@ func _ready():
 func _process(delta):
  msg_time=maxf(0,msg_time-delta)
  ui_pulse += delta
+ StarlightWorldDirector.sync_phase(StarlightGameState.phase)
  var cap:=OS.get_environment("STARLIGHT_CAPTURE")
  if cap!="":
   capture_clock += delta
@@ -216,6 +217,8 @@ func _serve_customer(customer_id:String)->void:
   return
  var served:int=int(StarlightGameState.story_flags.get("customers_served",0))+1
  StarlightGameState.story_flags["customers_served"]=served
+ StarlightWorldDirector.add_coins(12)
+ StarlightWorldDirector.talk_to_npc("mina" if customer_id=="guest_1" else "bram")
  StarlightGameState.current_recipe=""
  _say(_t("Mehmaan ko dish serve ki • "+str(served)+" served","Dish served to guest • "+str(served)+" served"),2.2)
  _quest()
@@ -223,8 +226,12 @@ func _serve_customer(customer_id:String)->void:
 func _village_interact():
  var p=village_player
  if p.distance_to(Vector2(142,116))<22: StarlightGameState.add_item("village_herb",1); _say("Village Herb +1",2); return
- if p.distance_to(Vector2(108,92))<22: dialogue.begin("Mina",[_t("Bazaar mein fresh herbs aur honey milega.","Fresh herbs and honey are sold here."),_t("Raat se pehle café lautna.","Return before night.")]); return
- if p.distance_to(Vector2(244,86))<22: dialogue.begin("Bram",[_t("Aaj raat phir roshni dikhegi.","The light will return tonight."),_t("Kuch mehmaan sirf raat ko aate hain.","Some guests only visit at night.")]); return
+ if p.distance_to(Vector2(108,92))<22:
+  StarlightWorldDirector.talk_to_npc("mina")
+  dialogue.begin("Mina",[_t("Bazaar mein fresh herbs aur honey milega.","Fresh herbs and honey are sold here."),_t("Raat se pehle café lautna.","Return before night.")]); return
+ if p.distance_to(Vector2(244,86))<22:
+  StarlightWorldDirector.talk_to_npc("bram")
+  dialogue.begin("Bram",[_t("Aaj raat phir roshni dikhegi.","The light will return tonight."),_t("Kuch mehmaan sirf raat ko aate hain.","Some guests only visit at night.")]); return
  if p.distance_to(Vector2(161,98))<25: dialogue.begin("Innkeeper",[_t("Greenhollow tumhare saath hai.","Greenhollow is with you." )]); return
  if p.distance_to(Vector2(221,136))<25: _say(_t("Mandir ki ghanti bajti hai.","The shrine bell rings softly."),2); return
  if p.distance_to(Vector2(282,130))<22: _say(_t("Kuen mein chaand ka aks hai.","The old well reflects the moon."),2); return
@@ -270,6 +277,11 @@ func _quest():
  if quest_stage==3 and "starlight_tea" in StarlightGameState.unlocked_recipes: quest_stage=4
  if quest_stage==4 and StarlightGameState.day>=2: quest_stage=5
  StarlightGameState.story_flags["quest_stage"]=quest_stage
+ StarlightWorldDirector.story_chapter=2 if quest_stage>=4 else 1
+ if quest_stage>=2: StarlightWorldDirector.unlock_quest("q_aoi_memory")
+ if quest_stage>=3: StarlightWorldDirector.unlock_quest("q_village_garden")
+ if quest_stage>=4: StarlightWorldDirector.unlock_quest("q_hana_garden")
+ if quest_stage>=5: StarlightWorldDirector.unlock_quest("q_ren_dawn")
 
 func _quest_text():
  return [_t("Quest: Moon mushroom dhoondo.","Quest: Find a moon mushroom."),_t("Quest: Moonlight Mushroom Soup banao.","Quest: Cook Moonlight Mushroom Soup."),_t("Quest: Aoi ko soup serve karo.","Quest: Serve soup to Aoi."),_t("Chapter 1 complete — Starlight Tea unlock.","Chapter 1 complete — Starlight Tea unlocked."),_t("Chapter 2: Dawn Porridge ke ingredients dhoondo.","Chapter 2: Find Dawn Porridge ingredients."),_t("Chapter 2 complete — Ren ki kahani roshan hui.","Chapter 2 complete — Ren's story is lit.")][min(quest_stage,5)]
