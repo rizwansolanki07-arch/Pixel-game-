@@ -147,6 +147,7 @@ func _draw() -> void:
  _detail_pass(night)
  _reference_detail_pass(night)
  _draw_visual_polish(night)
+ _draw_placed_furniture(night)
  if night:
   for p in [Vector2(143,53),Vector2(235,53),Vector2(281,84)]:
    draw_circle(p,16,Color(1.0,0.66,0.27,0.07))
@@ -154,6 +155,57 @@ func _draw() -> void:
    var mx=28+(i*47)%330
    var my=43+(i*29)%130
    draw_rect(Rect2(mx,my,2,2),Color(0.75,0.67,1.0,0.42))
+
+
+func _draw_placed_furniture(night: bool) -> void:
+ # Furniture is rendered as independent props, never baked into the floor tiles.
+ var outline := Color("#241b27") if not night else Color("#171522")
+ var wood := Color("#8b563b") if not night else Color("#56383d")
+ var highlight := Color("#d49a58") if not night else Color("#95616d")
+ for placed in StarlightWorldDirector.placed_furniture:
+  var furniture_id := String(placed.get("id", ""))
+  var saved_position: Array = placed.get("position", [190.0, 150.0])
+  if saved_position.size() < 2:
+   continue
+  var p := Vector2(float(saved_position[0]), float(saved_position[1]))
+  match furniture_id:
+   "oak_cafe_table":
+    draw_colored_polygon(PackedVector2Array([p+Vector2(0,-7),p+Vector2(13,0),p+Vector2(0,7),p+Vector2(-13,0)]),outline)
+    draw_colored_polygon(PackedVector2Array([p+Vector2(0,-6),p+Vector2(11,0),p+Vector2(0,5),p+Vector2(-11,0)]),wood)
+    draw_line(p+Vector2(-7,0),p+Vector2(0,3),highlight,1)
+    draw_line(p+Vector2(-5,4),p+Vector2(-6,11),outline,2)
+    draw_line(p+Vector2(5,4),p+Vector2(6,11),outline,2)
+   "cushioned_stool":
+    draw_rect(Rect2(p.x-5,p.y-3,10,6),outline)
+    draw_rect(Rect2(p.x-4,p.y-3,8,4),Color("#9d5357") if not night else Color("#69405a"))
+    draw_line(p+Vector2(-3,2),p+Vector2(-4,8),wood,2)
+    draw_line(p+Vector2(3,2),p+Vector2(4,8),wood,2)
+   "moon_lantern":
+    draw_rect(Rect2(p.x-4,p.y-7,8,10),outline)
+    draw_rect(Rect2(p.x-2,p.y-5,4,6),Color("#ffe19a") if not night else Color("#d9c2ff"))
+    draw_line(p+Vector2(-3,-8),p+Vector2(3,-8),highlight,1)
+    draw_circle(p+Vector2(0,-1),8,Color(1.0,0.72,0.35,0.10) if not night else Color(0.72,0.58,1.0,0.12))
+   "herb_planter":
+    draw_rect(Rect2(p.x-6,p.y-2,12,7),outline)
+    draw_rect(Rect2(p.x-5,p.y-1,10,5),wood)
+    for offset in [Vector2(-4,-4),Vector2(0,-7),Vector2(4,-4)]:
+     draw_rect(Rect2(p+offset,Vector2(4,4)),Color("#5c8c52") if not night else Color("#456b59"))
+    draw_rect(Rect2(p.x-1,p.y-5,2,2),highlight)
+   "memory_shelf":
+    draw_rect(Rect2(p.x-8,p.y-11,16,17),outline)
+    draw_rect(Rect2(p.x-6,p.y-9,12,13),wood)
+    draw_rect(Rect2(p.x-6,p.y-3,12,2),highlight)
+    for i in range(3):
+     draw_rect(Rect2(p.x-5+i*4,p.y-7,3,3),[Color("#c97c58"),Color("#78966b"),Color("#d9b86c")][i])
+     draw_rect(Rect2(p.x-5+i*4,p.y-1,3,3),[Color("#d7b66b"),Color("#8c7da9"),Color("#6e9a87")][i])
+   "starry_rug":
+    draw_colored_polygon(PackedVector2Array([p+Vector2(0,-7),p+Vector2(13,0),p+Vector2(0,7),p+Vector2(-13,0)]),Color("#5e426e") if not night else Color("#3f345c"))
+    draw_polyline(PackedVector2Array([p+Vector2(0,-5),p+Vector2(10,0),p+Vector2(0,5),p+Vector2(-10,0),p+Vector2(0,-5)]),highlight,1)
+    draw_rect(Rect2(p.x-1,p.y-1,2,2),Color("#ffe4a1") if not night else Color("#e5d8ff"))
+   _:
+    draw_rect(Rect2(p.x-4,p.y-4,8,8),outline)
+    draw_rect(Rect2(p.x-2,p.y-2,4,4),highlight)
+
 
 func _detail_pass(night:bool)->void:
  # Dense but readable handcrafted props, aligned to the 2:1 floor perspective.
