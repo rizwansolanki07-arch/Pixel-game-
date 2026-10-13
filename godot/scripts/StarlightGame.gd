@@ -871,20 +871,6 @@ func _draw_guest(p:Vector2,skin:Color,cloth:Color,hat:bool)->void:
  draw_rect(Rect2(p.x-5,p.y+9,4,5),Color("#2f2931"))
  draw_rect(Rect2(p.x+1,p.y+9,4,5),Color("#2f2931"))
 
-func _draw_pet(night:bool)->void:
- var p=Vector2(player.x+18,player.y+10) if mode=="cafe" else Vector2(0,0)
- if mode!="cafe": return
- # Tiny fluffy white companion, kept separate from Yui's sprite.
- draw_circle(p+Vector2(0,2),7,Color("#2e2732"))
- draw_circle(p+Vector2(-4,-2),5,Color("#f4efe7"))
- draw_circle(p+Vector2(4,-3),5,Color("#efe8de"))
- draw_circle(p+Vector2(0,-6),5,Color("#fff8ef"))
- draw_rect(Rect2(p.x-2,p.y+5,4,3),Color("#b5a39a"))
- draw_rect(Rect2(p.x-5,p.y+1,2,2),Color("#2b2430"))
- draw_rect(Rect2(p.x+3,p.y+1,2,2),Color("#2b2430"))
- if night:
-  draw_rect(Rect2(p.x-1,p.y-9,2,2),Color("#d9c7ff"))
-
 func _draw_pixel_finish(night:bool)->void:
  # Hand-authored pixel clusters: hard edges, limited palette, consistent upper-left light.
  var outline=Color("#241c28") if not night else Color("#171522")
