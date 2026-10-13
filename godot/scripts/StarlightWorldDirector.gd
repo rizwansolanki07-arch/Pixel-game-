@@ -139,12 +139,21 @@ func buy_furniture(furniture_id: String) -> bool:
     return true
 
 func place_furniture(furniture_id: String, world_position: Vector2) -> bool:
-    if not furniture_id in owned_furniture:
+    if not furniture_id in owned_furniture or not FURNITURE.has(furniture_id):
         return false
+    var item: Dictionary = FURNITURE[furniture_id]
+    var footprint: Array = item.get("footprint", [1, 1])
+    var size := Vector2(float(footprint[0]) * 16.0, float(footprint[1]) * 8.0)
+    var candidate := Rect2(world_position - size * 0.5, size)
     for placed in placed_furniture:
         var stored_position: Array = placed.get("position", [0.0, 0.0])
         var existing_position := Vector2(float(stored_position[0]), float(stored_position[1]))
-        if String(placed.get("id", "")) == furniture_id and existing_position.distance_to(world_position) < 12.0:
+        var existing_id := String(placed.get("id", ""))
+        var existing_item: Dictionary = FURNITURE.get(existing_id, {})
+        var existing_footprint: Array = existing_item.get("footprint", [1, 1])
+        var existing_size := Vector2(float(existing_footprint[0]) * 16.0, float(existing_footprint[1]) * 8.0)
+        var existing_rect := Rect2(existing_position - existing_size * 0.5, existing_size)
+        if candidate.intersects(existing_rect):
             return false
     placed_furniture.append({"id": furniture_id, "position": [world_position.x, world_position.y]})
     return true
