@@ -34,3 +34,7 @@ jobs:
       - name: Validate Godot project
         working-directory: godot
         run: godot --headless --editor --quit
+
+      - name: Run save compatibility regression checks
+        working-directory: godot
+        run: godot --headless --path . --script res://tests/starlight_save_regression.gd
