@@ -447,7 +447,8 @@ func _touch_move(v):
 func _touch_interact(): dialogue.advance() if dialogue.active else _interact()
 func _dialogue_finished(): _quest()
 func _say(s,t=2): msg=s; msg_time=t
-func _t(hi,en): return hi if language=="HI" else en
+func _t(hi: String, en: String) -> String:
+ return hi if language == "HI" else en
 
 func _draw():
  if mode=="title": _title()
