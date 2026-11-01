@@ -4,10 +4,13 @@ on:
   push:
     branches:
       - starlight-cafe-foundation
+      - feature/starlight-cafe-v1-spirit-cafe
   pull_request:
     branches:
       - main
       - starlight-cafe-foundation
+      - feature/full-game-expansion-wave1
+      - feature/starlight-cafe-v1-spirit-cafe
     paths:
       - "godot/**"
       - ".github/workflows/starlight-validation.yml"
